@@ -2,7 +2,7 @@
 
 module categories.Semicategories where
 
-open import Prelude public
+open import hott.HoTT public
 
 record WildSemicategoryStructure ℓₒ ℓₘ (Ob : Type ℓₒ) : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   infixr 40 _◦_
@@ -12,14 +12,12 @@ record WildSemicategoryStructure ℓₒ ℓₘ (Ob : Type ℓₒ) : Type (lsuc (
     ass : ∀ {x y z w} {f : hom z w} {g : hom y z} {h : hom x y}
           → (f ◦ g) ◦ h == f ◦ (g ◦ h)
 
-  module properties where
+  module WildSemicategoryStructure-properties where
     is-initial : (x : Ob) → Type (ℓₒ l⊔ ℓₘ)
     is-initial x = (y : Ob) → is-contr (hom x y)
 
     is-terminal : (x : Ob) → Type (ℓₒ l⊔ ℓₘ)
     is-terminal x = (y : Ob) → is-contr (hom y x)
-
-  open properties public
 
 record WildSemicategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   field

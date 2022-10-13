@@ -37,8 +37,6 @@ record WildCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
       { f = id
       ; f-is-iso = record { g = id ; g◦f = idl ; f◦g = idl } }
 
-  open isomorphisms public
-
 record PreCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   field ⦃ C ⦄ : WildCategory ℓₒ ℓₘ
   open WildCategory C public
@@ -57,5 +55,6 @@ record StrictCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
 record Category ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   field ⦃ C ⦄ : PreCategory ℓₒ ℓₘ
   open PreCategory C hiding (C) public
+  open PreCategory.isomorphisms C
   field
     id-to-iso-is-equiv : (x y : Ob) → is-equiv (id-to-iso x y)

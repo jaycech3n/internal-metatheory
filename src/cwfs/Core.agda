@@ -1,5 +1,6 @@
 {-# OPTIONS --without-K #-}
 
+-- Basic structures in categories with families, ignoring coherence conditions
 module cwfs.Core where
 
 open import categories.Categories public
@@ -8,6 +9,7 @@ record ContextStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ)
   : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
 
   open WildCategory C renaming (Ob to Con ; hom to Sub) public
+  open WildSemicategoryStructure-properties
 
   field
     ◆ : Con
