@@ -9,7 +9,6 @@ record ContextStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ)
   : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
 
   open WildCategory C renaming (Ob to Con ; hom to Sub) public
-  open WildSemicategoryStructure-properties
 
   field
     ◆ : Con
@@ -28,14 +27,14 @@ record TyTmStructure {ℓₒ ℓₘ} ℓᵀʸ ℓᵀᵐ (C : WildCategory ℓₒ
     Ty   : Con → Type ℓᵀʸ
     _[_] : ∀ {Γ Δ} → Ty Δ → Sub Γ Δ → Ty Γ
     [id] : ∀ {Γ} {A : Ty Γ} → A [ id ] == A
-    [◦]  : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε} -- Greek capital epsilon, "\GE"
-            → A [ g ◦ f ] == A [ g ] [ f ]
+    [◦]  : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε} -- Greek capital epsilon, \GE
+           → A [ g ◦ f ] == A [ g ] [ f ]
 
     Tm    : ∀ {Γ} → Ty Γ → Type ℓᵀᵐ
     _[_]ₜ : ∀ {Γ Δ} {A : Ty Δ} → Tm A → (f : Sub Γ Δ) → Tm (A [ f ])
     [id]ₜ : ∀ {Γ} {A : Ty Γ} {t : Tm A} → t [ id ]ₜ == t [ Tm ↓ [id] ]
     [◦]ₜ  : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε} {t : Tm A}
-             → t [ g ◦ f ]ₜ == t [ g ]ₜ [ f ]ₜ [ Tm ↓ [◦] ]
+            → t [ g ◦ f ]ₜ == t [ g ]ₜ [ f ]ₜ [ Tm ↓ [◦] ]
 
   private
     module definitions where

@@ -8,13 +8,13 @@ open import categories.Inverse public
 
 record SuitableSemicategory ℓₘ : Type (lsuc ℓₘ) where
   field
-    C : WildSemicategoryStructure lzero ℓₘ ℕ
-    C-loc-fin : LocallyFiniteOrderedWildSemicategoryStructure C
-    C-inverse : InverseWildSemicategoryStructure C
+    wildsemicatstr : WildSemicategoryStructure lzero ℓₘ ℕ
+    locfinstr : LocallyFinitelyIndexedWildSemicategoryStructure wildsemicatstr
+    inversestr : InverseWildSemicategoryStructure wildsemicatstr
 
-  open WildSemicategoryStructure C public
-  open InverseWildSemicategoryStructure C-inverse public
-  open LocallyFiniteOrderedWildSemicategoryStructure C-loc-fin public
+  open WildSemicategoryStructure wildsemicatstr public
+  open InverseWildSemicategoryStructure inversestr public
+  open LocallyFinitelyIndexedWildSemicategoryStructure locfinstr public
 
   field
     hom-monotone :

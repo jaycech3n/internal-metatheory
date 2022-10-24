@@ -7,7 +7,7 @@ open import cwfs.CwFs
 record UnitStructure {ℓₒ ℓₘ ℓᵀʸ ℓᵀᵐ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : CwFStructure ℓᵀʸ ℓᵀᵐ C)
   : Type (lsuc (ℓₒ l⊔ ℓₘ l⊔ ℓᵀʸ l⊔ ℓᵀᵐ)) where
 
-  open CwFStructure cwfstr public
+  open CwFStructure cwfstr
 
   field
     ⊤′   : ∀ {Γ} → Ty Γ

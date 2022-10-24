@@ -12,12 +12,11 @@ record WildSemicategoryStructure ℓₒ ℓₘ (Ob : Type ℓₒ) : Type (lsuc (
     ass : ∀ {x y z w} {f : hom z w} {g : hom y z} {h : hom x y}
           → (f ◦ g) ◦ h == f ◦ (g ◦ h)
 
-  module WildSemicategoryStructure-properties where
-    is-initial : (x : Ob) → Type (ℓₒ l⊔ ℓₘ)
-    is-initial x = (y : Ob) → is-contr (hom x y)
+  is-initial : (x : Ob) → Type (ℓₒ l⊔ ℓₘ)
+  is-initial x = (y : Ob) → is-contr (hom x y)
 
-    is-terminal : (x : Ob) → Type (ℓₒ l⊔ ℓₘ)
-    is-terminal x = (y : Ob) → is-contr (hom y x)
+  is-terminal : (x : Ob) → Type (ℓₒ l⊔ ℓₘ)
+  is-terminal x = (y : Ob) → is-contr (hom y x)
 
 record WildSemicategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   field

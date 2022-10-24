@@ -19,23 +19,15 @@ record WildCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
     wildcatstr : WildCategoryStructure ℓₒ ℓₘ Ob
   open WildCategoryStructure wildcatstr public
 
-  module isomorphisms where
-    record is-iso  {x y : Ob} (f : hom x y) : Type (ℓₒ l⊔ ℓₘ) where
-      field
-        g : hom y x
-        g◦f : g ◦ f == id
-        f◦g : f ◦ g == id
+  is-iso : {x y : Ob} (f : hom x y) → Type ℓₘ
+  is-iso {x} {y} f = Σ[ g ∶ hom y x ] (g ◦ f == id) × (f ◦ g == id)
 
-    infix 30 _≅_
-    record _≅_ (x y : Ob) : Type (ℓₒ l⊔ ℓₘ) where
-      field
-        f : hom x y
-        f-is-iso : is-iso f
+  infix 30 _≅_
+  _≅_ : (x y : Ob) → Type ℓₘ
+  x ≅ y = Σ[ f ∶ hom x y ] is-iso f
 
-    id-to-iso : ∀ x y → x == y → x ≅ y
-    id-to-iso x .x idp = record
-      { f = id
-      ; f-is-iso = record { g = id ; g◦f = idl ; f◦g = idl } }
+  id-to-iso : ∀ x y → x == y → x ≅ y
+  id-to-iso x .x idp = id , id , idl , idr
 
 record PreCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   field ⦃ C ⦄ : WildCategory ℓₒ ℓₘ
@@ -55,6 +47,5 @@ record StrictCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
 record Category ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   field ⦃ C ⦄ : PreCategory ℓₒ ℓₘ
   open PreCategory C hiding (C) public
-  open PreCategory.isomorphisms C
   field
     id-to-iso-is-equiv : (x y : Ob) → is-equiv (id-to-iso x y)

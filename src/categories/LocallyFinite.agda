@@ -2,25 +2,25 @@
 
 module categories.LocallyFinite where
 
-open import categories.Semicategories
+open import categories.Semicategories public
 
 -- Untruncatedly finite hom sets
-record LocallyFiniteOrderedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
+record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
   (C : WildSemicategoryStructure ℓₒ ℓₘ Ob)
   : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   open WildSemicategoryStructure C
 
   field
-    hom-finite : ∀ x y → Σ[ n ∶ ℕ ] (hom x y ≃ Fin n)
+    hom-finitely-indexed : ∀ x y → Σ[ n ∶ ℕ ] (hom x y ≃ Fin n)
 
   private
     module basic-definitions where
       abstract
         hom-size : (x y : Ob) → ℕ
-        hom-size x y = fst (hom-finite x y)
+        hom-size x y = fst (hom-finitely-indexed x y)
 
         hom-equiv : (x y : Ob) → hom x y ≃ Fin (hom-size x y)
-        hom-equiv x y = snd (hom-finite x y)
+        hom-equiv x y = snd (hom-finitely-indexed x y)
 
         idx-of : ∀ {x y} → hom x y → Fin (hom-size x y)
         idx-of {x} {y} f = –> (hom-equiv x y) f

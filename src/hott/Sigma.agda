@@ -5,7 +5,7 @@ module hott.Sigma where
 open import hott.Base public
 
 Σ-syntax = Σ
-syntax Σ-syntax A (λ x → B) = Σ[ x ∶ A ] B
+syntax Σ-syntax A (λ x → B) = Σ[ x ∶ A ] B -- use \:
 
 private
   module triples {ℓ₁ ℓ₂ ℓ₃}
