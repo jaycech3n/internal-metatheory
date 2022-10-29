@@ -3,8 +3,11 @@
 module hott.HoTT where
 
 open import hott.Base public
+open import hott.Bool public
 open import hott.Conditionals public
+open import hott.Decidable public
 open import hott.Fin public
+open import hott.Functions public
 open import hott.Inspect public
 open import hott.Nat public
 open import hott.Paths public

@@ -34,7 +34,7 @@ record PreCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   open WildCategory C public
 
   field
-    Hom-is-set : ∀ {x y} → is-set (hom x y)
+    hom-is-set : ∀ {x y} → is-set (hom x y)
 
 record StrictCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   field ⦃ C ⦄ : PreCategory ℓₒ ℓₘ

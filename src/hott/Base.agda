@@ -17,7 +17,3 @@ open import HoTT
 infixl 1 _◅_
 _◅_ : ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} (a : A) (f : (x : A) → B x) → B a
 a ◅ f = f a
-
-to-Bool : ∀ {ℓ} {A : Type ℓ} → Dec A → Bool
-to-Bool (inl _) = true
-to-Bool (inr _) = false

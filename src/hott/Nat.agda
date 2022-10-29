@@ -29,6 +29,8 @@ private
     <1-=O : n < 1 → n == O
     <1-=O ltS = idp
 
+  open one-arg-lemmas
+
   module two-arg-lemmas {m n : ℕ} where
     =-cancel-S : 1+ m == 1+ n :> ℕ → m == n
     =-cancel-S idp = idp
@@ -43,6 +45,11 @@ private
 
     S≤-≤ : 1+ m ≤ n → m ≤ n
     S≤-≤ = ≤-trans lteS
+
+    no-between : m < n → n < 1+ m → ⊥
+    no-between u v with <-S≤ u
+    ... | inl idp = ¬< v
+    ... | inr w = ¬< (<-trans v w)
 
   module three-arg-lemmas {k m n : ℕ} where
     ≤-<-< : k ≤ m → m < n → k < n
