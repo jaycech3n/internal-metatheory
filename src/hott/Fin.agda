@@ -83,11 +83,13 @@ abstract
          → Dec ((i : Fin n) → P i)
 ∀-Fin? {n = O} P _ = inl (λ ())
 ∀-Fin? {n = 1+ n} P ∀Fin-Sn-Dec-P =
- if (∀-Fin? (P ∘ Fin-S) (∀Fin-Sn-Dec-P ∘ Fin-S))
-    (λ ∀Fin-n-P → if (∀Fin-Sn-Dec-P (n , ltS))
-                     (λ  Pn → inl (∀-Fin-extend ∀Fin-n-P Pn))
-                     (λ ¬Pn → inr λ ∀Fin-Sn-P → ¬Pn (∀Fin-Sn-P (n , ltS))))
-    (λ ¬∀Fin-n-P → inr λ ∀Fin-Sn-P → ¬∀Fin-n-P (∀Fin-Sn-P ∘ Fin-S))
+ if ∀-Fin? (P ∘ Fin-S) (∀Fin-Sn-Dec-P ∘ Fin-S) ∶ (λ ∀Fin-n-P →
+   if ∀Fin-Sn-Dec-P (n , ltS) ∶ (λ Pn →
+     inl (∀-Fin-extend ∀Fin-n-P Pn))
+   else λ ¬Pn →
+     inr λ ∀Fin-Sn-P → ¬Pn (∀Fin-Sn-P (n , ltS)))
+ else λ ¬∀Fin-n-P →
+   inr λ ∀Fin-Sn-P → ¬∀Fin-n-P (∀Fin-Sn-P ∘ Fin-S)
 
 Σ-Fin? : ∀ {ℓ} {n} (P : Fin n → Type ℓ)
          → ((i : Fin n) → Dec (P i))
@@ -97,39 +99,39 @@ abstract
   if (∀Fin-Sn-Dec-P 0)
      (λ  P0 → inl (0 , P0))
      (λ ¬P0 → inr λ{ ((O , ltS) , P0) → ¬P0 P0
-                     ; ((1+ _ , ltSR ()) , _)})
+                   ; ((1+ _ , ltSR ()) , _)})
 Σ-Fin? {n = 2+ n} P ∀Fin-Sn-Dec-P =
-  if (Σ-Fin? (P ∘ Fin-S) (∀Fin-Sn-Dec-P ∘ Fin-S))
-     (λ{ (i , Pi) → inl ((Fin-S i) , Pi) })
-     (λ ¬ΣFin-n-P →
-       if (∀Fin-Sn-Dec-P (1+ n , ltS))
-          (λ  PSn → inl ((1+ n , ltS) , PSn))
-          (λ ¬PSn → inr
-             λ{ ((i , i<2+n) , Pi) →
-                ⊔-elim
-                  (λ i≤Sn →
-                     ⊔-elim
-                       (λ i=Sn → ¬PSn (transp P (Fin= i=Sn) Pi))
-                       (λ i<Sn → ¬ΣFin-n-P ((i , i<Sn) , (transp P (Fin= idp) Pi)))
-                       i≤Sn)
-                  (λ Sn<i → ¬< (≤-<-< (<-S≤ Sn<i) i<2+n))
-                  (ℕ-trichotomy' i (1+ n)) }))
+  if Σ-Fin? (P ∘ Fin-S) (∀Fin-Sn-Dec-P ∘ Fin-S) ∶ (λ{ (i , Pi) →
+    inl ((Fin-S i) , Pi) })
+  else λ ¬ΣFin-n-P →
+    if ∀Fin-Sn-Dec-P (1+ n , ltS) ∶ (λ PSn →
+      inl ((1+ n , ltS) , PSn))
+    else (λ ¬PSn →
+      inr λ{ ((i , i<2+n) , Pi) →
+             ⊔-elim
+               (λ i≤Sn →
+                 ⊔-elim
+                   (λ i=Sn → ¬PSn (transp P (Fin= i=Sn) Pi))
+                   (λ i<Sn → ¬ΣFin-n-P ((i , i<Sn) , (transp P (Fin= idp) Pi)))
+                   i≤Sn)
+               (λ Sn<i → ¬< (≤-<-< (<-S≤ Sn<i) i<2+n))
+               (ℕ-trichotomy' i (1+ n)) })
 
 -- Deciding fibers of maps between finite types
 Fin-hfiber-dec : ∀ {m n} (f : Fin m → Fin n) (j : Fin n) → Dec (hfiber f j)
 Fin-hfiber-dec {O} {n} f j = inr ((≮O _) ∘ snd ∘ fst)
 Fin-hfiber-dec {1+ m} {n} f j =
-  if (Fin-hfiber-dec (f ∘ Fin-S) j)
-     (λ{ (x@(i , i<m) , fi=j) → inl (Fin-S x , ap f (Fin= idp) ∙ fi=j) })
-     (λ h → if (f (m , ltS) ≟-Fin j)
-               (λ fm=j → inl ((m , ltS) , fm=j))
-               (λ fm≠j → inr λ{ ((i , i<Sm) , fi=j) →
-                                ⊔-elim
-                                  (λ i=m →
-                                    fm≠j (ap f (Fin= (! i=m)) ∙ fi=j))
-                                  (λ i<m  →
-                                    h ((i , i<m) , ap f (Fin= idp) ∙ fi=j))
-                                  (<S-≤ i<Sm) }))
+  if Fin-hfiber-dec (f ∘ Fin-S) j ∶
+    (λ{ (x@(i , i<m) , fi=j) → inl (Fin-S x , ap f (Fin= idp) ∙ fi=j) })
+  else λ h →
+    if f (m , ltS) ≟-Fin j ∶
+      (λ fm=j → inl ((m , ltS) , fm=j))
+    else λ fm≠j →
+      inr λ{ ((i , i<Sm) , fi=j) →
+             ⊔-elim
+               (λ i=m → fm≠j (ap f (Fin= (! i=m)) ∙ fi=j))
+               (λ i<m → h ((i , i<m) , ap f (Fin= idp) ∙ fi=j))
+               (<S-≤ i<Sm) }
 
 {- Counting -}
 
@@ -145,10 +147,9 @@ Fin-hfiber-dec {1+ m} {n} f j =
      (λ no → 0 , transp (_≤ n) (! (+-unit-r m)) (inr m<n))
 #-Fin-from {n = n} P f i@(m , m<n) {1+ d} {p} =
   if (f i)
-     (λ yes → 1+ #-Fin-next-val ,
-              transp (_≤ n)
-                 (3-comm-2 {1} {m} ∙ +-assoc m 1 _)
-                 #-Fin-next-cond)
+     (λ yes →
+       1+ #-Fin-next-val ,
+       transp (_≤ n) (3-comm-2 {1} {m} ∙ +-assoc m 1 _) #-Fin-next-cond)
      (λ no → #-Fin-next-val , S≤-≤ #-Fin-next-cond)
   where
     1<n∸m : 1 < n ∸ m

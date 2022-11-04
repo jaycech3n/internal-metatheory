@@ -29,11 +29,11 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
         hom[ x , y ]# i = <– (hom-equiv x y) i
 
         hom#-idx : ∀ {x y} (f : hom x y)
-                  → hom[ x , y ]# (idx-of f) == f
+                   → hom[ x , y ]# (idx-of f) == f
         hom#-idx {x} {y} f = <–-inv-l (hom-equiv x y) f
 
         idx-hom# : ∀ {x y} (i : Fin (hom-size x y))
-                      → idx-of (hom[ x , y ]# i) == i
+                   → idx-of (hom[ x , y ]# i) == i
         idx-hom# {x} {y} i = <–-inv-r (hom-equiv x y) i
 
         idx<hom-size : ∀ {x y} (f : hom x y) → to-ℕ (idx-of f) < hom-size x y
@@ -101,7 +101,7 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
                        (λ  u → inl (fwd-transp-Σ-dom e u))
                        (λ ¬u → inr (λ (f , p) → ¬u (–> e f , p)))
 
-      -- The number of (g : hom x y) satisfying f ≤ g and (P g)
+      -- The number of (g : hom x y) satisfying f ≼ g and (P g)
       #-hom[_,_]-from : ∀ {ℓ} x y
                         → (P : hom x y → Type ℓ)
                         → ((f : hom x y) → Dec (P f))
