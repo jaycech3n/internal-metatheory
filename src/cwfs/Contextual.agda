@@ -4,10 +4,10 @@ module cwfs.Contextual where
 
 open import cwfs.CwFs
 
-record ContextualCwFStructure {ℓₒ ℓₘ} ℓᵀʸ ℓᵀᵐ (C : WildCategory ℓₒ ℓₘ)
-  : Type (lsuc (ℓₒ l⊔ ℓₘ l⊔ ℓᵀʸ l⊔ ℓᵀᵐ)) where
+record ContextualCwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsuc (ℓₒ l⊔ ℓₘ))
+  where
 
-  field cwfstr : CwFStructure ℓᵀʸ ℓᵀᵐ C
+  field cwfstr : CwFStructure C
   open CwFStructure cwfstr public
 
   field
@@ -19,15 +19,11 @@ record ContextualCwFStructure {ℓₒ ℓₘ} ℓᵀʸ ℓᵀᵐ (C : WildCatego
   len-◆ = <– (len-O {◆}) idp
 
 
-module Contextual-contextual-core {ℓₒ ℓₘ ℓᵀʸ ℓᵀᵐ} {C : WildCategory ℓₒ ℓₘ}
-  (cwf : CwFStructure ℓᵀʸ ℓᵀᵐ C) where
-
+module Contextual-contextual-core {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwf : CwFStructure C)
+  where
   open CwFStructure cwf
-    renaming
-    ( _◦_ to _◦ᶜʷᶠ_
-    ; ass to assᶜʷᶠ )
 
-  listlike : ℕ → Type ℓᵀʸ
+  listlike : ℕ → Type ℓₒ
   con-of : {n : ℕ} → listlike n → Con
 
   listlike O = Lift ⊤
@@ -36,45 +32,59 @@ module Contextual-contextual-core {ℓₒ ℓₘ ℓᵀʸ ℓᵀᵐ} {C : WildCa
   con-of {O} _ = ◆
   con-of {1+ n} (γ , A) = con-of γ ∷ A
 
-  ContextualCon : WildCategory ℓᵀʸ ℓₘ
+  ContextualCon : WildCategory ℓₒ ℓₘ
   WildCategory.Ob ContextualCon = Σ[ n ∶ ℕ ] listlike n
   WildCategory.wildcatstr ContextualCon = record
     { wildsemicatstr = record
         { hom = λ{ (_ , γ) (_ , δ) → Sub (con-of γ) (con-of δ) }
-        ; _◦_ = _◦ᶜʷᶠ_
-        ; ass = assᶜʷᶠ
+        ; _◦_ = _◦_
+        ; ass = ass
         }
     ; id = id
     ; idl = idl
     ; idr = idr }
 
-  cctytmstr : TyTmStructure ℓᵀʸ ℓᵀᵐ ContextualCon
+  cccontextstr : ContextStructure ContextualCon
+  cccontextstr = record
+    { ◆ = O , lift unit
+    ; ◆-terminal = λ{ (_ , γ) → ◆-terminal (con-of γ) } }
+  open ContextStructure cccontextstr
+
+  cctytmstr : TyTmStructure ContextualCon
   cctytmstr = record
-    { ctxstr = record
-        { ◆ = (O , lift unit)
-        ; ◆-terminal = λ{ (_ , γ) → ◆-terminal (con-of γ) } }
-    ; Ty = {!!}
-    ; _[_] = {!!}
-    ; [id] = {!!}
-    ; [◦] = {!!}
-    ; Tm = {!!}
-    ; _[_]ₜ = {!!}
-    ; [id]ₜ = {!!}
-    ; [◦]ₜ = {!!} }
+    { ctxstr = cccontextstr
+    ; Ty = λ{ (_ , γ) → Ty (con-of γ) }
+    ; _[_] = _[_]
+    ; [id] = [id]
+    ; [◦] = [◦]
+    ; Tm = Tm
+    ; _[_]ₜ = _[_]ₜ
+    ; [id]ₜ = [id]ₜ
+    ; [◦]ₜ = [◦]ₜ }
 
-  ContextualCore : ContextualCwFStructure ℓᵀʸ ℓᵀᵐ ContextualCon
+  cccoeᵀᵐ= :
+    {Γ @ (n , γ) : ContextStructure.Con cccontextstr}
+    {A A' : Ty (con-of γ)}
+    (p : A == A') (t : Tm A)
+    → TyTmStructure.coeᵀᵐ cctytmstr {Γ} p t == TyTmStructure.coeᵀᵐ tytmstr p t
+  cccoeᵀᵐ= idp t = idp
+
+  ContextualCore : ContextualCwFStructure ContextualCon
   CwFStructure.compstr (ContextualCwFStructure.cwfstr ContextualCore) = record
-    { tytmstr = {!!}
-    ; _∷_ = {!!}
-    ; π = {!!}
-    ; υ = {!!}
-    ; _,,_ = {!!}
-    ; βπ = {!!}
-    ; βυ = {!!}
-    ; η,, = {!!}
-    ; ,,-◦ = {!!}
-    }
-
-  ContextualCwFStructure.len ContextualCore = {!!}
-  ContextualCwFStructure.len-O ContextualCore = {!!}
-  ContextualCwFStructure.len-S ContextualCore = {!!}
+    { tytmstr = cctytmstr
+    ; _∷_ = λ (n , γ) A → 1+ n , γ , A
+    ; π = π
+    ; υ = υ
+    ; _,,_ = _,,_
+    ; βπ = βπ
+    ; βυ = βυ
+    ; η,, = η,,
+    ; ,,-◦ = ,,-◦ ∙ ⟨=,, ! (cccoeᵀᵐ= (! [◦]) _) =⟩ }
+  ContextualCwFStructure.len ContextualCore = fst
+  ContextualCwFStructure.len-O ContextualCore =
+    equiv (λ{ idp → idp}) (λ{ idp → idp}) (λ{ idp → idp}) λ{ idp → idp}
+  ContextualCwFStructure.len-S ContextualCore = equiv
+    (λ{ ((1+ n , γ , A) , idp) → (n , γ) , A , idp })
+    (λ{ ((n , γ) , A , idp) → (1+ n , γ , A) , idp })
+    (λ{ ((_ , _) , _ , idp) → idp })
+    (λ{ ((_ , _ , _) , idp) → idp })

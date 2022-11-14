@@ -4,10 +4,9 @@ module cwfs.CwFs where
 
 open import cwfs.Core public
 
-record CwFStructure {ℓₒ ℓₘ} ℓᵀʸ ℓᵀᵐ (C : WildCategory ℓₒ ℓₘ)
-  : Type (lsuc (ℓₒ l⊔ ℓₘ l⊔ ℓᵀʸ l⊔ ℓᵀᵐ)) where
+record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
 
-  field compstr : ComprehensionStructure ℓᵀʸ ℓᵀᵐ C
+  field compstr : ComprehensionStructure C
   open ComprehensionStructure compstr public
 
   private
@@ -81,6 +80,11 @@ record CwFStructure {ℓₒ ℓₘ} ℓᵀʸ ℓᵀᵐ (C : WildCategory ℓₒ 
                 → t == t' over-Tm⟨ [= p ] ⟩
                 → (f ,, t ) == (f' ,, t')
       ⟨= idp ,, idp =⟩ = idp
+
+      ⟨=,,_=⟩ : ∀ {Γ Δ} {A : Ty Δ} {f : Sub Γ Δ} {t t' : Tm (A [ f ])}
+                → t == t'
+                → (f ,, t ) == (f ,, t')
+      ⟨=,, idp =⟩ = idp
 
       ⟨=_,,=⟩ : ∀ {Γ Δ} {A : Ty Δ} {f f' : Sub Γ Δ} {t : Tm (A [ f ])}
                 → (p : f == f')

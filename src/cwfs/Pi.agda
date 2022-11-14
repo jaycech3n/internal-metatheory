@@ -4,8 +4,8 @@ module cwfs.Pi where
 
 open import cwfs.CwFs
 
-record PiStructure {ℓₒ ℓₘ ℓᵀʸ ℓᵀᵐ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : CwFStructure ℓᵀʸ ℓᵀᵐ C)
-  : Type (lsuc (ℓₒ l⊔ ℓₘ l⊔ ℓᵀʸ l⊔ ℓᵀᵐ)) where
+record PiStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : CwFStructure C)
+  : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
 
   open CwFStructure cwfstr
 

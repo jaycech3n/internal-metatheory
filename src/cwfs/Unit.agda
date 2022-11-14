@@ -4,8 +4,8 @@ module cwfs.Unit where
 
 open import cwfs.CwFs
 
-record UnitStructure {ℓₒ ℓₘ ℓᵀʸ ℓᵀᵐ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : CwFStructure ℓᵀʸ ℓᵀᵐ C)
-  : Type (lsuc (ℓₒ l⊔ ℓₘ l⊔ ℓᵀʸ l⊔ ℓᵀᵐ)) where
+record UnitStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : CwFStructure C)
+  : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
 
   open CwFStructure cwfstr
 
