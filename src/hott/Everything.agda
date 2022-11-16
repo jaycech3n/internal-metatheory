@@ -9,7 +9,6 @@ open import hott.Base
 open import hott.Bool
 open import hott.Conditionals
 open import hott.Fin
-open import hott.Functions
 open import hott.Inspect
 open import hott.Nat
 open import hott.PathOver

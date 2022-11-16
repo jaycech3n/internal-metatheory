@@ -18,6 +18,9 @@ private
     3rd : (u : Σ[ a ∶ A ] Σ[ b ∶ B a ] C b) → C (2nd u)
     3rd = snd ∘ snd
 
+    first-two : Σ[ a ∶ A ] Σ[ b ∶ B a ] C b → Σ[ a ∶ A ] B a
+    first-two (a , b , _) = a , b
+
   module equivalences {ℓ₁ ℓ₂ ℓ₃} {A : Type ℓ₁} {B : Type ℓ₂} (e : A ≃ B) where
     fwd-transp-Σ-dom : {C : B → Type ℓ₃} → Σ[ b ∶ B ] C b → Σ[ a ∶ A ] C (–> e a)
     fwd-transp-Σ-dom {C} (b , c) = <– e b , transp C (! (<–-inv-r e b)) c
