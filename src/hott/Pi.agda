@@ -18,12 +18,17 @@ private
           → (∀ a b c → f a b c == g a b c) → f == g
     λ=₃ P = λ=₂ (λ a b → λ= (P a b))
 
-  module equivalences {ℓ₁ ℓ₂ ℓ₃} {A : Type ℓ₁} {B : Type ℓ₂} (e : A ≃ B) where
-    fwd-transp-Π-dom : {P : B → Type ℓ₃} → ((b : B) → P b) → (a : A) → P (–> e a)
-    fwd-transp-Π-dom f = f ∘ –> e
+  module equivalences {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : Type ℓ₂} where
+    fwd-transp-Π-dom : ∀ {ℓ₃} {P : B → Type ℓ₃} (e : A ≃ B)
+                       → ((b : B) → P b) → (a : A) → P (–> e a)
+    fwd-transp-Π-dom e f = f ∘ –> e
 
-    bwd-transp-Π-dom : {P : A → Type ℓ₃} → ((a : A) → P a) → (b : B) → P (<– e b)
-    bwd-transp-Π-dom f = f ∘ <– e
+    bwd-transp-Π-dom : ∀ {ℓ₃} {P : A → Type ℓ₃} (e : A ≃ B)
+                       → ((a : A) → P a) → (b : B) → P (<– e b)
+    bwd-transp-Π-dom e f = f ∘ <– e
+
+    inv-equiv : {f : A → B} → is-equiv f → B → A
+    inv-equiv {f} e = <– (f , e)
 
 open equalities public
 open equivalences public

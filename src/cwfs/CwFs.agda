@@ -7,7 +7,7 @@ open import cwfs.Core public
 record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
 
   field compstr : ComprehensionStructure C
-  open ComprehensionStructure compstr public
+  open ComprehensionStructure compstr hiding (tytmstr) public
 
   private
     module notation where
@@ -22,6 +22,9 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       ap↓-Tm g q = ap↓2 {A = Con} {B = Ty} {C = Tm} g q
 
       syntax ap↓-Tm g q = q |in-ctx↓ᵀᵐ g
+
+      _ʷ : {Γ : Con} (A : Ty Γ) → Ty (Γ ∷ A)
+      A ʷ = A [ π A ]
 
     module extension where
       _,,₊_ : ∀ Γ {A : Ty Γ} → Tm A → Sub Γ (Γ ∷ A)
@@ -66,7 +69,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         → a == c over-Tm⟨ p ∙ q ⟩ → coeᵀᵐ p a == c over-Tm⟨ q ⟩
       from-over-∙ {p = idp} = idf _
 
-  open notation
+  open notation public
   open extension public
   open term-coercions public
 

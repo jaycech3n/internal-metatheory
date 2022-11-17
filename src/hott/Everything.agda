@@ -8,6 +8,7 @@ module hott.Everything where
 open import hott.Base
 open import hott.Bool
 open import hott.Conditionals
+open import hott.Decidable
 open import hott.Fin
 open import hott.Inspect
 open import hott.Nat

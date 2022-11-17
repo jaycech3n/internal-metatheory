@@ -2,15 +2,17 @@
 
 open import reedy.IndexSemicategories
 open import cwfs.CwFs
+open import cwfs.Contextual
 open import cwfs.Pi
 open import cwfs.Sigma
 open import cwfs.Unit
 open import cwfs.Universe
 
-module reedy.TypeDiagrams {ℓₘᴵ ℓₒ ℓₘ ℓᵀʸ ℓᵀᵐ}
+module reedy.TypeDiagrams {ℓₘᴵ ℓₒ ℓₘ}
   (I : SuitableSemicategory ℓₘᴵ)
   {C : WildCategory ℓₒ ℓₘ}
-  (cwfstr : CwFStructure ℓᵀʸ ℓᵀᵐ C)
+  (cwfstr : CwFStructure C)
+  (ctxlstr : ContextualStructure cwfstr)
   (pistr : PiStructure cwfstr)
   (sigmastr : SigmaStructure cwfstr)
   (unitstr : UnitStructure cwfstr)
@@ -24,18 +26,23 @@ open import reedy.LinearSieves I
 open LinearSieve
 
 open CwFStructure cwfstr
+open ContextualStructure ctxlstr
 open PiStructure pistr
 open SigmaStructure sigmastr
 open UnitStructure unitstr
 open UniverseStructure univstr
 
-
 SCT : ℕ → Con
+A_at : (h n : ℕ) → h ≤ n → Ty (SCT n)
 M[_]_at : (i : ℕ) (s : LinearSieve i) (n : ℕ) → height s ≤ n → Ty (SCT n)
 M[_]-at : (i n : ℕ) → i ≤ n → Ty (SCT n)
 
 SCT O = ◆
-SCT (1+ n) = SCT n ∷ M[ n ]-at n lteE →′ U
+SCT (1+ n) = SCT n ∷ A n at n lteE
+
+A h at .h (inl idp) = M[ h ]-at h lteE →′ U
+A h at .(1+ h) (inr ltS) = A h at h lteE [ π (A h at h lteE) ]
+A h at (1+ n) (inr (ltSR u)) = A h at n (inr u) [ π (A n at n lteE) ]
 
 M[ O ]-at n _ = ⊤′
 M[ 1+ i ]-at n u =

@@ -61,7 +61,7 @@ record TyTmStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (ls
 record ComprehensionStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
 
   field tytmstr : TyTmStructure C
-  open TyTmStructure tytmstr public
+  open TyTmStructure tytmstr hiding (ctxstr) public
 
   infixl 20 _∷_
   infixl 30 _,,_
