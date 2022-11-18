@@ -26,6 +26,5 @@ record SuitableSemicategory ℓₘ : Type (lsuc ℓₘ) where
     endo-hom-empty : ∀ n → hom-size n n == O
     endo-hom-empty n with hom-size n n | inspect (hom-size n) n
     ... | O | _ = idp
-    ... | 1+ r | have p =
+    ... | 1+ r | have p = ⊥-rec $
       ¬< (hom-inverse n n (hom[ n , n ]# (O , transp! (O <_) p (O<S _))))
-        ◅ ⊥-rec

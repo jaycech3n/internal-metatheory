@@ -14,6 +14,6 @@ open import HoTT
   ; ≤-dec          to _≤?_
   ) public
 
-infixl 1 _◅_
-_◅_ : ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} (a : A) (f : (x : A) → B x) → B a
-a ◅ f = f a
+infixl 1 _◂$_
+_◂$_ : ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} (a : A) (f : (x : A) → B x) → B a
+a ◂$ f = f a
