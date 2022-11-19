@@ -22,11 +22,15 @@ private
     ... | inr (inl m<n) = inl (inr m<n)
     ... | inr (inr n<m) = inr n<m
 
-  module one-arg-lemmas {n : ℕ} where
-    ¬< : ¬ (n < n)
+  module one-arg-lemmas where
+    ¬< : ∀ {n} → ¬ (n < n)
     ¬< u = <-to-≠ u idp
 
-    <1-=O : n < 1 → n == O
+    S≮ : ∀ {n} → ¬ (S n < n)
+    S≮ {O} ()
+    S≮ {1+ n} = S≮ ∘ <-cancel-S
+
+    <1-=O : ∀ {n} → n < 1 → n == O
     <1-=O ltS = idp
 
   open one-arg-lemmas

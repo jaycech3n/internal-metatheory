@@ -47,8 +47,8 @@ _~⋆⟨_⟩[_]_ (h₁ , t₁) (1+ n) i (h₂ , t₂) ⦃ iS₁ ⦄ ⦃ iS₂ �
 
 -- [ i , h , t ] iS · f is a representative of the equivalence class of shapes
 -- that describe the (i, h, t)-sieve restricted along f (no uniform choice of which).
--- The definition of this case is a bit finicky, and it's currently a bit unclear
--- what the best formulation is.
+-- The definition is a bit finicky, and it's currently a bit unclear what the best
+-- formulation is.
 
 cumul-#-factors-of-[_]-through :
   ∀ {i h m} (t : Fin (hom-size i h)) (f : hom i m)
@@ -64,18 +64,24 @@ cumul-#-factors-of-[_]-through {i} {h} {m} t f u =
     p : to-ℕ (idx-of [O]) == O
     p = ap fst (idx-hom# (O , u))
 
+module _ (i : ℕ) where
+  shape-· : (h t : ℕ) (iS : is-shape i h t) {m : ℕ} (f : hom i m) → ℕ × ℕ
+  shape-· h (1+ t) iS {m} f =
+    if h <? m ∶ (λ h<m →
+      if O <? hom-size m h ∶ (λ O<hom-size
+        → h , fst (cumul-#-factors-of-[ t-Fin ]-through f O<hom-size))
+      else λ _
+        → h , O)
+    else λ _
+      → m , O
+    where
+      t-Fin : Fin (hom-size i h)
+      t-Fin = t , <-≤-< ltS (tcond iS)
+  shape-· (1+ h) O iS {m} f = shape-· h (hom-size i h) (shapeₕ↓ iS) f
+  shape-· O O _ {m} f = O , O
+
 [_,_,_]_· : (i h t : ℕ) (iS : is-shape i h t) {m : ℕ} (f : hom i m) → ℕ × ℕ × ℕ
-[_,_,_]_· i h (1+ t) iS {m} f =
-  if h <? m ∶ (λ h<m →
-    if O <? hom-size m h ∶ (λ O<hom-size →
-      (m , h , fst (cumul-#-factors-of-[ t-Fin ]-through f O<hom-size)))
-    else λ _ → (m , h , O))
-  else λ _ → (m , m , O)
-  where
-    t-Fin : Fin (hom-size i h)
-    t-Fin = t , <-≤-< ltS (tcond iS)
-[ i , 1+ h , O ] iS · f = [ i , h , hom-size i h ] (shapeₕ↓ iS) · f
-[_,_,_]_· i O O _ {m} f = (m , O , O)
+[_,_,_]_· i h t iS {m} f = m , shape-· i h t iS f
 
 
 {- (i, h, t)-admissibility -}
@@ -114,6 +120,19 @@ admissible-h-iff i h f =
     (admissibleₕ↑ i h f)
     (admissibleₕ↓ i h f)
 
+-- Important
+
+·-admissible :
+  (i h t : ℕ) (iS : is-shape i h t)
+  {m : ℕ} (f : hom i m) (g : hom m h)
+  → is-(i , h , t)-admissible (g ◦ f)
+  → is- [ i , h , t ] iS · f -admissible g
+·-admissible i O O iS f g (inl ())
+·-admissible i O O iS f g (inr ())
+·-admissible i (1+ h) O iS f g (inl u) = ⊥-rec (¬< u)
+·-admissible i .(1+ _) (1+ t) iS f g (inl (ltSR u)) = ⊥-rec (S≮ u)
+·-admissible i h (1+ t) iS f g (inr (p , u)) = inr ({!!} , {!!})
+
 
 {- Sieves -}
 
@@ -135,6 +154,7 @@ linear-sieve i h t iS =
     (λ _ f → to-Bool (is-(i , h , t )-admissible? f))
     (λ _ → idp)
 
+{-
 _~⋆⟨_⟩_ : ∀ {i} → LinearSieve i → (n : ℕ) → LinearSieve i → Type₀
 _~⋆⟨_⟩_ {i} s n s' = (height s , width s) ~⋆⟨ n ⟩[ i ] (height s' , width s')
 
@@ -147,3 +167,4 @@ _~⋆⟨_⟩_ {i} s n s' = (height s , width s) ~⋆⟨ n ⟩[ i ] (height s' , 
   (.(1+ h) , .O , iS , (idp , idp , idp) , ~⋆) =
     DSM= (λ m f → χ-∋-cond f ∙ admissible-h-iff i h f)
     ∙ ~⋆-equal-char (linear-sieve i (1+ h) O iS) s' ~⋆
+-}
