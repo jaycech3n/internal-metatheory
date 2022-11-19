@@ -102,12 +102,13 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
                        (λ ¬u → inr (λ (f , p) → ¬u (–> e f , p)))
 
       -- The number of (g : hom x y) satisfying f ≼ g and (P g)
-      #-hom[_,_]-from : ∀ {ℓ} x y
-                        → (P : hom x y → Type ℓ)
-                        → ((f : hom x y) → Dec (P f))
-                        → (f : hom x y)
-                        → Σ[ k ∶ ℕ ] to-ℕ (idx-of f) + k ≤ hom-size x y
-      #-hom[ x , y ]-from P dec f =
+      #-hom[_,_]-from_st :
+        ∀ {ℓ} x y
+        → (f : hom x y)
+        → (P : hom x y → Type ℓ)
+        → ((f : hom x y) → Dec (P f))
+        → Σ[ k ∶ ℕ ] to-ℕ (idx-of f) + k ≤ hom-size x y
+      #-hom[ x , y ]-from f st P dec =
         #-Fin-from {n = hom-size x y} (P ∘ hom[ x , y ]#) (dec ∘ hom[ x , y ]#)
           (idx-of f) {hom-size x y ∸ to-ℕ (idx-of f) ∸ 1} {β∸1 (∸-nonzero (idx<hom-size f))}
 

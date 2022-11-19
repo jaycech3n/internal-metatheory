@@ -56,6 +56,10 @@ private
     ≤-<-< (inl idp) u' = u'
     ≤-<-< (inr u) u' = <-trans u u'
 
+    <-≤-< : k < m → m ≤ n → k < n
+    <-≤-< u (inl idp) = u
+    <-≤-< u (inr u') = <-trans u u'
+
     3-comm-2 : k + m + n == m + k + n
     3-comm-2 = +-comm k m |in-ctx (_+ n)
 

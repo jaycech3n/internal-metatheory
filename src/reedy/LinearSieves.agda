@@ -45,36 +45,38 @@ _~⋆⟨_⟩[_]_ (h₁ , t₁) (1+ n) i (h₂ , t₂) ⦃ iS₁ ⦄ ⦃ iS₂ �
 
 -- Shape restriction
 
-#-factors-of_through_from :
-  ∀ {i h m} (g : hom i h) (f : hom i m) (α : hom m h)
-  → Σ[ k ∶ ℕ ] to-ℕ (idx-of α) + k ≤ hom-size m h
-#-factors-of_through_from {h = h} {m} g f α =
-  #-hom[ m , h ]-from (λ α → α ◦ f == g) (λ α → α ◦ f ≟-hom g) α
+-- [ i , h , t ] iS · f is a representative of the equivalence class of shapes
+-- that describe the (i, h, t)-sieve restricted along f (no uniform choice of which).
+-- The definition of this case is a bit finicky, and it's currently a bit unclear
+-- what the best formulation is.
 
--- [ i , h , t ]· f is a representative of the equivalence class of shapes
--- that describe the (i, h, t)-sieve restricted along f.
-[_,_,_]· : (i h t : ℕ) {m : ℕ} (f : hom i m) → ℕ × ℕ × ℕ
-[_,_,_]· i h (1+ O) {m} f =
-  if h <? m ∶
-    (λ h<m →
-      if O <? hom-size m h ∶
-        (λ O<hom-size → (m , h , k O<hom-size))
-      else λ _ → (m , h , O))
+cumul-#-factors-of-[_]-through :
+  ∀ {i h m} (t : Fin (hom-size i h)) (f : hom i m)
+  → O < hom-size m h
+  → Σ[ n ∶ ℕ ] n ≤ hom-size m h
+cumul-#-factors-of-[_]-through {i} {h} {m} t f u =
+  #-hom[ m , h ]-from [O] st (λ α → α ◦ f ≼ [t]) (λ α → α ◦ f ≼? [t])
+  ◂$ Σ-fmap-r λ x v → transp (λ n → n + x ≤ _) p v
+  where
+    [O] = hom[ m , h ]# (O , u)
+    [t] = hom[ i , h ]# t
+
+    p : to-ℕ (idx-of [O]) == O
+    p = ap fst (idx-hom# (O , u))
+
+[_,_,_]_· : (i h t : ℕ) (iS : is-shape i h t) {m : ℕ} (f : hom i m) → ℕ × ℕ × ℕ
+[_,_,_]_· i h (1+ t) iS {m} f =
+  if h <? m ∶ (λ h<m →
+    if O <? hom-size m h ∶ (λ O<hom-size →
+      (m , h , fst (cumul-#-factors-of-[ t-Fin ]-through f O<hom-size)))
+    else λ _ → (m , h , O))
   else λ _ → (m , m , O)
   where
-  module _ (O<hom-size : O < hom-size m h) where
-    [O]ₘₕ : hom m h
-    [O]ₘₕ = hom[ m , h ]# (O , O<hom-size)
+    t-Fin : Fin (hom-size i h)
+    t-Fin = t , <-≤-< ltS (tcond iS)
+[ i , 1+ h , O ] iS · f = [ i , h , hom-size i h ] (shapeₕ↓ iS) · f
+[_,_,_]_· i O O _ {m} f = (m , O , O)
 
-    O<hom-size-ih : O < hom-size i h
-    O<hom-size-ih = ≤-<-< (O≤ _) (idx<hom-size ([O]ₘₕ ◦ f))
-
-    #-factors = #-factors-of (hom[ i , h ]# (O , O<hom-size-ih))
-                  through f from [O]ₘₕ
-    k = fst #-factors
-[_,_,_]· i h (2+ t) {m} f = {!!}
-[ i , 1+ h , O ]· f = [ i , h , hom-size i h ]· f
-[_,_,_]· i O O {m} f = (m , O , O)
 
 {- (i, h, t)-admissibility -}
 
@@ -111,6 +113,7 @@ admissible-h-iff i h f =
     (is-(i , 1+ h , O)-admissible? f)
     (admissibleₕ↑ i h f)
     (admissibleₕ↓ i h f)
+
 
 {- Sieves -}
 
