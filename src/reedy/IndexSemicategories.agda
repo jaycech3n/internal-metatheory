@@ -10,7 +10,7 @@ record SuitableSemicategory ℓₘ : Type (lsuc ℓₘ) where
   field
     wildsemicatstr : WildSemicategoryStructure lzero ℓₘ ℕ
     locfinstr : LocallyFinitelyIndexedWildSemicategoryStructure wildsemicatstr
-    inversestr : InverseWildSemicategoryStructure wildsemicatstr
+    inversestr : InverseWildSemicategoryStructure (idf ℕ) wildsemicatstr
 
   open WildSemicategoryStructure wildsemicatstr public
   open InverseWildSemicategoryStructure inversestr public
