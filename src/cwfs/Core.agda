@@ -1,6 +1,7 @@
 {-# OPTIONS --without-K #-}
 
--- Basic structures in categories with families, ignoring coherence conditions
+-- Basic structures in precoherent categories with families
+
 module cwfs.Core where
 
 open import categories.Categories public
