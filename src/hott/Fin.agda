@@ -83,8 +83,8 @@ abstract
          → Dec ((i : Fin n) → P i)
 ∀-Fin? {n = O} P _ = inl (λ ())
 ∀-Fin? {n = 1+ n} P ∀Fin-Sn-Dec-P =
- if ∀-Fin? (P ∘ Fin-S) (∀Fin-Sn-Dec-P ∘ Fin-S) ∶ (λ ∀Fin-n-P →
-   if ∀Fin-Sn-Dec-P (n , ltS) ∶ (λ Pn →
+ if ∀-Fin? (P ∘ Fin-S) (∀Fin-Sn-Dec-P ∘ Fin-S) then (λ ∀Fin-n-P →
+   if ∀Fin-Sn-Dec-P (n , ltS) then (λ Pn →
      inl (∀-Fin-extend ∀Fin-n-P Pn))
    else λ ¬Pn →
      inr λ ∀Fin-Sn-P → ¬Pn (∀Fin-Sn-P (n , ltS)))
@@ -101,10 +101,10 @@ abstract
      (λ ¬P0 → inr λ{ ((O , ltS) , P0) → ¬P0 P0
                    ; ((1+ _ , ltSR ()) , _)})
 Σ-Fin? {n = 2+ n} P ∀Fin-Sn-Dec-P =
-  if Σ-Fin? (P ∘ Fin-S) (∀Fin-Sn-Dec-P ∘ Fin-S) ∶ (λ{ (i , Pi) →
+  if Σ-Fin? (P ∘ Fin-S) (∀Fin-Sn-Dec-P ∘ Fin-S) then (λ{ (i , Pi) →
     inl ((Fin-S i) , Pi) })
   else λ ¬ΣFin-n-P →
-    if ∀Fin-Sn-Dec-P (1+ n , ltS) ∶ (λ PSn →
+    if ∀Fin-Sn-Dec-P (1+ n , ltS) then (λ PSn →
       inl ((1+ n , ltS) , PSn))
     else (λ ¬PSn →
       inr λ{ ((i , i<2+n) , Pi) →
@@ -121,10 +121,10 @@ abstract
 Fin-hfiber-dec : ∀ {m n} (f : Fin m → Fin n) (j : Fin n) → Dec (hfiber f j)
 Fin-hfiber-dec {O} {n} f j = inr ((≮O _) ∘ snd ∘ fst)
 Fin-hfiber-dec {1+ m} {n} f j =
-  if Fin-hfiber-dec (f ∘ Fin-S) j ∶
+  if Fin-hfiber-dec (f ∘ Fin-S) j then
     (λ{ (x@(i , i<m) , fi=j) → inl (Fin-S x , ap f (Fin= idp) ∙ fi=j) })
   else λ h →
-    if f (m , ltS) ≟-Fin j ∶
+    if f (m , ltS) ≟-Fin j then
       (λ fm=j → inl ((m , ltS) , fm=j))
     else λ fm≠j →
       inr λ{ ((i , i<Sm) , fi=j) →
@@ -135,28 +135,56 @@ Fin-hfiber-dec {1+ m} {n} f j =
 
 {- Counting -}
 
--- The number of (i : Fin n) in the range [m, n) satisfying (P i)
-#-Fin-from : ∀ {ℓ} {n} (P : Fin n → Type ℓ)
-             → ((i : Fin n) → Dec (P i))
-             → ((m , _) : Fin n)
-             → {d : ℕ} → {n ∸  m == 1+ d}
-             → Σ[ k ∶ ℕ ] m + k ≤ n
-#-Fin-from {n = n} P f i@(m , m<n) {O} =
-  if (f i)
-     (λ yes → 1 , transp (_≤ n) (+-comm 1 m) (<-S≤ m<n))
-     (λ no → 0 , transp (_≤ n) (! (+-unit-r m)) (inr m<n))
-#-Fin-from {n = n} P f i@(m , m<n) {1+ d} {p} =
-  if (f i)
-     (λ yes →
-       1+ #-Fin-next-val ,
-       transp (_≤ n) (3-comm-2 {1} {m} ∙ +-assoc m 1 _) #-Fin-next-cond)
-     (λ no → #-Fin-next-val , S≤-≤ #-Fin-next-cond)
-  where
-    1<n∸m : 1 < n ∸ m
-    1<n∸m = transp (1 <_) (! p) (<-ap-S (O<S _))
+module Fin-counting where
+  -- The number of (k : Fin n) in the range [i, j) satisfying P.
+  #-Fin_from_to_,_and_st :
+    ∀ {ℓ} n (i : Fin n) (j : ℕ) (v : j ≤ n)
+    → to-ℕ i < j
+    → (P : Fin n → Type ℓ) → ((i : Fin n) → Dec (P i))
+    → ℕ
+  #-Fin n from i to .(1+ (to-ℕ i)) , _ and ltS st P P? =
+    if P? i then (λ _ → 1)
+    else (λ _ → O)
+  #-Fin n from i to 1+ j , v and ltSR u st P P? =
+    #-Fin n from i to j , <-≤-≤ ltS v and u st P P?
+    + #-Fin n from j , S≤-< v to 1+ j , v and ltS st P P?
 
-    #-Fin-next : Σ[ k ∶ ℕ ] 1+ m + k ≤ n
-    #-Fin-next = #-Fin-from P f (1+ m , <∸-+< m 1<n∸m) {d} {∸=S-∸S= n m p}
+  #-Fin-range-1 :
+    ∀ {ℓ} n (i : Fin n) (u : 1+ (to-ℕ i) ≤ n)
+      (P : Fin n → Type ℓ) (P? : (i : Fin n) → Dec (P i))
+    → #-Fin n from i to 1+ (to-ℕ i) , u and ltS st P P? ≤ 1
+  #-Fin-range-1 n i u P P? with P? i
+  ... | inl _ = lteE
+  ... | inr _ = O≤ _
 
-    #-Fin-next-val = fst #-Fin-next
-    #-Fin-next-cond = snd #-Fin-next
+  abstract
+    #-Fin-bound :
+      ∀ {ℓ} n (i : Fin n) (j : ℕ) (v : j ≤ n) (u : to-ℕ i < j)
+        (P : Fin n → Type ℓ) (P? : (i : Fin n) → Dec (P i))
+      → to-ℕ i + #-Fin n from i to j , v and u st P P? ≤ j
+    #-Fin-bound n i .(1+ (to-ℕ i)) v ltS P P? =
+      ≤-+-l (to-ℕ i) (#-Fin-range-1 n _ v P P?)
+      ◂$ transp (to-ℕ i + #-Fin n from i to 1+ (to-ℕ i) , v and ltS st P P? ≤_)
+                (+-comm (to-ℕ i) 1)
+    #-Fin-bound n i (1+ j) v (ltSR u) P P? =
+      +-assoc-≤
+        (to-ℕ i)
+        (#-Fin n from i to j , <-≤-≤ ltS v and u st P P?)
+        (#-Fin n from j , S≤-< v to 1+ j , v and ltS st P P?)
+      $ ≤-trans
+          (≤-+ (#-Fin-bound n i j _ u P P?) (#-Fin-range-1 n _ v P P?))
+          (inl (+-comm j 1))
+
+monotone-on-Fin : ∀ {ℓ} {n} → (P : Fin n → Type ℓ) → Type ℓ
+monotone-on-Fin P = ∀ i j → i ≤-Fin j → P i → P j
+
+{-
+#-Fin-monotone :
+  ∀ {ℓ} {n}
+  → (P : Fin n → Type ℓ) (dec : (i : Fin n) → Dec (P i)) → monotone-on-Fin P
+  → ∀ i j → i ≤-Fin j
+  → fst (#-Fin-from i st P dec) ≤ fst (#-Fin-from j st P dec)
+#-Fin-monotone {n = n} P dec mono i j (inl idp) =
+  transp (λ ◻ → fst (#-Fin-from ◻ st P dec) ≤ fst (#-Fin-from j st P dec)) (Fin= idp) (lteE)
+#-Fin-monotone {n = n} P dec mono i@(m , m<n) j@(m' , m'<n) (inr m<m') = {!!}
+-}

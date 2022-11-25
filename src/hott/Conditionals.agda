@@ -12,5 +12,5 @@ case a⊔b f g = ⊔-rec f g a⊔b
 if : ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : Type ℓ₂} → Dec A → (A → B) → (¬ A → B) → B
 if = case
 
-case_∶_else = case
-if_∶_else = if
+case_then_else = case
+if_then_else = if

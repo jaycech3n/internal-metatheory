@@ -43,6 +43,10 @@ private
     <-S≤ ltS = lteE
     <-S≤ (ltSR u) = inr (<-ap-S u)
 
+    S≤-< : 1+ m ≤ n → m < n
+    S≤-< (inl idp) = ltS
+    S≤-< (inr u) = <-trans ltS u
+
     <S-≤ : m < 1+ n → m ≤ n
     <S-≤ ltS = lteE
     <S-≤ (ltSR u) = inr u
@@ -64,6 +68,9 @@ private
     <-≤-< u (inl idp) = u
     <-≤-< u (inr u') = <-trans u u'
 
+    <-≤-≤ : k < m → m ≤ n → k ≤ n
+    <-≤-≤ u u' = inr (<-≤-< u u')
+
     3-comm-2 : k + m + n == m + k + n
     3-comm-2 = +-comm k m |in-ctx (_+ n)
 
@@ -71,6 +78,21 @@ open trichotomy public
 open one-arg-lemmas public
 open two-arg-lemmas public
 open three-arg-lemmas public
+
+
+<-+ : ∀ {k l m n} → k < m → l < n → k + l < m + n
+<-+ {k} ltS u' = ltSR (<-+-l k u')
+<-+ (ltSR u) ltS = ltSR (<-+ u ltS)
+<-+ (ltSR u) (ltSR u') = ltSR (<-+ u (<-trans u' ltS))
+
+≤-+ : ∀ {k l m n} → k ≤ m → l ≤ n → k + l ≤ m + n
+≤-+ {k} (inl idp) u' = ≤-+-l k u'
+≤-+ {l = l} (inr u) (inl idp) = inr (<-+-r l u)
+≤-+ (inr u) (inr u') = inr (<-+ u u')
+
++-assoc-≤ : ∀ k l m {n} → k + l + m ≤ n → k + (l + m) ≤ n
++-assoc-≤ k l m {n} u = transp (_≤ n) (+-assoc k l m) u
+
 
 module monus where
   infixl 80 _∸_

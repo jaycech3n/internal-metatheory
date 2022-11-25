@@ -3,6 +3,8 @@
 module hott.Base where
 
 open import HoTT
+  hiding
+  ( if_then_else_ )
   renaming
   ( lsucc          to lsuc
   ; lmax           to _l⊔_
