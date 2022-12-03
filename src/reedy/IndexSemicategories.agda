@@ -28,3 +28,36 @@ record SuitableSemicategory ℓₘ : Type (lsuc ℓₘ) where
     ... | O | _ = idp
     ... | 1+ r | have p = ⊥-rec $
       ¬< (hom-inverse n n (hom[ n , n ]# (O , transp! (O <_) p (O<S _))))
+
+  private
+    module factor-lemmas where
+      abstract
+        #-factors-of-≤[_]-through :
+          ∀ {i h m} (t : Fin (hom-size i h)) (f : hom i m)
+          → O < hom-size m h
+          → ℕ -- Σ[ n ∶ ℕ ] n ≤ hom-size m h
+        #-factors-of-≤[_]-through {i} {h} {m} t f u =
+          #-hom[ m , h ]-from [O] st (λ α → α ◦ f ≼ [t]) (λ α → α ◦ f ≼? [t])
+          -- ◂$ Σ-fmap-r λ x v → transp (λ n → n + x ≤ _) p v
+          where
+            [O] = hom[ m , h ]# (O , u)
+            [t] = hom[ i , h ]# t
+
+          -- p : to-ℕ (idx-of [O]) == O
+          -- p = ap fst (idx-hom# (O , u))
+{-
+        #-factors-monotone :
+          ∀ {i h m} (f : hom i m) (u : O < hom-size m h)
+            (s t : Fin (hom-size i h))
+          → s ≤-Fin t
+          → #-factors-of-≤[ s ]-through f u ≤ #-factors-of-≤[ t ]-through f u
+        #-factors-monotone f u s t (inl idp) =
+          transp (λ ◻ → #-factors-of-≤[ ◻ ]-through f u ≤ #-factors-of-≤[ t ]-through f u)
+            (Fin= idp) lteE
+        #-factors-monotone f u s (.(1+ (fst s)) , v) (inr ltS) = {!!}
+        #-factors-monotone f u s (1+ t , v) (inr (ltSR w)) =
+          ≤-trans
+            (#-factors-monotone f u s (t , <-trans ltS v) (inr w))
+            (#-factors-monotone f u (t , <-trans ltS v) (1+ t , v) (inr ltS))
+-}
+  open factor-lemmas public

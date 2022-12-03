@@ -20,7 +20,9 @@ open PiStructure pistr
 open UniverseStructure univstr
 
 SCT : ℕ → Con
-Sk : (n i h t : ℕ) → i ≤ n → is-shape i h t → Con
+[_]M[_,_,_|_,_] : (n : ℕ) (i h t : ℕ) → is-shape i h t → h < n → Con
+[_]M⃗[_,_,_|_,_] : (n : ℕ) (i h t : ℕ) (iS : is-shape i h t) (u : h < n)
+  → {m : ℕ} (f : hom i m) → Sub [ n ]M[ i , h , t]
 
 SCT O = ◆
 SCT (1+ n) = SCT n ∷ {!!}

@@ -12,8 +12,8 @@ open import hott.Decidable
 open import hott.Fin
 open import hott.Inspect
 open import hott.Nat
-open import hott.PathOver
 open import hott.Paths
+open import hott.PathOver
 open import hott.PathOverSeq
 open import hott.Pi
 open import hott.Sigma

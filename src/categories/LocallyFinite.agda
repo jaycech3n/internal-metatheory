@@ -11,7 +11,7 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
   open WildSemicategoryStructure C
 
   field
-    hom-finitely-indexed : ∀ x y → Σ[ n ∶ ℕ ] (hom x y ≃ Fin n)
+    hom-finitely-indexed : ∀ x y → Σ[ n ː ℕ ] (hom x y ≃ Fin n)
 
   private
     module basic-definitions where
@@ -52,6 +52,13 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
         _≼?_ : Decidable _≼_
         f ≼? g = (idx-of f) ≤?-Fin (idx-of g)
 
+      -- Not sure if the following will end up being useful...
+      next : ∀ {x y} → hom x y → hom x y
+      next {x} {y} f with hom-size x y | inspect (hom-size x) y | idx-of f
+      ... | .(1+ idx) | _ | idx , ltS = f
+      ... | 1+ n | have p | idx , ltSR idx<n =
+        hom[ x , y ]# (1+ idx , transp! (_ <_) p (<-ap-S idx<n))
+
   open basic-definitions public
 
   private
@@ -67,6 +74,7 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
                              e' : Lift {j = ℓₘ} (Fin n) ≃ hom x y
                              e' = (lift-equiv ∘e e)⁻¹
 
+      -- Equality
       hom= : ∀ {x y} {f g : hom x y}
              → idx-of f == idx-of g
              → f == g
@@ -78,12 +86,13 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
 
       _≟-hom_ : ∀ {x y} → has-dec-eq (hom x y)
       f ≟-hom g = if (idx-of f ≟-Fin idx-of g)
-                     (λ  p → inl (hom= p))
-                     (λ ¬p → inr (¬p ∘ ap idx-of))
+                    (λ  p → inl (hom= p))
+                    (λ ¬p → inr (¬p ∘ ap idx-of))
 
+      -- hom existence is decidable
       Σ-hom? : ∀ {ℓ} {x y} (P : hom x y → Type ℓ)
                → ((f : hom x y) → Dec (P f))
-               → Dec (Σ[ f ∶ hom x y ] (P f))
+               → Dec (Σ[ f ː hom x y ] (P f))
       Σ-hom? {ℓ} {x} {y} P u =
         transp (Dec ∘ Σ (hom x y)) (λ= (ap P ∘ <–-inv-l e)) dec-hom
           where
@@ -93,27 +102,39 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
           u' : (i : Fin n) → Dec (P (<– e i))
           u' = bwd-transp-Π-dom e u --tr-Π-≃-r (Dec ∘ P) e u
 
-          dec-Fin : Dec (Σ[ i ∶ Fin n ] P (<– e i))
+          dec-Fin : Dec (Σ[ i ː Fin n ] P (<– e i))
           dec-Fin = Σ-Fin? (P ∘ (<– e)) u'
 
-          dec-hom : Dec (Σ[ f ∶ hom x y ] P (<– e (–> e f)))
+          dec-hom : Dec (Σ[ f ː hom x y ] P (<– e (–> e f)))
           dec-hom = if dec-Fin
-                       (λ  u → inl (fwd-transp-Σ-dom e u))
-                       (λ ¬u → inr (λ (f , p) → ¬u (–> e f , p)))
+                      (λ  u → inl (fwd-transp-Σ-dom e u))
+                      (λ ¬u → inr (λ (f , p) → ¬u (–> e f , p)))
 
-      -- The number of (g : hom x y) satisfying f ≼ g and (P g)
+      -- Counting: the number of (g : hom x y) satisfying f ≼ g and (P g)
       #-hom[_,_]-from_st :
         ∀ {ℓ} x y
         → (f : hom x y)
         → (P : hom x y → Type ℓ)
         → ((f : hom x y) → Dec (P f))
-        → Σ[ k ∶ ℕ ] to-ℕ (idx-of f) + k ≤ hom-size x y
-      #-hom[ x , y ]-from f st P dec =
-        #-Fin-from {n = hom-size x y} (P ∘ hom[ x , y ]#) (dec ∘ hom[ x , y ]#)
-          (idx-of f) {hom-size x y ∸ to-ℕ (idx-of f) ∸ 1} {β∸1 (∸-nonzero (idx<hom-size f))}
+        → ℕ
+      #-hom[ x , y ]-from f st P P? =
+        #-Fin n from (idx-of f) to n , lteE and idx<hom-size f
+          st (P ∘ hom[ x , y ]#) (P? ∘ hom[ x , y ]#)
+        where n = hom-size x y
 
+      monotone-on-hom : ∀ {ℓ} {x y} → (P : hom x y → Type ℓ) → Type (ℓₘ l⊔ ℓ)
+      monotone-on-hom P = ∀ f g → f ≼ g → P f → P g
+{-
+      #-hom-monotone :
+        ∀ {ℓ} x y
+        → (P : hom x y → Type ℓ) (dec : (f : hom x y) → Dec (P f)) → is-monotone P
+        → (f g : hom x y) → f ≼ g
+        → fst (#-hom[ x , y ]-from f st P dec) ≤ fst (#-hom[ x , y ]-from g st P dec)
+      #-hom-monotone x y P dec mono f g u = {!!}
+-}
+      -- Factors
       _factors-through_ : ∀ {x y z} (h : hom x z) (f : hom x y) → Type ℓₘ
-      _factors-through_ {y = y} {z} h f = Σ[ g ∶ hom y z ] g ◦ f == h
+      _factors-through_ {y = y} {z} h f = Σ[ g ː hom y z ] g ◦ f == h
 
       _factors-through?_ : ∀ {x y z} (h : hom x z) (f : hom x y)
                            → Dec (h factors-through f)

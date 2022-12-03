@@ -4,7 +4,8 @@ module cwfs.contextual.ContextualCwFs where
 
 open import categories.Categories public
 
--- This is meant to be a (bundled) indexed version of cwfs.Contextual
+-- This is meant to be a (bundled) version of cwfs.Contextual,
+-- where Con is indexed over lengths.
 record ContextualCwF {ℓₒ ℓₘ} : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   infixl 20 _∷_
   infixl 30 _,,_
@@ -69,3 +70,10 @@ record ContextualCwF {ℓₒ ℓₘ} : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
     Con-O : is-contr (Con O)
       -- cf. comment on ContextualStructure.len-◆-equiv in cwfs.Contextual
     Con-S : ∀ {n} → is-equiv (uncurry (_∷_ {n}))
+
+  private
+    module context-operations where
+      match-context : ∀ {n} → Con (1+ n) → Σ[ Δ ː Con n ] Ty Δ
+      match-context = inv-equiv Con-S
+
+  open context-operations public

@@ -39,7 +39,7 @@ _~⋆⟨_⟩[_]_ : ((h₁ , t₁) : ℕ × ℕ) (n : ℕ) (i : ℕ) ((h₂ , t�
   → ⦃ is-shape i h₁ t₁ ⦄ → ⦃ is-shape i h₂ t₂ ⦄ → Type₀
 (h₁ , t₁) ~⋆⟨ O ⟩[ i ] (h₂ , t₂) = (h₁ , t₁) == (h₂ , t₂)
 _~⋆⟨_⟩[_]_ (h₁ , t₁) (1+ n) i (h₂ , t₂) ⦃ iS₁ ⦄ ⦃ iS₂ ⦄ =
-  Σ[ h ∶ ℕ ] Σ[ t ∶ ℕ ] Σ[ iS ∶ is-shape i h t ]
+  Σ[ h ː ℕ ] Σ[ t ː ℕ ] Σ[ iS ː is-shape i h t ]
     _~[_]_ (h₁ , t₁) i (h , t) ⦃ iS₁ ⦄ ⦃ iS ⦄ ×
     _~⋆⟨_⟩[_]_ (h , t) n i (h₂ , t₂) ⦃ iS ⦄ ⦃ iS₂ ⦄
 
@@ -50,26 +50,12 @@ _~⋆⟨_⟩[_]_ (h₁ , t₁) (1+ n) i (h₂ , t₂) ⦃ iS₁ ⦄ ⦃ iS₂ �
 -- The definition is a bit finicky, and it's currently a bit unclear what the best
 -- formulation is.
 
-cumul-#-factors-of-[_]-through :
-  ∀ {i h m} (t : Fin (hom-size i h)) (f : hom i m)
-  → O < hom-size m h
-  → Σ[ n ∶ ℕ ] n ≤ hom-size m h
-cumul-#-factors-of-[_]-through {i} {h} {m} t f u =
-  #-hom[ m , h ]-from [O] st (λ α → α ◦ f ≼ [t]) (λ α → α ◦ f ≼? [t])
-  ◂$ Σ-fmap-r λ x v → transp (λ n → n + x ≤ _) p v
-  where
-    [O] = hom[ m , h ]# (O , u)
-    [t] = hom[ i , h ]# t
-
-    p : to-ℕ (idx-of [O]) == O
-    p = ap fst (idx-hom# (O , u))
-
 module _ (i : ℕ) where
   shape-· : (h t : ℕ) (iS : is-shape i h t) {m : ℕ} (f : hom i m) → ℕ × ℕ
   shape-· h (1+ t) iS {m} f =
-    if h <? m ∶ (λ h<m →
-      if O <? hom-size m h ∶ (λ O<hom-size
-        → h , fst (cumul-#-factors-of-[ t-Fin ]-through f O<hom-size))
+    if h <? m then (λ h<m →
+      if O <? hom-size m h then (λ O<hom-size
+        → h , #-factors-of-≤[ t-Fin ]-through f O<hom-size)
       else λ _
         → h , O)
     else λ _
@@ -129,9 +115,23 @@ admissible-h-iff i h f =
   → is- [ i , h , t ] iS · f -admissible g
 ·-admissible i O O iS f g (inl ())
 ·-admissible i O O iS f g (inr ())
-·-admissible i (1+ h) O iS f g (inl u) = ⊥-rec (¬< u)
-·-admissible i .(1+ _) (1+ t) iS f g (inl (ltSR u)) = ⊥-rec (S≮ u)
-·-admissible i h (1+ t) iS f g (inr (p , u)) = inr ({!!} , {!!})
+·-admissible i (1+ h) O iS f g (inl u) = ⊥-rec $ ¬< u
+·-admissible i .(1+ _) (1+ t) iS f g (inl (ltSR u)) = ⊥-rec $ S≮ u
+·-admissible i h (1+ t) iS {m} f g (inr (p , u))
+ with h <? m
+... | inr ¬h<m = ⊥-rec $ ¬h<m (hom-inverse m h g)
+... | inl  h<m
+     with O <? hom-size m h
+...     | inl v = inr (p , {!!})
+{-
+  g ◦ f ≼ [t] -- idx-of (g ◦ f) < 1+ t
+  ⊢ idx-of (g: m → h) < cumul-#-factors-of ([t]: i → h) through (f: i → m) -- (from [0])
+
+  Because:
+    If idx-of g ≥ cumul-#-factors-of [t] through f,
+    then idx-of (g ◦ f) ≥ 1+ t.
+-}
+...     | inr ¬v = ⊥-rec $ ¬v $ hom[ m , h ]-inhab g
 
 
 {- Sieves -}

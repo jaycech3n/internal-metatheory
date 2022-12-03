@@ -90,8 +90,11 @@ open three-arg-lemmas public
 ≤-+ {l = l} (inr u) (inl idp) = inr (<-+-r l u)
 ≤-+ (inr u) (inr u') = inr (<-+ u u')
 
-+-assoc-≤ : ∀ k l m {n} → k + l + m ≤ n → k + (l + m) ≤ n
-+-assoc-≤ k l m {n} u = transp (_≤ n) (+-assoc k l m) u
++-assoc-≤ : ∀ {k} l m n → l + m + n ≤ k → l + (m + n) ≤ k
++-assoc-≤ {k} l m n u = transp (_≤ k) (+-assoc l m n) u
+
++-comm-≤ : ∀ {k} m n → m + n ≤ k → n + m ≤ k
++-comm-≤ {k} m n = transp (_≤ k) (+-comm m n)
 
 
 module monus where
@@ -129,3 +132,13 @@ module monus where
   β∸1 {1+ n} (ltSR _) rewrite ∸-unit-r n = idp
 
 open monus public
+
+
+module subtraction where
+  infixl 80 _-_
+  _-_ : (m n : ℕ) → ⦃ n ≤ m ⦄ → ℕ
+  (m - .m) ⦃ inl idp ⦄ = O
+  (.(1+ n) - n) ⦃ inr ltS ⦄ = 1
+  ((1+ m) - n) ⦃ inr (ltSR u) ⦄ = 1+ ((m - n) ⦃ inr u ⦄)
+
+open subtraction public

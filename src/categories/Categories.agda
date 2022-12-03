@@ -20,11 +20,11 @@ record WildCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   open WildCategoryStructure wildcatstr public
 
   is-iso : {x y : Ob} (f : hom x y) → Type ℓₘ
-  is-iso {x} {y} f = Σ[ g ∶ hom y x ] (g ◦ f == id) × (f ◦ g == id)
+  is-iso {x} {y} f = Σ[ g ː hom y x ] (g ◦ f == id) × (f ◦ g == id)
 
   infix 30 _≅_
   _≅_ : (x y : Ob) → Type ℓₘ
-  x ≅ y = Σ[ f ∶ hom x y ] is-iso f
+  x ≅ y = Σ[ f ː hom x y ] is-iso f
 
   id-to-iso : ∀ x y → x == y → x ≅ y
   id-to-iso x .x idp = id , id , idl , idr
