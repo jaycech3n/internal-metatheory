@@ -70,9 +70,21 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         → a == c over-Tm⟨ p ∙ q ⟩ → coeᵀᵐ p a == c over-Tm⟨ q ⟩
       from-over-∙ {p = idp} = idf _
 
+    -- Codes for listlike contexts; see cwfs.Contextual.agda for more
+    module listlike-contexts where
+      Conᶜ : ℕ → Type ℓₒ
+      con-of : {n : ℕ} → Conᶜ n → Con
+
+      Conᶜ O = Lift ⊤
+      Conᶜ (1+ n) = Σ[ γ ː Conᶜ n ] Ty (con-of γ)
+
+      con-of {O} _ = ◆
+      con-of {1+ n} (γ , A) = con-of γ ∷ A
+
   open notation public
   open extension public
   open term-coercions public
+  open listlike-contexts public
 
   private
     module equalities where

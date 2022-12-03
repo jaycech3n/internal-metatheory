@@ -73,7 +73,7 @@ record ContextualCwF {ℓₒ ℓₘ} : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
 
   private
     module context-operations where
-      match-context : ∀ {n} → Con (1+ n) → Σ[ Δ ː Con n ] Ty Δ
-      match-context = inv-equiv Con-S
+      split-context : ∀ {n} → Con (1+ n) → Σ[ Δ ː Con n ] Ty Δ
+      split-context = inv-equiv Con-S
 
   open context-operations public
