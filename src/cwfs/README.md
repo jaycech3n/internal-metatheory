@@ -1,3 +1,3 @@
-### Categories with families
+## Categories with families
 
 Precoherent CwFs in HoTT.
