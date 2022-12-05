@@ -136,26 +136,29 @@ open Fin-decidability public
 module Fin-counting where
   -- The number of (k : Fin n) in the range [i, j) satisfying P.
   #-Fin_from_to_,_and_st :
-    ∀ {ℓ} n (i : Fin n) (j : ℕ) (v : j ≤ n)
+    ∀ {ℓ} n
+    → (i : Fin n)
+    → (j : ℕ) (v : j ≤ n)
     → to-ℕ i < j
     → (P : Fin n → Type ℓ) → ((i : Fin n) → Dec (P i))
     → ℕ
   #-Fin n from i to .(1+ (to-ℕ i)) , _ and ltS st P P? =
-    if P? i then (λ _ → 1)
+    if P? i
+    then (λ _ → 1)
     else (λ _ → O)
   #-Fin n from i to 1+ j , v and ltSR u st P P? =
     #-Fin n from i to j , <-≤-≤ ltS v and u st P P?
       + #-Fin n from j , S≤-< v to 1+ j , v and ltS st P P?
 
-  #-Fin-range-1 :
-    ∀ {ℓ} n (i : Fin n) (u : 1+ (to-ℕ i) ≤ n)
-      (P : Fin n → Type ℓ) (P? : (i : Fin n) → Dec (P i))
-    → #-Fin n from i to 1+ (to-ℕ i) , u and ltS st P P? ≤ 1
-  #-Fin-range-1 n i u P P? with P? i
-  ... | inl _ = lteE
-  ... | inr _ = O≤ _
-
   abstract
+    #-Fin-range-1 :
+      ∀ {ℓ} n (i : Fin n) (u : 1+ (to-ℕ i) ≤ n)
+        (P : Fin n → Type ℓ) (P? : (i : Fin n) → Dec (P i))
+      → #-Fin n from i to 1+ (to-ℕ i) , u and ltS st P P? ≤ 1
+    #-Fin-range-1 n i u P P? with P? i
+    ... | inl _ = lteE
+    ... | inr _ = O≤ _
+
     #-Fin-ub :
       ∀ {ℓ} n (i : Fin n) (j : ℕ) (v : j ≤ n) (u : to-ℕ i < j)
         (P : Fin n → Type ℓ) (P? : (i : Fin n) → Dec (P i))
@@ -165,7 +168,7 @@ module Fin-counting where
       ◂$ transp (to-ℕ i + #-Fin n from i to 1+ (to-ℕ i) , v and ltS st P P? ≤_)
                 (+-comm (to-ℕ i) 1)
     #-Fin-ub n i (1+ j) v (ltSR u) P P? =
-      +-assoc-≤
+      +-assocr-≤
         (to-ℕ i)
         (#-Fin n from i to j , <-≤-≤ ltS v and u st P P?)
         (#-Fin n from j , S≤-< v to 1+ j , v and ltS st P P?)
@@ -193,18 +196,24 @@ module Fin-counting where
         ... | inl _ = lteE
         ... | inr ¬Pj = ⊥-rec (¬Pj (all-P _ ltS))
 
+  {-
+  -- (#-Fin n from i to j ...) is antitone in i and monotone in j.
+  -- Can also use this to prove #-Fin-coarse-ub.
+  #-Fin-antitone-1st :
+    ∀ {ℓ} n {i₁ i₂} (j : ℕ) (v : j ≤ n)
+      (u₁ : to-ℕ i₁ < j) (u₂ : to-ℕ i₂ < j)
+      (P : Fin n → Type ℓ) (P? : (i : Fin n) → Dec (P i))
+    → i₁ ≤-Fin i₂
+    → #-Fin n from i₂ to j , v and u₂ st P P?
+      ≤ #-Fin n from i₁ to j , v and u₁ st P P?
+  #-Fin-antitone-1st n j v u₁ u₂ P P? (inl idp) = {!!}
+  #-Fin-antitone-1st n j v u₁ u₂ P P? (inr x) = {!!}
+  -}
+
+  #-Fin-coarse-ub :
+    ∀ {ℓ} n (i : Fin n) (j : ℕ) (v : j ≤ n) (u : to-ℕ i < j)
+      (P : Fin n → Type ℓ) (P? : (i : Fin n) → Dec (P i))
+    → #-Fin n from i to j , v and u st P P? ≤ n
+  #-Fin-coarse-ub n i j v u P P? = ≤-trans (+-≤-dropl (#-Fin-ub n i j v u P P?)) v
+
 open Fin-counting public
-
-monotone-on-Fin : ∀ {ℓ} {n} → (P : Fin n → Type ℓ) → Type ℓ
-monotone-on-Fin P = ∀ i j → i ≤-Fin j → P i → P j
-
-{-
-#-Fin-monotone :
-  ∀ {ℓ} {n}
-  → (P : Fin n → Type ℓ) (dec : (i : Fin n) → Dec (P i)) → monotone-on-Fin P
-  → ∀ i j → i ≤-Fin j
-  → fst (#-Fin-from i st P dec) ≤ fst (#-Fin-from j st P dec)
-#-Fin-monotone {n = n} P dec mono i j (inl idp) =
-  transp (λ ◻ → fst (#-Fin-from ◻ st P dec) ≤ fst (#-Fin-from j st P dec)) (Fin= idp) (lteE)
-#-Fin-monotone {n = n} P dec mono i@(m , m<n) j@(m' , m'<n) (inr m<m') = {!!}
--}

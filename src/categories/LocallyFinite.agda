@@ -122,16 +122,14 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
           st (P ∘ hom[ x , y ]#) (P? ∘ hom[ x , y ]#)
         where n = hom-size x y
 
-      monotone-on-hom : ∀ {ℓ} {x y} → (P : hom x y → Type ℓ) → Type (ℓₘ l⊔ ℓ)
-      monotone-on-hom P = ∀ f g → f ≼ g → P f → P g
-{-
-      #-hom-monotone :
-        ∀ {ℓ} x y
-        → (P : hom x y → Type ℓ) (dec : (f : hom x y) → Dec (P f)) → is-monotone P
-        → (f g : hom x y) → f ≼ g
-        → fst (#-hom[ x , y ]-from f st P dec) ≤ fst (#-hom[ x , y ]-from g st P dec)
-      #-hom-monotone x y P dec mono f g u = {!!}
--}
+      #-hom-ub :
+        ∀ {ℓ} x y (f : hom x y)
+          (P : hom x y → Type ℓ) (P? : (f : hom x y) → Dec (P f))
+        → #-hom[ x , y ]-from f st P P? ≤ hom-size x y
+      #-hom-ub x y f P P? =
+        #-Fin-coarse-ub n (idx-of f) n lteE (idx<hom-size f) _ _
+        where n = hom-size x y
+
       -- Factors
       _factors-through_ : ∀ {x y z} (h : hom x z) (f : hom x y) → Type ℓₘ
       _factors-through_ {y = y} {z} h f = Σ[ g ː hom y z ] g ◦ f == h

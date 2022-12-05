@@ -31,21 +31,30 @@ record SuitableSemicategory ℓₘ : Type (lsuc ℓₘ) where
 
   private
     module factor-lemmas where
-      abstract
-        #-factors-of-≤[_]-through :
-          ∀ {i h m} (t : Fin (hom-size i h)) (f : hom i m)
-          → O < hom-size m h
-          → ℕ -- Σ[ n ∶ ℕ ] n ≤ hom-size m h
-        #-factors-of-≤[_]-through {i} {h} {m} t f u =
-          #-hom[ m , h ]-from [O] st (λ α → α ◦ f ≼ [t]) (λ α → α ◦ f ≼? [t])
-          -- ◂$ Σ-fmap-r λ x v → transp (λ n → n + x ≤ _) p v
-          where
-            [O] = hom[ m , h ]# (O , u)
-            [t] = hom[ i , h ]# t
+      #-factors :
+        ∀ {i h m} (t : Fin (hom-size i h)) (f : hom i m)
+        → O < hom-size m h
+        → Σ[ n ː ℕ ] n ≤ hom-size m h
+      #-factors{i} {h} {m} t f u =
+        #-hom[ m , h ]-from [O] st (λ α → α ◦ f ≼ [t]) (λ α → α ◦ f ≼? [t]) ,
+        #-hom-ub m h [O] (λ α → α ◦ f ≼ [t]) (λ α → α ◦ f ≼? [t])
+        where
+          [O] = hom[ m , h ]# (O , u)
+          [t] = hom[ i , h ]# t
 
-          -- p : to-ℕ (idx-of [O]) == O
-          -- p = ap fst (idx-hom# (O , u))
-{-
+      #-factors-of-hom[_,_]≤[_]-through :
+        ∀ i h {m} (t : Fin (hom-size i h)) (f : hom i m)
+        → O < hom-size m h
+        → ℕ
+      #-factors-of-hom[_,_]≤[_]-through i h {m} t f u =
+        fst (#-factors {i} {h} {m} t f u)
+
+      #-factors-ub :
+        ∀ {i h m} t (f : hom i m) (u : O < hom-size m h)
+        → #-factors-of-hom[ i , h ]≤[ t ]-through f u ≤ hom-size m h
+      #-factors-ub t f u = snd (#-factors t f u)
+
+        {-
         #-factors-monotone :
           ∀ {i h m} (f : hom i m) (u : O < hom-size m h)
             (s t : Fin (hom-size i h))
@@ -59,5 +68,5 @@ record SuitableSemicategory ℓₘ : Type (lsuc ℓₘ) where
           ≤-trans
             (#-factors-monotone f u s (t , <-trans ltS v) (inr w))
             (#-factors-monotone f u (t , <-trans ltS v) (1+ t , v) (inr ltS))
--}
+        -}
   open factor-lemmas public
