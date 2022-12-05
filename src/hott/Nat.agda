@@ -23,78 +23,97 @@ private
     ... | inr (inr n<m) = inr n<m
 
   module one-arg-lemmas where
-    ¬< : ∀ {n} → ¬ (n < n)
-    ¬< u = <-to-≠ u idp
-
     S≮ : ∀ {n} → ¬ (S n < n)
     S≮ {O} ()
     S≮ {1+ n} = S≮ ∘ <-cancel-S
 
-    <1-=O : ∀ {n} → n < 1 → n == O
-    <1-=O ltS = idp
+    module _ {n} where
+      ¬< : ¬ (n < n)
+      ¬< u = <-to-≠ u idp
+
+      <1-=O : n < 1 → n == O
+      <1-=O ltS = idp
 
   open one-arg-lemmas
 
-  module two-arg-lemmas {m n : ℕ} where
-    =-cancel-S : 1+ m == 1+ n :> ℕ → m == n
-    =-cancel-S idp = idp
+  module two-arg-lemmas where
+    S≤-1≤ : ∀ {m n} → 1+ m ≤ n → 1 ≤ n
+    S≤-1≤ {m} {O} u = ⊥-rec (S≰O m u)
+    S≤-1≤ {m} {1+ n} u = ≤-ap-S (O≤ n)
 
-    <-S≤ : m < n → 1+ m ≤ n
-    <-S≤ ltS = lteE
-    <-S≤ (ltSR u) = inr (<-ap-S u)
+    module _ {m n} where
+      =-cancel-S : 1+ m == 1+ n :> ℕ → m == n
+      =-cancel-S idp = idp
 
-    S≤-< : 1+ m ≤ n → m < n
-    S≤-< (inl idp) = ltS
-    S≤-< (inr u) = <-trans ltS u
+      S<-< : 1+ m < n → m < n
+      S<-< u = <-trans ltS u
 
-    <S-≤ : m < 1+ n → m ≤ n
-    <S-≤ ltS = lteE
-    <S-≤ (ltSR u) = inr u
+      <-S≤ : m < n → 1+ m ≤ n
+      <-S≤ ltS = lteE
+      <-S≤ (ltSR u) = inr (<-ap-S u)
 
-    S≤-≤ : 1+ m ≤ n → m ≤ n
-    S≤-≤ = ≤-trans lteS
+      <S-≤ : m < 1+ n → m ≤ n
+      <S-≤ ltS = lteE
+      <S-≤ (ltSR u) = inr u
 
-    no-between : m < n → n < 1+ m → ⊥
-    no-between u v with <-S≤ u
-    ... | inl idp = ¬< v
-    ... | inr w = ¬< (<-trans v w)
+      S≤-< : 1+ m ≤ n → m < n
+      S≤-< (inl idp) = ltS
+      S≤-< (inr u) = <-trans ltS u
 
-  module three-arg-lemmas {k m n : ℕ} where
-    ≤-<-< : k ≤ m → m < n → k < n
-    ≤-<-< (inl idp) u' = u'
-    ≤-<-< (inr u) u' = <-trans u u'
+      S≤-≤ : 1+ m ≤ n → m ≤ n
+      S≤-≤ = ≤-trans lteS
 
-    <-≤-< : k < m → m ≤ n → k < n
-    <-≤-< u (inl idp) = u
-    <-≤-< u (inr u') = <-trans u u'
+      no-between : m < n → n < 1+ m → ⊥
+      no-between u v with <-S≤ u
+      ... | inl idp = ¬< v
+      ... | inr w = ¬< (<-trans v w)
 
-    <-≤-≤ : k < m → m ≤ n → k ≤ n
-    <-≤-≤ u u' = inr (<-≤-< u u')
+  module three-arg-lemmas where
+    module _ {k m n} where
+      ≤-<-< : k ≤ m → m < n → k < n
+      ≤-<-< (inl idp) u' = u'
+      ≤-<-< (inr u) u' = <-trans u u'
 
-    3-comm-2 : k + m + n == m + k + n
-    3-comm-2 = +-comm k m |in-ctx (_+ n)
+      <-≤-< : k < m → m ≤ n → k < n
+      <-≤-< u (inl idp) = u
+      <-≤-< u (inr u') = <-trans u u'
+
+      <-≤-≤ : k < m → m ≤ n → k ≤ n
+      <-≤-≤ u u' = inr (<-≤-< u u')
+
+      3-comm-2 : k + m + n == m + k + n
+      3-comm-2 = +-comm k m |in-ctx (_+ n)
+
+  module four-arg-lemmas where
+    <-+ : ∀ {k l m n} → k < m → l < n → k + l < m + n
+    <-+ {k} ltS u' = ltSR (<-+-l k u')
+    <-+ (ltSR u) ltS = ltSR (<-+ u ltS)
+    <-+ (ltSR u) (ltSR u') = ltSR (<-+ u (<-trans u' ltS))
+
+    ≤-+ : ∀ {k l m n} → k ≤ m → l ≤ n → k + l ≤ m + n
+    ≤-+ {k} (inl idp) u' = ≤-+-l k u'
+    ≤-+ {l = l} (inr u) (inl idp) = inr (<-+-r l u)
+    ≤-+ (inr u) (inr u') = inr (<-+ u u')
+
+    +-assocr-≤ : ∀ {k} l m n → l + m + n ≤ k → l + (m + n) ≤ k
+    +-assocr-≤ {k} l m n u = transp (_≤ k) (+-assoc l m n) u
+
+    +-assocl-≤ : ∀ {k} l m n → l + (m + n) ≤ k → l + m + n ≤ k
+    +-assocl-≤ {k} l m n u = transp (_≤ k) (! (+-assoc l m n)) u
+
+    +-comm-≤ : ∀ {k} m n → m + n ≤ k → n + m ≤ k
+    +-comm-≤ {k} m n = transp (_≤ k) (+-comm m n)
 
 open trichotomy public
 open one-arg-lemmas public
 open two-arg-lemmas public
 open three-arg-lemmas public
+open four-arg-lemmas public
 
 
-<-+ : ∀ {k l m n} → k < m → l < n → k + l < m + n
-<-+ {k} ltS u' = ltSR (<-+-l k u')
-<-+ (ltSR u) ltS = ltSR (<-+ u ltS)
-<-+ (ltSR u) (ltSR u') = ltSR (<-+ u (<-trans u' ltS))
-
-≤-+ : ∀ {k l m n} → k ≤ m → l ≤ n → k + l ≤ m + n
-≤-+ {k} (inl idp) u' = ≤-+-l k u'
-≤-+ {l = l} (inr u) (inl idp) = inr (<-+-r l u)
-≤-+ (inr u) (inr u') = inr (<-+ u u')
-
-+-assoc-≤ : ∀ {k} l m n → l + m + n ≤ k → l + (m + n) ≤ k
-+-assoc-≤ {k} l m n u = transp (_≤ k) (+-assoc l m n) u
-
-+-comm-≤ : ∀ {k} m n → m + n ≤ k → n + m ≤ k
-+-comm-≤ {k} m n = transp (_≤ k) (+-comm m n)
++-≤-dropl : ∀ {m n k} → m + n ≤ k → n ≤ k
++-≤-dropl {O} {n} {k} u = u
++-≤-dropl {1+ m} {n} {k} u = +-≤-dropl (S≤-≤ u)
 
 
 module monus where
