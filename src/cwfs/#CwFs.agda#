@@ -37,7 +37,6 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       var : {Γ : Con} {A : Ty Γ} (Δ : Con) → ⦃ Δ == Γ ∷ A ⦄ → Tm[ Γ ∷ A ] (A ʷ)
       var {Γ} {A} .(Γ ∷ A) ⦃ idp ⦄ = υ A
 
-
     module extension where
       _,,₊_ : ∀ Γ {A : Ty Γ} → Tm A → Sub Γ (Γ ∷ A)
       Γ ,,₊ a = id ,, a [ id ]ₜ

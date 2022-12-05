@@ -48,4 +48,9 @@ record PiStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : Cw
         Π′ (A [ f ]) (B [ f ] [ π (A [ f ]) ])
           =∎
 
+      appʷ : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)}
+             → Tm[ Γ ∷ Π′ A B ] ((Π′ A B) ʷ)
+             → Tm[ Γ ∷ Π′ A B ∷ A [ π (Π′ A B) ] ] (B [ π (Π′ A B) ↑ A ])
+      appʷ t = app $ transp Tm Π′[] t
+
   open definitions public
