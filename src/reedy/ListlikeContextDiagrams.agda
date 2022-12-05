@@ -5,7 +5,7 @@ open import cwfs.Pi
 open import cwfs.Universe
 open import reedy.IndexSemicategories
 
-module reedy.ContextDiagrams {ℓₘᴵ ℓₒ ℓₘ}
+module reedy.ListlikeContextDiagrams {ℓₘᴵ ℓₒ ℓₘ}
   (I : SuitableSemicategory ℓₘᴵ)
   {C : WildCategory ℓₒ ℓₘ}
   (cwfstr : CwFStructure C)
@@ -27,7 +27,7 @@ M⃗ : (n : ℕ) ((i , h , t) : ℕ³) (iS : is-shape i h t) (u : h < n)
            (M n ([ i , h , t ] iS · f)
                 (·-is-shape i h t iS f)
                 (≤-<-< (height-shape-·' i h t iS f) u))
-M= : ∀ n i h t {iS iS'} {u u' : h < n} → M n (i , h , t) iS u == M n (i , h , t) iS' u'
+M= : ∀ {n} i h t {iS iS'} {u u'} → M n (i , h , t) iS u == M n (i , h , t) iS' u'
 {-
 M=~ : ∀ {n} {i h t} {iS : is-shape i h t} {h' t'} {iS' : is-shape i h' t'}
         {u : h < n} {u' : h' < n}
@@ -39,18 +39,18 @@ SCT O = ◆
 SCT (1+ n) = SCT n ∷ {!!}
 
 {-# TERMINATING #-}
-M (1+ n) (i , h , 1+ t) iS u = M (1+ n) (i , h , t) (shapeₜ↓ iS) u ∷ {!var (SCT (1+ n))!}
-M (1+ n) (i , 1+ h , O) iS u = M (1+ n) (i , h , hom-size i h) (shapeₕ↓ iS) (S<-< u)
-M (1+ n) (i , O , O) iS u = SCT (1+ n)
+M n (i , h , 1+ t) iS u = M n (i , h , t) (shapeₜ↓ iS) u ∷ {!!}
+M n (i , 1+ h , O) iS u = M n (i , h , hom-size i h) (shapeₕ↓ iS) (S<-< u)
+M n (i , O , O) iS u = SCT n
 
-M⃗ (1+ n) (i , h , 1+ t) iS u f = {!!}
-M⃗ (1+ n) (i , 1+ h , O) iS u {m} f =
-  M⃗ (1+ n) (i , h , hom-size i h) (shapeₕ↓ iS) (S<-< u) f
-  ◂$ transp (Sub (M (1+ n) (i , h , hom-size i h) (shapeₕ↓ iS) (S<-< u)))
-            (M= (1+ n) m (fst h't') (snd h't'))
+M⃗ n (i , h , 1+ t) iS u f = {!!}
+M⃗ n (i , 1+ h , O) iS u {m} f =
+  M⃗ n (i , h , hom-size i h) (shapeₕ↓ iS) (S<-< u) f
+  ◂$ transp (Sub (M n (i , h , hom-size i h) (shapeₕ↓ iS) (S<-< u)))
+            (M= m (fst h't') (snd h't'))
   where h't' = shape-· i h (hom-size i h) (shapeₕ↓ iS) f
-M⃗ (1+ n) (i , O , O) iS u f = id
+M⃗ n (i , O , O) iS u f = id
 
-M= (1+ n) i h (1+ t)  = {!!}
-M= (1+ n) i (1+ h) O = M= (1+ n) i h (hom-size i h)
-M= (1+ n) i O O = idp
+M= i h (1+ t)  = {!!}
+M= i (1+ h) O = M= i h (hom-size i h)
+M= i O O = idp

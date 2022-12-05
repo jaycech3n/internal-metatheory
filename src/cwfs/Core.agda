@@ -64,8 +64,8 @@ record ComprehensionStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) :
   field tytmstr : TyTmStructure C
   open TyTmStructure tytmstr hiding (ctxstr) public
 
-  infixl 20 _∷_
-  infixl 30 _,,_
+  infixl 35 _∷_
+  infixl 35 _,,_
 
   field
     _∷_  : (Γ : Con) → Ty Γ → Con

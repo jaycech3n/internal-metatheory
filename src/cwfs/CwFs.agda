@@ -27,6 +27,15 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       _ʷ : {Γ : Con} (A : Ty Γ) → Ty (Γ ∷ A)
       A ʷ = A [ π A ]
 
+      -- Experimental
+      module _ where
+        instance
+          witness-∷ : {Γ : Con} {A : Ty Γ} → Γ ∷ A == Γ ∷ A
+          witness-∷ = idp
+
+        var : {Γ : Con} {A : Ty Γ} (Δ : Con) → ⦃ Δ == Γ ∷ A ⦄ → Tm (A ʷ)
+        var {Γ} {A} .(Γ ∷ A) ⦃ idp ⦄ = υ A
+
     module extension where
       _,,₊_ : ∀ Γ {A : Ty Γ} → Tm A → Sub Γ (Γ ∷ A)
       Γ ,,₊ a = id ,, a [ id ]ₜ
