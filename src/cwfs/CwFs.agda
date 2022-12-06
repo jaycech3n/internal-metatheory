@@ -37,7 +37,6 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       var : {Γ : Con} {A : Ty Γ} (Δ : Con) → ⦃ Δ == Γ ∷ A ⦄ → Tm[ Γ ∷ A ] (A ʷ)
       var {Γ} {A} .(Γ ∷ A) ⦃ idp ⦄ = υ A
 
-
     module extension where
       _,,₊_ : ∀ Γ {A : Ty Γ} → Tm A → Sub Γ (Γ ∷ A)
       Γ ,,₊ a = id ,, a [ id ]ₜ
@@ -317,5 +316,9 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       []-⟦⟧ : ∀ {Γ Δ} {A : Ty Δ} (B : Ty (Δ ∷ A)) (f : Sub Γ Δ) (a : Tm A)
               → B [ f ↑ A ] ⟦ a [ f ]ₜ ⟧ == B ⟦ a ⟧ [ f ]
       []-⟦⟧ B f a = ! [◦] ∙ ! [= ,,₊-comm f a ] ∙ [◦]
+
+      -- Coercing to equal substitutions
+      coe-cod : ∀ {Γ Δ Δ'} → Δ == Δ' → Sub Γ Δ → Sub Γ Δ'
+      coe-cod idp = idf _
 
   open substitutions public

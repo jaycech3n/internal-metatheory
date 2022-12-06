@@ -20,6 +20,19 @@ record is-shape (i h t : ℕ) : Type₀ where
 
 open is-shape
 
+abstract
+  is-shape-is-prop : ∀ {i h t} → is-prop (is-shape i h t)
+  is-shape-is-prop =
+    all-paths-is-prop
+      λ{(shape-conds hcond tcond)
+        (shape-conds hcond' tcond')
+      → is-shape= (prop-path ≤-is-prop hcond hcond')
+                  (prop-path ≤-is-prop tcond tcond')}
+    where
+    is-shape= : ∀ {i h t} {iS iS' : is-shape i h t}
+      → hcond iS == hcond iS' → tcond iS == tcond iS' → iS == iS'
+    is-shape= idp idp = idp
+
 is-shape-Σ : ℕ³ → Type₀
 is-shape-Σ (i , h , t) = is-shape i h t
 
@@ -28,6 +41,9 @@ shapeₕ↓ iS = shape-conds (≤-trans lteS (hcond iS)) lteE
 
 shapeₜ↓ : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
 shapeₜ↓ iS = shape-conds (hcond iS) (≤-trans lteS (tcond iS))
+
+empty-shape : ∀ i → is-shape i O O
+empty-shape i = shape-conds (O≤ i) (O≤ (hom-size i O))
 
 full-shape-1+ : ∀ i → is-shape (1+ i) i (hom-size (1+ i) i)
 full-shape-1+ i = shape-conds lteS lteE
