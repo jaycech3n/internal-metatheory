@@ -27,6 +27,10 @@ private
     S≮ {O} ()
     S≮ {1+ n} = S≮ ∘ <-cancel-S
 
+    ¬O< : ∀ n → ¬ (O < n) → n == O
+    ¬O< O u = idp
+    ¬O< (1+ n) u = ⊥-rec (u (O<S n))
+
     module _ {n} where
       ¬< : ¬ (n < n)
       ¬< u = <-to-≠ u idp

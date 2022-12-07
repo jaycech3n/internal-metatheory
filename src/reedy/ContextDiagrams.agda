@@ -23,10 +23,10 @@ SCT : ℕ → Con
 M : (n : ℕ) ((i , h , t) : ℕ³) → is-shape i h t → h < n → Con
 M⃗ : (n : ℕ) ((i , h , t) : ℕ³) (iS : is-shape i h t) (u : h < n)
      {m : ℕ} (f : hom i m)
+     {iS· : is-shape-Σ ([ i , h , t ] iS · f)}
+     {u· : 2nd ([ i , h , t ] iS · f) < n}
      → Sub (M n (i , h , t) iS u)
-           (M n ([ i , h , t ] iS · f)
-                (·-is-shape i h t iS f)
-                (≤-<-< (height-shape-·' i h t iS f) u))
+           (M n ([ i , h , t ] iS · f) iS· u·)
 M= : ∀ n i h t {iS iS'} {u u' : h < n} → M n (i , h , t) iS u == M n (i , h , t) iS' u'
 
 Π′⋆ : ∀ n i h t iS u → Ty (M n (i , h , t) iS u) → Ty (SCT n)
@@ -47,7 +47,8 @@ SCT (1+ O) = SCT O ∷ U
 SCT O = ◆
 
 {-# TERMINATING #-}
-M (2+ n) (i , h , 1+ t) iS u = M (2+ n) (i , h , t) (shapeₜ↓ iS) u ∷ {!var (SCT (1+ n))!}
+M (2+ n) (i , h , 1+ t) iS u =
+  M (2+ n) (i , h , t) (shapeₜ↓ iS) u ∷ {!var (SCT (1+ n))!}
 M (2+ n) (i , 1+ h , O) iS u = M (2+ n) (i , h , hom-size i h) (shapeₕ↓ iS) (S<-< u)
 M (2+ n) (i , O , O) iS u = SCT (2+ n)
 M (1+ O) (i , O , O) iS u = SCT 1
@@ -61,10 +62,13 @@ M (1+ O) (i , 1+ _ , O) iS (ltSR ())
 M⃗ (2+ n) (i , h , 1+ t) iS u f = {!!}
 M⃗ (2+ n) (i , 1+ h , O) iS u {m} f =
   M⃗ (2+ n) (i , h , hom-size i h) (shapeₕ↓ iS) (S<-< u) f
-  ◂$ coe-cod (M= (2+ n) m (fst h't') (snd h't'))
-  where h't' = shape-· i h (hom-size i h) (shapeₕ↓ iS) f
 M⃗ (2+ n) (i , O , O) iS u f = id
-M⃗ (1+ O) (i , .O , 1+ t) iS ltS f = {!!}
+M⃗ (1+ O) (i , .O , 1+ t) iS ltS {m} f with O <? m
+... | inr O≮m rewrite ¬O< m O≮m = π⋆ 1 i (1+ t) {iS} {ltS} (empty-shape i) ltS
+... | inl O<m
+      with O <? hom-size m O
+...   | inl O<hom-size = {!!}
+...   | inr O≮hom-size = π⋆ 1 i (1+ t) {iS} {ltS} (empty-shape i) ltS
 M⃗ (1+ O) (i , O , O) iS u f = id
 M⃗ (1+ O) (i , 1+ _ , O) iS (ltSR ()) {m} f
 
@@ -80,5 +84,4 @@ M= n i h t {iS} {iS'} {u} {u'} =
 
 π⋆ n i O _ _ = id ◂$ coe-cod (M= n i O O)
 π⋆ (2+ n) i (1+ t) iS u = π⋆ (2+ n) i t (empty-shape i) u ◦ˢᵘᵇ (π _)
-π⋆ (1+ O) i (1+ t) {u₀ = ltS} iS u =
-  π⋆ 1 i t iS u ◦ˢᵘᵇ (π _)
+π⋆ (1+ O) i (1+ t) {u₀ = ltS} iS u = π⋆ 1 i t iS u ◦ˢᵘᵇ (π _)
