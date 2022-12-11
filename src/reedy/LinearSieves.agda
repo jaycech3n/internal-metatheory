@@ -55,6 +55,10 @@ shapeₜ< : ∀ {i h t t'} → t' < t → is-shape i h t → is-shape i h t'
 shapeₜ< ltS iS = shape-conds (hcond iS) (≤-trans lteS (tcond iS))
 shapeₜ< (ltSR u) iS = shape-conds (hcond iS) (≤-trans (inr (ltSR u)) (tcond iS))
 
+shapeₜ≤ : ∀ {i h t t'} → t' ≤ t → is-shape i h t → is-shape i h t'
+shapeₜ≤ (inl idp) iS = iS
+shapeₜ≤ (inr u) iS = shapeₜ< u iS
+
 shapeₜ↓ : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
 shapeₜ↓ = shapeₜ< ltS
 

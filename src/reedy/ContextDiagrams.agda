@@ -65,7 +65,7 @@ un-Π′⋆ n i h t iS u A a = {!!}
       → Sub (M n (i , h , t) iS u) (M n (i , O , O) (empty-shape i) u')
 π⋆ᴹ₀ n i h t iS u u' = π⋆ᴹ n i iS (empty-shape i) u u' (OO≤ₛ h t)
 
-{-# TERMINATING #-}
+-- {-# TERMINATING #-}
 M (1+ n) (i , O , O) iS u = SCT (1+ n)
 M (1+ n) (i , O , 1+ t) iS u =
   M (1+ n) (i , O , t) (shapeₜ↓ iS) u
@@ -130,7 +130,13 @@ M⃗ (1+ n) (i , 1+ h , O) iS u f =
     Π′⋆-aux h' (hom-size i h') h' t'
       (full-level i h' (S≤-≤ (hcond iS))) iS' (S<-< u) u'
       (≤ₛ-by-width (tcond iS')) A
-  Π′⋆-aux .(1+ h') (1+ t) h' .(hom-size i h') iS iS'@(shape-conds hcond (inl idp)) u u' (inl ltS) A = {!!}
+  Π′⋆-aux .(1+ h') (1+ t) h' .(hom-size i h')
+    iS iS'@(shape-conds _(inl idp)) u u' (inl ltS) A
+    rewrite shape= iS' (shape-conds (≤-trans lteS $ hcond (shapeₜ≤ (≤-ap-S (O≤ t)) iS)) lteE)
+          | <= u' (S≤-< (inr u))
+    = Π′ _
+        (Π′⋆-aux (1+ h') (1+ t) (1+ h') 1 iS (shapeₜ≤ (≤-ap-S (O≤ t)) iS) u u
+          (≤ₛ-by-width (≤-ap-S (O≤ t))) A)
   Π′⋆-aux .(1+ h') (1+ t) h' t' iS (shape-conds hcond (inr v)) u u' (inl ltS) A = {!!}
 
   Π′⋆-aux O .(1+ t') .O t' iS iS' u u' (inr (idp , inr ltS)) A
