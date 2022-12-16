@@ -7,6 +7,9 @@ open import hott.Base public
 pattern 1+ n = S n
 pattern 2+ n = S (S n)
 
+<= : ∀ {m n} (u u' : m < n) → u == u'
+<= = prop-path <-is-prop
+
 module Nat-instances {n : ℕ} where
   -- All instance declarations here will be visible to any module that imports
   -- hott.Nat (this is apparently intended behavior, see GitHub issue #1265)
