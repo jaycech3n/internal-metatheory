@@ -1,6 +1,6 @@
 {--- Not currently used -}
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 module hott.PathOverSeq where
 

@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 module cwfs.Contextual where
 
@@ -44,6 +44,7 @@ record ContextualStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwf
 
   open context-operations
 
+  {-
   conᶜ-of : ∀ {n} → (Γ : Con) → ⦃ len Γ == n ⦄ → Conᶜ n
   con-conᶜ : ∀ {n} → (Γ : Con) → ⦃ p : len Γ == n ⦄ → Γ == con-of (conᶜ-of Γ)
 
@@ -58,7 +59,7 @@ record ContextualStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwf
   con-conᶜ {O} Γ ⦃ p ⦄ = <– len-◆-equiv p
   con-conᶜ {1+ n} Γ ⦃ p ⦄ = {!-- switching to another formulation for now,
     but should figure out whether this is actually provable!}
-
+  -}
 
 module Contextual-contextual-core {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwf : CwFStructure C)
   where
