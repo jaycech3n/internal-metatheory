@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 module hott.Nat where
 
@@ -48,6 +48,14 @@ private
     S≤-1≤ {m} {O} u = ⊥-rec (S≰O m u)
     S≤-1≤ {m} {1+ n} u = ≤-ap-S (O≤ n)
 
+    ≤-+-mid : ∀ {m n} → 1+ m ≤ 1+ (n + m)
+    ≤-+-mid {m} {O} = lteE
+    ≤-+-mid {m} {1+ n} = lteSR $ ≤-+-mid {m} {n}
+
+    <1+ : ∀ {m n} → n < 1+ m + n
+    <1+ {O} = ltS
+    <1+ {1+ m} = <-trans (<1+ {m}) ltS
+
     module _ {m n} where
       =-cancel-S : 1+ m == 1+ n :> ℕ → m == n
       =-cancel-S idp = idp
@@ -74,6 +82,9 @@ private
       no-between u v with <-S≤ u
       ... | inl idp = ¬< v
       ... | inr w = ¬< (<-trans v w)
+
+      <-witness' : m < n → Σ ℕ (λ k → k + m == n)
+      <-witness' u = let w = <-witness u in 1+ (fst w) , snd w
 
   module three-arg-lemmas where
     module _ {k m n} where

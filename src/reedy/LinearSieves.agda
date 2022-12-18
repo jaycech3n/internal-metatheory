@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import reedy.IndexSemicategories
 
@@ -45,6 +45,9 @@ empty-shape i = shape-conds (O≤ i) (O≤ (hom-size i O))
 full-level : ∀ i h → h ≤ i → is-shape i h (hom-size i h)
 full-level i h u = shape-conds u lteE
 
+new-level : ∀ i h → h ≤ i → is-shape i h O
+new-level i h u = shape-conds u (O≤ (hom-size i h))
+
 full-shape-1+ : ∀ i → is-shape (1+ i) i (hom-size (1+ i) i)
 full-shape-1+ i = full-level (1+ i) i lteS
 
@@ -62,16 +65,105 @@ shapeₜ≤ (inr u) iS = shapeₜ< u iS
 shapeₜ↓ : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
 shapeₜ↓ = shapeₜ< ltS
 
--- Shape order (on shapes with equal apexes)
-_≤ₛ_ : (s s' : ℕ × ℕ) → Type₀
-(h , t) ≤ₛ (h' , t') = (h < h') ⊔ ((h == h') × (t ≤ t'))
+module LinearSieves-≤ₛ where
+  _≤ₛ_ : (s' s : ℕ × ℕ) → Type₀
+  (h' , t') ≤ₛ (h , t) = (Σ[ dₕ ː ℕ ] (1+ dₕ) + h' == h) ⊔
+                         ((h' == h) × (Σ[ dₜ ː ℕ ] dₜ + t' == t))
+  -- Equivalent but less computational:
+  -- (h' , t') ≤ₛ (h , t) = (h' < h) ⊔ ((h' == h) × (t' ≤ t))
 
-≤ₛ-by-width : ∀ {h t t'} → t ≤ t' → (h , t) ≤ₛ (h , t')
-≤ₛ-by-width u = inr (idp , u)
+  ≤-≤ₛ : ∀ {h t h' t'} → h' ≤ h → t' ≤ t → (h' , t') ≤ₛ (h , t)
+  ≤-≤ₛ (inl idp) (inl idp) = inr (idp , O , idp)
+  ≤-≤ₛ (inl idp) (inr v) = inr (idp , <-witness' v)
+  ≤-≤ₛ (inr u) _ = inl (<-witness u)
 
-OO≤ₛ : ∀ h t → (O , O) ≤ₛ (h , t)
-OO≤ₛ O t = inr (idp , O≤ t)
-OO≤ₛ (1+ h) t = inl (O<S h)
+  OO≤ₛ : ∀ {h t} → (O , O) ≤ₛ (h , t)
+  OO≤ₛ {h} {t} = ≤-≤ₛ (O≤ h) (O≤ t)
+
+  -- An induction principle on ranges:
+  data [_,_,_]≤ₛ[_,_] : (i h' t' h t : ℕ) → Type₀ where
+    done : ∀ {i h t}
+      → [ i , h , t ]≤ₛ[ h , t ]
+    on-width : ∀ {i h t t'}
+      → t' < t
+      → [ i , h , 1+ t' ]≤ₛ[ h , t ]
+      → [ i , h , t' ]≤ₛ[ h , t ]
+    on-height-width-max : ∀ {i h t h'}
+      → h' < h
+      → [ i , 1+ h' , O ]≤ₛ[ h , t ]
+      → [ i , h' , hom-size i h' ]≤ₛ[ h , t ]
+    on-height-width<max : ∀ {i h t h' t'}
+      → h' < h → t' < hom-size i h'
+      → [ i , h' , 1+ t' ]≤ₛ[ h , t ]
+      → [ i , h' , t' ]≤ₛ[ h , t ]
+
+  -- In this abstract block we prove that ≤ₛ and [_,_,_]≤ₛ[_,_] are fiberwise
+  -- logically equivalent. (Probably also actually fiberwise equivalent.)
+  abstract
+    module _ where
+      ≤ₛ-ind-height : ∀ i h t h' t' → is-shape i h t → is-shape i h' t'
+        → (dₕ : ℕ) → (1+ dₕ) + h' == h
+        → (dₜ : ℕ) → dₜ + t' == hom-size i h'
+        → [ i , h' , t' ]≤ₛ[ h , t ]
+      ≤ₛ-ind-width : ∀ i h t h' t' → is-shape i h t → is-shape i h' t'
+        → h' == h → (dₜ : ℕ) → dₜ + t' == t
+        → [ i , h' , t' ]≤ₛ[ h , t ]
+
+      ≤ₛ-ind-height i .(1+ O + h') t h' .(hom-size i h')
+        iS iS'@(shape-conds _ (inl idp)) O idp _ _
+        = on-height-width-max ltS $
+            ≤ₛ-ind-width i (1+ h') t (1+ h') O iS (shapeₜ≤ (O≤ t) iS) idp t (+-comm t _)
+      ≤ₛ-ind-height i .(2+ m + h') t h' .(hom-size i h')
+        iS iS'@(shape-conds _ (inl idp)) (1+ m) idp _ _
+        = on-height-width-max <1+ $
+            ≤ₛ-ind-height i (2+ (m + h')) t (1+ h') O iS iS''
+              m (+-βr m h' |in-ctx 1+) (hom-size i (1+ h')) (+-comm _ O)
+          where
+          iS'' : is-shape i (1+ h') O
+          iS'' = shape-conds (≤-trans ≤-+-mid (hcond iS)) (O≤ _)
+      ≤ₛ-ind-height i .(1+ m + h') t h' t'
+        iS iS'@(shape-conds _ (inr u)) m idp (1+ k) p
+        = on-height-width<max <1+ u $
+            ≤ₛ-ind-height i (1+ m + h') t h' (1+ t') iS iS'' m idp k q
+          where
+          iS'' : is-shape i h' (1+ t')
+          iS'' = shape-conds (hcond iS') (<-S≤ u)
+          q : k + 1+ t' == hom-size i h'
+          q = +-βr _ _ ∙ p
+      ≤ₛ-ind-height i .(1+ O + h') t h' .(hom-size i h')
+        iS iS'@(shape-conds _ (inr u)) O idp O idp = ⊥-rec $ ¬< u
+      ≤ₛ-ind-height i .(2+ m + h') t h' .(hom-size i h')
+        iS iS'@(shape-conds _ (inr u)) (1+ m) idp O idp = ⊥-rec $ ¬< u
+
+      ≤ₛ-ind-width i h .(O + t') .h t' iS iS' idp O idp = done
+      ≤ₛ-ind-width i h .(1+ n + t') .h t' iS iS' idp (1+ n) idp =
+        on-width <1+ (≤ₛ-ind-width i h (1+ n + t') h (1+ t') iS iS'' idp n p)
+        where
+        iS'' : is-shape i h (1+ t')
+        iS'' = shape-conds (hcond iS') (≤-trans ≤-+-mid (tcond iS))
+        p : n + 1+ t' == 1+ (n + t')
+        p = +-comm n (1+ t') ∙ (+-comm t' _ |in-ctx 1+)
+
+    ≤ₛ-ind : ∀ {i h t h' t'} → is-shape i h t → is-shape i h' t'
+      → (h' , t') ≤ₛ (h , t)
+      → [ i , h' , t' ]≤ₛ[ h , t ]
+    ≤ₛ-ind {i} {h} {t} {h'} {t'} iS iS' (inl (m , p)) =
+      ≤ₛ-ind-height i h t h' t' iS iS' m p (fst w) (snd w)
+      where
+      w : Σ[ n ː ℕ ] n + t' == hom-size i h'
+      w = ≤-witness (tcond iS')
+    ≤ₛ-ind {i} {h} {t} {h'} {t'} iS iS' (inr (p , n , q)) =
+      ≤ₛ-ind-width i h t h' t' iS iS' p n q
+
+    ind-≤ₛ : ∀ {i h t h' t'} → is-shape i h t → is-shape i h' t'
+      → [ i , h' , t' ]≤ₛ[ h , t ]
+      → (h' , t') ≤ₛ (h , t)
+    ind-≤ₛ {i} {h} {t} {.h} {.t} iS iS' done = ≤-≤ₛ lteE lteE
+    ind-≤ₛ {i} {h} {t} {.h} {t'} iS iS' (on-width u w) = ≤-≤ₛ lteE (inr u)
+    ind-≤ₛ {i} {h} {t} {h'} {.(hom-size i h')} iS iS' (on-height-width-max u w) = inl (<-witness u)
+    ind-≤ₛ {i} {h} {t} {h'} {t'} iS iS' (on-height-width<max u _ w) = inl (<-witness u)
+
+open LinearSieves-≤ₛ public
 
 -- Shape equivalence: generated by (i, h, t) ~ (i, h + 1, 0)
 
@@ -135,7 +227,9 @@ module _ (i : ℕ) where
       → snd (shape-· h t iS f) ≤ hom-size m (fst (shape-· h t iS f))
     width-shape-· h (1+ t) iS {m} f with h <? m | O <? hom-size m h
     ... | inl u | inl v = #-factors-ub t-Fin f v
-                          where t-Fin = t , <-≤-< ltS (tcond iS)
+                          where
+                          t-Fin : Fin (hom-size i h)
+                          t-Fin = t , <-≤-< ltS (tcond iS)
     ... | inl _ | inr _ = O≤ _
     ... | inr x | s = O≤ _
     width-shape-· (1+ h) O iS f = width-shape-· h (hom-size i h) (shapeₕ↓ iS) f
