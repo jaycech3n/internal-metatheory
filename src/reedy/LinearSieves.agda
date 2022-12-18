@@ -155,13 +155,13 @@ module LinearSieves-≤ₛ where
     ≤ₛ-ind {i} {h} {t} {h'} {t'} iS iS' (inr (p , n , q)) =
       ≤ₛ-ind-width i h t h' t' iS iS' p n q
 
-    ind-≤ₛ : ∀ {i h t h' t'} → is-shape i h t → is-shape i h' t'
+    ind-≤ₛ : ∀ {i h t h' t'}
       → [ i , h' , t' ]≤ₛ[ h , t ]
       → (h' , t') ≤ₛ (h , t)
-    ind-≤ₛ {i} {h} {t} {.h} {.t} iS iS' done = ≤-≤ₛ lteE lteE
-    ind-≤ₛ {i} {h} {t} {.h} {t'} iS iS' (on-width u w) = ≤-≤ₛ lteE (inr u)
-    ind-≤ₛ {i} {h} {t} {h'} {.(hom-size i h')} iS iS' (on-height-width-max u w) = inl (<-witness u)
-    ind-≤ₛ {i} {h} {t} {h'} {t'} iS iS' (on-height-width<max u _ w) = inl (<-witness u)
+    ind-≤ₛ {i} {h} {t} {.h} {.t} done = ≤-≤ₛ lteE lteE
+    ind-≤ₛ {i} {h} {t} {.h} {t'} (on-width u w) = ≤-≤ₛ lteE (inr u)
+    ind-≤ₛ {i} {h} {t} {h'} {.(hom-size i h')} (on-height-width-max u w) = inl (<-witness u)
+    ind-≤ₛ {i} {h} {t} {h'} {t'} (on-height-width<max u _ w) = inl (<-witness u)
 
 open LinearSieves-≤ₛ public
 
