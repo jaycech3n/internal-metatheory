@@ -30,6 +30,9 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       _ʷ : {Γ : Con} {A : Ty Γ} → Ty Γ → Ty (Γ ∷ A)
       _ʷ {A = A} B = B [ π A ]
 
+      _ʷₜ : {Γ : Con} {A B : Ty Γ} → Tm B → Tm (B [ π A ])
+      _ʷₜ {A = A} b = b [ π A ]ₜ
+
       instance
         witness-∷ : {Γ : Con} {A : Ty Γ} → Γ ∷ A == Γ ∷ A
         witness-∷ = idp
