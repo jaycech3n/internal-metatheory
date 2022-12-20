@@ -63,8 +63,12 @@ M n [ i , O , 1+ t ] iS u = M n [ i , O , t ] (shapeₜ↓ iS) u ∷ {!A₀
   A₀ : Ty (M n [ i , O , t ] (shapeₜ↓ iS) u)
   A₀ = el (𝓐 n O u [ π⋆ ]ₜ ◂$ coeᵀᵐ (! [◦] ∙ {!U[]
        -- PROBLEM 2: At this point, F is not defined and F O is not definitionally
-       -- equal to U. But the definition of F also needs a definitional equality
-       -- on M to hold for it to typecheck.!}))
+       -- equal to U. But the definition of F also needs a definitional equality on M
+       -- to hold for it to typecheck. If Agda had true interleaved mutual recursive
+       -- definitions then everything would go through levelwise on n. As it stands,
+       -- either we have to combine F and M into one function, or get rid of F
+       -- entirely and just replace its occurrences with its definition verbatim.
+       !}))
 M n [ i , 1+ h , O ] iS u = M n [ i , h , hom-size i h ] (shapeₕ↓ iS) (S<-< u)
 M n [ i , 1+ h , 1+ t ] iS u = M n [ i , 1+ h , t ] (shapeₜ↓ iS) u
   ∷ {!𝓐 n (1+ h) u -- un-Π'⋆ the preceding, then substitute!}
