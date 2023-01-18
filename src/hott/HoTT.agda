@@ -12,6 +12,7 @@ open import hott.Nat public
 open import hott.Paths public
 open import hott.PathOver public
 open import hott.Pi public
+open import hott.Prop public
 open import hott.Sigma public
 
 -- Undeveloped:

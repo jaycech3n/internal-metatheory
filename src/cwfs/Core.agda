@@ -37,6 +37,10 @@ record TyTmStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (ls
 
   private
     module definitions where
+      ![◦] : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε}
+             → A [ g ] [ f ] == A [ g ◦ f ]
+      ![◦] = ! [◦]
+
       PathOver-Tm : ∀ {Γ} {A A' : Ty Γ} (p : A == A') (t : Tm A) (t' : Tm A') → Type ℓₘ
       PathOver-Tm = PathOver Tm
       syntax PathOver-Tm p t t' = t == t' over-Tm⟨ p ⟩

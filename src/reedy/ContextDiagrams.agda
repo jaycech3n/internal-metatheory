@@ -19,98 +19,58 @@ open CwFStructure cwfstr renaming (_◦_ to _◦ˢᵘᵇ_)
 open PiStructure pistr
 open UniverseStructure univstr
 
-SCT : ℕ → Con
-F : (n : ℕ) → Ty (SCT n)
-M_[_,_,_] : (n i h t : ℕ) → is-shape i h t → h < n → Con
-M⃗_[_,_,_] :
-  (n i h t : ℕ) (iS : is-shape i h t) (u : h < n)
-  {m : ℕ} (f : hom i m)
-  {iS· : is-shape-Σ ([ i , h , t ] iS · f)}
-  {u· : 2nd ([ i , h , t ] iS · f) < n}
-  → let s = [ i , h , t ] iS · f in
-    Sub (M n [ i , h , t ] iS u)
-        (M n [ fst s , 2nd s , 3rd s ] iS· u·)
-Π′⋆_[_,_,_]→[_,_] : ∀ n i h t h' t' iS u iS' u'
-  → [ i , h' , t' ]≤ₛ[ h , t ]
-  → Ty (M n [ i , h , t ] iS u) → Ty (M n [ i , h' , t' ] iS' u')
--- Projection from larger to smaller matching context drops components
-π⋆ᴹ : ∀ n i {h t h' t'} iS iS' u u'
-  → [ i , h' , t' ]≤ₛ[ h , t ]
-  → Sub (M n [ i , h , t ] iS u) (M n [ i , h' , t' ] iS' u')
--- Drops higher dimensional fillers
-π⋆ˢ : ∀ n h → h < n → Sub (SCT n) (SCT h)
-𝓐 : ∀ n h u → Tm[ SCT n ] (F h [ π⋆ˢ n h u ])
+interleaved mutual
+  SCT : ℕ → Con
+  M_[_,_,_] : (n i h t : ℕ) → is-shape i h t → h < n → Con
+  M⃗_[_,_,_] :
+    (n i h t : ℕ) (iS : is-shape i h t) (u : h < n)
+    {m : ℕ} (f : hom i m)
+    {iS· : is-shape-Σ ([ i , h , t ] iS · f)}
+    {u· : 2nd ([ i , h , t ] iS · f) < n}
+    → let s = [ i , h , t ] iS · f in
+      Sub (M n [ i , h , t ] iS u)
+          (M n [ fst s , 2nd s , 3rd s ] iS· u·)
+  -- Drops higher dimensional fillers
+  π⋆ˢ : ∀ n h → h < n → Sub (SCT n) (SCT h)
+  -- Projection from larger to smaller matching context drops components
+  π⋆ᴹ_[_,_,_]→[_,_] :
+    (n i h t h' t' : ℕ)
+    (iS : is-shape i h t) (iS' : is-shape i h' t')
+    (u : h < n) (u' : h' < n)
+    → [ i , h' , t' ]≤ₛ[ h , t ]
+    → Sub (M n [ i , h , t ] iS u) (M n [ i , h' , t' ] iS' u')
+  Π′⋆_[_,_,_]→[_,_] :
+    (n i h t h' t' : ℕ)
+    (iS : is-shape i h t) (iS' : is-shape i h' t')
+    (u : h < n) (u' : h' < n)
+    → [ i , h' , t' ]≤ₛ[ h , t ]
+    → Ty (M n [ i , h , t ] iS u) → Ty (M n [ i , h' , t' ] iS' u')
 
-SCT O = ◆
-SCT (1+ n) = SCT n ∷ F n
+  SCT O = ◆
 
--- Not sure if the following formulation of π⋆ˢ and 𝓐 will work with the other parts
--- later, but let's just do it and see.
-π⋆ˢ .(1+ h) h ltS = π (F h)
-π⋆ˢ (1+ n) h (ltSR u) = π⋆ˢ n h u ◦ˢᵘᵇ π (F n)
-
-𝓐 .(1+ h) h ltS = υ (F h)
-𝓐 (1+ n) h (ltSR u) = 𝓐 n h u ʷₜ ◂$ coeᵀᵐ (! [◦])
-
--- The following PROBLEMs document why defining F as in this file doesn't seem to
--- work.
-M n [ i , O , O ] iS u = SCT n
-M n [ i , O , 1+ t ] iS u = M n [ i , O , t ] (shapeₜ↓ iS) u ∷ {!A₀
-  -- PROBLEM 1: giving this here results in termination errors.!}
-  where
-  π⋆ : Sub (M n [ i , O , t ] (shapeₜ↓ iS) u) (SCT n)
-  π⋆ = π⋆ᴹ n i (shapeₜ↓ iS) (empty-shape i) u u (OO[≤ₛ] (shapeₜ↓ iS))
-  A₀ : Ty (M n [ i , O , t ] (shapeₜ↓ iS) u)
-  A₀ = el (𝓐 n O u [ π⋆ ]ₜ ◂$ coeᵀᵐ (! [◦] ∙ {!U[]
-       -- PROBLEM 2: At this point, F is not defined and F O is not definitionally
-       -- equal to U. But the definition of F also needs a definitional equality
-       -- on M to hold for it to typecheck.!}))
-M n [ i , 1+ h , O ] iS u = M n [ i , h , hom-size i h ] (shapeₕ↓ iS) (S<-< u)
-M n [ i , 1+ h , 1+ t ] iS u = M n [ i , 1+ h , t ] (shapeₜ↓ iS) u
-  ∷ {!𝓐 n (1+ h) u -- un-Π'⋆ the preceding, then substitute!}
-
-M⃗ n [ i , h , t ] iS u f = {!!}
-
-Π′⋆ n [ i , h , t ]→[ .h , .t ] iS u iS' u' done A
-  rewrite shape= iS' iS | <= u' u = A
-Π′⋆ n [ i , O , t ]→[ .O , t' ] iS u iS' u' (on-width v w) A
-  rewrite shape= iS' (shapeₜ↓ $ shape-conds (hcond iS') (≤-trans (<-S≤ v) (tcond iS)))
-  = Π′ _ (Π′⋆ n [ i , O , t ]→[ O , 1+ t' ] iS u iS'' u' w A)
+  SCT (1+ O) = ◆ ∷ U
+  M 1+ O [ i , O , O ] iS ltS = SCT (1+ O)
+  M 1+ O [ i , O , 1+ t ] iS ltS
+    = M 1+ O [ i , O , t ] iS' ltS
+      ∷ (var (SCT (1+ O))
+          [ π⋆ᴹ 1+ O [ i , O , t ]→[ O , O ]
+             iS' (empty-shape i) ltS ltS
+             (OO[≤ₛ] iS')
+          ]ₜ
+        ◂$ coeᵀᵐ (![◦] ∙ U[])
+        ◂$ el)
+    where iS' = shapeₜ↓ iS
+  π⋆ᴹ 1+ O [ i , .O , t ]→[ .O , .t ] iS iS' ltS ltS done
+    = id ◂$ coe-shape (λ ◻ → Sub _ (M 1+ O [ i , O , t ] ◻ ltS)) iS'
+  π⋆ᴹ 1+ O [ i , .O , t ]→[ .O , t' ] iS iS' ltS ltS (on-width ltS w)
+    = π _ ◂$ coe-shape (λ ◻ → Sub _ (M 1+ O [ i , O , t' ] ◻ ltS)) iS'
+  π⋆ᴹ 1+ O [ i , .O , t ]→[ .O , t' ] iS iS' ltS ltS (on-width (ltSR v) w)
+    = π _ ◦ˢᵘᵇ π⋆ᴹ 1+ O [ i , O , t ]→[ O , 1+ t' ] iS iS'' ltS ltS w
+      ◂$ coe-shape (λ ◻ → Sub _ (M 1+ O [ i , O , t' ] ◻ ltS)) iS'
     where
-    iS'' : is-shape i O (1+ t')
-    iS'' = shape-conds (hcond iS') (≤-trans (<-S≤ v) (tcond iS))
-Π′⋆ n [ i , 1+ h , t ]→[ .(1+ h) , t' ] iS u iS' u' (on-width v w) A
-  rewrite shape= iS' (shapeₜ↓ $ shape-conds (hcond iS') (≤-trans (<-S≤ v) (tcond iS)))
-  = Π′ _ (Π′⋆ n [ i , 1+ h , t ]→[ 1+ h , 1+ t' ] iS u iS'' u' w A)
-    where
-    iS'' : is-shape i (1+ h) (1+ t')
-    iS'' = shape-conds (hcond iS') (≤-trans (<-S≤ v) (tcond iS))
-Π′⋆ n [ i , h , t ]→[ h' , .(hom-size i h') ] iS u iS' u' (on-height-width-max v w) A
-  rewrite shape= iS' (shapeₕ↓ (new-level i (1+ h') (≤-trans (<-S≤ v) (hcond iS))))
-        | <= u' (S<-< (≤-<-< (<-S≤ v) u))
-  = Π′⋆ n [ i , h , t ]→[ 1+ h' , O ] iS u iS'' v' w A
-    where
-    iS'' : is-shape i (1+ h') O
-    iS'' = new-level i (1+ h') (≤-trans (<-S≤ v) (hcond iS))
-    v' : 1+ h' < n
-    v' = ≤-<-< (<-S≤ v) u
-Π′⋆ n [ i , h , t ]→[ O , t' ] iS u iS' u' (on-height-width<max v v' w) A
-  rewrite shape= iS' (shapeₜ↓ $ shape-conds (hcond iS') (<-S≤ v'))
-  = Π′ _ (Π′⋆ n [ i , h , t ]→[ O , 1+ t' ] iS u iS'' u' w A)
-    where
-    iS'' : is-shape i O (1+ t')
-    iS'' = shape-conds (hcond iS') (<-S≤ v')
-Π′⋆ n [ i , h , t ]→[ 1+ h' , t' ] iS u iS' u' (on-height-width<max v v' w) A
-  rewrite shape= iS' (shapeₜ↓ $ shape-conds (hcond iS') (<-S≤ v'))
-  = Π′ _ (Π′⋆ n [ i , h , t ]→[ 1+ h' , 1+ t' ] iS u iS'' u' w A)
-    where
-    iS'' : is-shape i (1+ h') (1+ t')
-    iS'' = shape-conds (hcond iS') (<-S≤ v')
+      iS'' : is-shape i O (1+ t')
+      iS'' = shape-conds (hcond iS') (≤-trans (inr (<-ap-S v)) (tcond iS))
 
-π⋆ᴹ n i iS iS' u u' w = {!!}
-
-F O = U
-F (1+ n) =
-  Π′⋆ (1+ n) [ 1+ n , n , hom-size (1+ n) n ]→[ O , O ]
-    (full-shape-1+ n) ltS (empty-shape (1+ n)) (O<S n)
-    (OO[≤ₛ] (full-shape-1+ n))  U
+  SCT (2+ n) = {!!}
+  M 2+ n [ i , h , t ] iS u = {!!}
+  π⋆ᴹ 2+ n [ i , h , t ]→[ h' , t' ] iS iS' u u' x = {!!}

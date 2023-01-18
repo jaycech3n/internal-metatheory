@@ -1,0 +1,104 @@
+{-# OPTIONS --without-K --rewriting #-}
+
+open import cwfs.CwFs
+open import cwfs.Pi
+open import cwfs.Universe
+open import reedy.IndexSemicategories
+
+module reedy.ContextDiagrams {ℓₘᴵ ℓₒ ℓₘ}
+  (I : SuitableSemicategory ℓₘᴵ)
+  {C : WildCategory ℓₒ ℓₘ}
+  (cwfstr : CwFStructure C)
+  (pistr : PiStructure cwfstr)
+  (univstr : UniverseStructure cwfstr)
+  where
+
+open import reedy.LinearSieves I
+open SuitableSemicategory I
+open CwFStructure cwfstr renaming (_◦_ to _◦ˢᵘᵇ_)
+open PiStructure pistr
+open UniverseStructure univstr
+
+interleaved mutual
+
+  SCT : ℕ → Con
+  M_[_,_,_] : (n i h t : ℕ) → is-shape i h t → h < n → Con
+  M⃗_[_,_,_] :
+    (n i h t : ℕ) (iS : is-shape i h t) (u : h < n)
+    {m : ℕ} (f : hom i m)
+    {iS· : is-shape-Σ ([ i , h , t ] iS · f)}
+    {u· : 2nd ([ i , h , t ] iS · f) < n}
+    → let s = [ i , h , t ] iS · f in
+      Sub (M n [ i , h , t ] iS u)
+          (M n [ fst s , 2nd s , 3rd s ] iS· u·)
+  -- Drops higher dimensional fillers
+  π⋆ˢ : ∀ n h → h < n → Sub (SCT n) (SCT h)
+  -- Projection from larger to smaller matching context drops components
+  π⋆ᴹ : ∀ n i {h t h' t'} iS iS' u u'
+    → [ i , h' , t' ]≤ₛ[ h , t ]
+    → Sub (M n [ i , h , t ] iS u) (M n [ i , h' , t' ] iS' u')
+  Π′⋆_[_,_,_]→[_,_] : ∀ n i h t h' t' iS u iS' u'
+    → [ i , h' , t' ]≤ₛ[ h , t ]
+    → Ty (M n [ i , h , t ] iS u) → Ty (M n [ i , h' , t' ] iS' u')
+  F : (n : ℕ) → Ty (SCT n)
+  𝒜 : ∀ n h u → Tm[ SCT n ] (F h [ π⋆ˢ n h u ])
+
+  SCT O = ◆
+  SCT (1+ n) = SCT n ∷ F n
+
+  π⋆ˢ .(1+ h) h ltS = π (F h)
+  π⋆ˢ (1+ n) h (ltSR u) = π⋆ˢ n h u ◦ˢᵘᵇ π (F n)
+
+  F O = U
+  𝒜 .(1+ O) O ltS = var (SCT 1)
+  𝒜 (1+ n) O (ltSR u) = coeᵀᵐ (! [◦]) $ 𝒜 n O u ʷₜ
+
+  M 1 [ i , O , O ] _ _ = SCT 1
+  M 1 [ i , O , 1+ t ] iS u =
+    M 1 [ i , O , t ] iS' u
+    ∷ (𝒜 1 O u [ π⋆ᴹ 1 i iS' (empty-shape i) u u (OO[≤ₛ] iS') ]ₜ
+      ◂$ coeᵀᵐ (! [◦] ∙ U[])
+      ◂$ el
+      )
+    where iS' = shapeₜ↓ iS
+  M 1 [ i , 1+ h , t ] iS (ltSR ())
+
+  M⃗ 1 [ i , h , t ] = {!!}
+
+  π⋆ᴹ 1 i {O} {t} {O} {t'} iS iS' u u' done
+    rewrite shape= iS' iS | <= u' u
+    = id
+  π⋆ᴹ 1 i {O} {t} {O} {t'} iS iS' u u' (on-width v w)
+    rewrite shape= iS' {!!}
+    = π _ ◦ˢᵘᵇ π⋆ᴹ 1 i iS {!!} u u' w -- {!!}
+  π⋆ᴹ 1 i {O} {_} {1+ _} iS iS' u (ltSR ())
+  π⋆ᴹ 1 i {1+ _} iS iS' (ltSR ())
+
+  Π′⋆ 1 [ i , O , t ]→[ O , .t ] iS u iS' u' done A
+    rewrite shape= iS' iS | <= u' u
+    = A
+  Π′⋆ 1 [ i , O , t ]→[ O , t' ] iS u iS' u' (on-width v w) A
+    rewrite shape= iS' (shapeₜ↓ $ shape-conds (O≤ i) (<-S≤ (<-≤-< v (tcond iS))))
+    = Π′ _ (Π′⋆ 1 [ i , O , t ]→[ O , 1+ t' ] iS u iS'' u' w A)
+    where
+      iS'' : is-shape i O (1+ t')
+      iS'' = shape-conds (O≤ i) (<-S≤ (<-≤-< v (tcond iS)))
+  Π′⋆ 1 [ i , 1+ _ , _ ]→[ _ , _ ] _ (ltSR ())
+  Π′⋆ 1 [ i , _ , _ ]→[ 1+ _ , _ ] _ _ _ (ltSR ())
+
+  F 1 = {!!}
+
+  𝒜 n 1 u = {!!}
+
+
+  M (2+ n) [ i , h , t ] = {!!}
+
+  M⃗ (2+ n) [ i , h , t ] = {!!}
+
+  π⋆ᴹ (2+ n) i iS iS' u u' x = {!!}
+
+  Π′⋆ (2+ n) [ i , h , t ]→[ h' , t' ] = {!!}
+
+  F (2+ n) = {!!}
+
+  𝒜 n (2+ h) u = {!!}
