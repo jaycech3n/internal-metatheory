@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --experimental-lossy-unification -vterm:20 #-}
 
 open import cwfs.CwFs
 open import cwfs.Pi
@@ -49,7 +49,7 @@ interleaved mutual
   SCT O = ◆
 
   SCT (1+ O) = ◆ ∷ U
-  M 1+ O [ i , O , O ] iS ltS = SCT (1+ O)
+  M 1+ O [ i , O , O ] iS u = SCT (1+ O)
   M 1+ O [ i , O , 1+ t ] iS ltS
     = M 1+ O [ i , O , t ] iS' ltS
       ∷ (var (SCT (1+ O))
@@ -59,17 +59,32 @@ interleaved mutual
           ]ₜ
         ◂$ coeᵀᵐ (![◦] ∙ U[])
         ◂$ el)
-    where iS' = shapeₜ↓ iS
-  π⋆ᴹ 1+ O [ i , .O , t ]→[ .O , .t ] iS iS' ltS ltS done
-    = id ◂$ coe-shape (λ ◻ → Sub _ (M 1+ O [ i , O , t ] ◻ ltS)) iS'
-  π⋆ᴹ 1+ O [ i , .O , t ]→[ .O , t' ] iS iS' ltS ltS (on-width ltS w)
-    = π _ ◂$ coe-shape (λ ◻ → Sub _ (M 1+ O [ i , O , t' ] ◻ ltS)) iS'
-  π⋆ᴹ 1+ O [ i , .O , t ]→[ .O , t' ] iS iS' ltS ltS (on-width (ltSR v) w)
-    = π _ ◦ˢᵘᵇ π⋆ᴹ 1+ O [ i , O , t ]→[ O , 1+ t' ] iS iS'' ltS ltS w
-      ◂$ coe-shape (λ ◻ → Sub _ (M 1+ O [ i , O , t' ] ◻ ltS)) iS'
-    where
+      where iS' = shapeₜ↓ iS
+  M 1+ O [ i , 1+ h , t ] iS (ltSR ())
+  π⋆ᴹ 1+ O [ i , h , t ]→[ h' , t' ] iS iS' u u' w = {!!}
+  {-
+  M 1+ O [ i , .O , O ] iS ltS = SCT (1+ O)
+  M 1+ O [ i , .O , 1+ t ] iS ltS
+    = M 1+ O [ i , O , t ] iS' ltS
+      ∷ (var (SCT (1+ O))
+          [ π⋆ᴹ 1+ O [ i , O , t ]→[ O , O ]
+             iS' (empty-shape i) ltS ltS
+             (OO[≤ₛ] iS')
+          ]ₜ
+        ◂$ coeᵀᵐ (![◦] ∙ U[])
+        ◂$ el)
+      where iS' = shapeₜ↓ iS
+  π⋆ᴹ 1+ O [ i , .O , O ]→[ .O , .O ] iS iS' ltS ltS done = id
+  π⋆ᴹ 1+ O [ i , .O , 1+ t ]→[ .O , .(1+ t) ] iS iS' ltS ltS done
+    = id ◂$ transp-shape (λ ◻ → Sub _ (M 1+ O [ i , O , 1+ t ] ◻ ltS)) iS'
+  π⋆ᴹ 1+ O [ i , .O , 1+ t ]→[ .O , t' ] iS iS' ltS ltS (on-width v w)
+    = π _ ◦ˢᵘᵇ π⋆ᴹ 1+ O [ i , O , 1+ t ]→[ O , 1+ t' ] iS iS'' ltS ltS w
+               -- Is the (1+ t') the problem?...
+      ◂$ transp-shape (λ ◻ → Sub _ (M 1+ O [ i , O , t' ] ◻ ltS)) iS'
+      where
       iS'' : is-shape i O (1+ t')
-      iS'' = shape-conds (hcond iS') (≤-trans (inr (<-ap-S v)) (tcond iS))
+      iS'' = shapeₜ≤ (<-S≤ v) iS
+  -}
 
   SCT (2+ n) = {!!}
   M 2+ n [ i , h , t ] iS u = {!!}

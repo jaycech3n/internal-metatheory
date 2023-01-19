@@ -36,11 +36,11 @@ abstract
 shape= : ∀ {i h t} (iS iS' : is-shape i h t) → iS == iS'
 shape= = prop-path is-shape-is-prop
 
-coe-shape :
+transp-shape :
   ∀ {ℓ} {i h t} (B : is-shape i h t → Type ℓ)
     {iS : is-shape i h t} (iS' : is-shape i h t)
   → B iS → B iS'
-coe-shape {i} {h} {t} B iS' = coe-Prop is-shape-is-prop B
+transp-shape {i} {h} {t} B iS' = transp-Prop is-shape-is-prop B
 
 is-shape-Σ : ℕ³ → Type₀
 is-shape-Σ (i , h , t) = is-shape i h t
@@ -99,7 +99,8 @@ module LinearSieves-≤ₛ where
       → [ i , 1+ h' , O ]≤ₛ[ h , t ]
       → [ i , h' , hom-size i h' ]≤ₛ[ h , t ]
     on-height-width<max : ∀ {i h t h' t'}
-      → h' < h → t' < hom-size i h'
+      → h' < h
+      → t' < hom-size i h'
       → [ i , h' , 1+ t' ]≤ₛ[ h , t ]
       → [ i , h' , t' ]≤ₛ[ h , t ]
 
