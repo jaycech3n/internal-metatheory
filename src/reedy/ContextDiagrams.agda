@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --experimental-lossy-unification #-}
+{-# OPTIONS --without-K --rewriting --experimental-lossy-unification --termination-depth=4 #-}
 
 open import cwfs.CwFs
 open import cwfs.Pi
@@ -35,9 +35,9 @@ interleaved mutual
   -- Projection from larger to smaller matching context drops components
   π⋆ᴹ_[_,_,_]→[_,_] :
     (n i h t h' t' : ℕ)
-    (iS : is-shape i h t) (iS' : is-shape i h' t')
-    (u : h < n) (u' : h' < n)
     → [ i , h' , t' ]≤ₛ[ h , t ]
+    → (iS : is-shape i h t) (iS' : is-shape i h' t')
+    → (u : h < n) (u' : h' < n)
     → Sub (M n [ i , h , t ] iS u) (M n [ i , h' , t' ] iS' u')
   Π′⋆_[_,_,_]→[_,_] :
     (n i h t h' t' : ℕ)
@@ -54,22 +54,32 @@ interleaved mutual
     = M 1+ O [ i , O , t ] iS' ltS
       ∷ (var (SCT (1+ O))
           [ π⋆ᴹ 1+ O [ i , O , t ]→[ O , O ]
-             iS' (empty-shape i) ltS ltS
              (OO[≤ₛ] iS')
+             iS' (empty-shape i) ltS ltS
           ]ₜ
         ◂$ coeᵀᵐ (![◦] ∙ U[])
         ◂$ el)
       where iS' = shapeₜ↓ iS
   M 1+ O [ i , 1+ h , t ] iS (ltSR ())
-  π⋆ᴹ 1+ O [ i , O , t ]→[ .O , .t ] iS iS' ltS ltS done
-    = id ◂$ transp-shape (λ ◻ → Sub _ (M 1+ O [ i , O , t ] ◻ ltS)) iS'
-  π⋆ᴹ 1+ O [ i , O , .(1+ t') ]→[ .0 , t' ] iS iS' ltS ltS (on-width ltS w)
+  π⋆ᴹ 1+ O [ i , h , t ]→[ .h , .t ] done iS iS' ltS ltS
+    = id ◂$ transp-shape (λ ◻ → Sub _ (M 1+ O [ i , h , t ] ◻ ltS)) iS'
+  π⋆ᴹ 1+ O [ i , .0 , .(1+ t') ]→[ .0 , t' ] (on-width ltS w) iS iS' ltS ltS
     = π _ ◂$ transp-shape (λ ◻ → Sub _ (M 1+ O [ i , O , t' ] ◻ ltS)) iS'
-  π⋆ᴹ 1+ O [ i , O , 1+ t ]→[ .0 , t' ] iS iS' ltS ltS (on-width (ltSR v) w)
-    = π _ ◦ˢᵘᵇ π⋆ᴹ 1+ O [ i , O , 1+ t ]→[ O , 1+ t' ] iS {!!} ltS ltS w
-      ◂$ transp-shape (λ ◻ → Sub _ (M 1+ O [ i , O , t' ] ◻ ltS)) {!!}
-  π⋆ᴹ 1+ O [ i , 1+ h , t ]→[ h' , t' ] iS iS' (ltSR ()) u' w
+  π⋆ᴹ 1+ O [ i , .0 , 1+ t ]→[ .0 , t' ] (on-width (ltSR v) w) iS iS' ltS ltS
+    = f
+      -- ◂$ transp-shape (λ ◻ → Sub _ (M 1+ O [ i , O , t' ] ◻ ltS)) _
+      where f : _
+            f = {!!} ◦ˢᵘᵇ {!!}
+      {-where
+        iS'' : is-shape i O (1+ t')
+        iS'' = shapeₜ< (<-ap-S v) iS
+
+        f : Sub (M 1+ O [ i , O , 1+ t ] iS ltS) (M 1+ O [ i , O , {!1+ t'!} ] {!iS''!} ltS)
+        f = π⋆ᴹ 1+ O [ i , O , 1+ t ]→[ O , {!1+ t'!} ] {!w!} iS {!iS''!} ltS ltS-}
+  π⋆ᴹ 1+ O [ i , h , t ]→[ h' , .(hom-size i h') ] (on-height-width-max v w) iS iS' ltS ltS = {!!}
+  π⋆ᴹ 1+ O [ i , h , t ]→[ h' , t' ] (on-height-width<max v v' w) iS iS' ltS ltS = {!!}
+  -- transp-shape (λ ◻ → Sub _ (M 1+ O [ i , O , 1+ t ] ◻ ltS)) iS'
 
   SCT (2+ n) = {!!}
   M 2+ n [ i , h , t ] iS u = {!!}
-  π⋆ᴹ 2+ n [ i , h , t ]→[ h' , t' ] iS iS' u u' x = {!!}
+  π⋆ᴹ 2+ n [ i , h , t ]→[ h' , t' ] w iS iS' u u' = {!!}
