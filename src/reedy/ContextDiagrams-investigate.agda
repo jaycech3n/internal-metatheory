@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --experimental-lossy-unification --termination-depth=4 #-}
+{-# OPTIONS --without-K --rewriting --experimental-lossy-unification -vterm:50 -vterm.found.call:20 #-}
 
 open import cwfs.CwFs
 open import cwfs.Pi
@@ -25,7 +25,7 @@ interleaved mutual
   -- Projection from larger to smaller matching context drops components
   π⋆_[_,_,_]→[_,_] :
     (n i h t h' t' : ℕ)
-    → (h' , t') ≤ₛ' (h , t)
+    → (h' , t') ≤ₛ+ (h , t)
     → (u : h < n) (u' : h' < n)
     → Sub (M n [ i , h , t ] u) (M n [ i , h' , t' ] u')
 
@@ -40,24 +40,16 @@ interleaved mutual
     = M 1+ O [ i , O , t ] ltS
       ∷ (var (SCT (1+ O))
           [ π⋆ 1+ O [ i , O , t ]→[ O , O ]
-            (inr (idp , t , +-unit-r _))
-            -- ≤ₛ-≤ₛ' (O , O) (O , t) (inr (idp , O≤ t))
+            {!≤ₛ-≤ₛ+ (O , O) (O , t) (inr (idp , O≤ t))!}
             ltS ltS
           ]ₜ
         ◂$ coeᵀᵐ (![◦] ∙ U[])
         ◂$ el)
 
-  π⋆ 1+ O [ i , .(1+ _ + h') , t ]→[ h' , t' ] (inl (_ , idp)) (ltSR ())
-  π⋆ 1+ O [ i , .O , .(O + t') ]→[ .O , t' ] (inr (idp , O , idp)) ltS ltS = id
-  π⋆ 1+ O [ i , .O , .(1+ d + t') ]→[ .O , t' ] (inr (idp , 1+ d , idp)) ltS ltS
-    = π _ ◦ˢᵘᵇ π⋆ 1+ O [ i , O , 1+ d + t' ]→[ O , 1+ t' ] (inr (idp , d , +-βr _ _)) ltS ltS
-
-{-
   π⋆ 1+ O [ i , h , t ]→[ .h , .t ] done ltS ltS = id
   π⋆ 1+ O [ i , h , t ]→[ h' , t' ] (on-height ()) ltS ltS
   π⋆ 1+ O [ i , O , t ]→[ .O , t' ] (on-width w) ltS ltS
     = π _ ◦ˢᵘᵇ π⋆ 1+ O [ i , O , t ]→[ O , 1+ t' ] w ltS ltS
--}
 
   -- n > 1
   SCT (2+ n) = {!!}
