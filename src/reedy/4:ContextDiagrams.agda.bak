@@ -65,8 +65,10 @@ interleaved mutual
 
   SCT (1+ O) = SCT O ∷ U
 
-  -- Conversion check problem here: probably the same/a very related issue as in
-  -- `3:ContextDiagrams.bak`.
+  -- Type mismatch here: this is basically the same issue as in PROBLEM 2 in
+  -- `3:ContextDiagrams.agda.bak`. That is to say, the approach of "replacing
+  -- occurrences of F with its definition verbatim" suggested in that comment (line
+  -- 70) is not actually viable.
   SCT (2+ n) = SCT (1+ n) ∷ {!Π′⋆ (1+ n) [ n , n , O ]→[ O , O ] iS iS' u u' w U!}
     where
     iS = new-level n n lteE
