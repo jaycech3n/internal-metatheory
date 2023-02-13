@@ -79,6 +79,10 @@ module LinearSieves-order where
   _≤ₛ_ : (s' s : ℕ × ℕ) → Type₀
   (h' , t') ≤ₛ (h , t) = (h' < h) ⊔ ((h' == h) × (t' ≤ t))
 
+  O≤ₛ : ∀ h t → (O , O) ≤ₛ (h , t)
+  O≤ₛ O t = inr (idp , O≤ t)
+  O≤ₛ (1+ h) t = inl (O<S h)
+
   _≤ₛ'_ : (s' s : ℕ × ℕ) → Type₀
   (h' , t') ≤ₛ' (h , t) = (Σ[ dₕ ː ℕ ] (1+ dₕ) + h' == h) ⊔
                          ((h' == h) × (Σ[ dₜ ː ℕ ] dₜ + t' == t))

@@ -63,6 +63,10 @@ private
       S<-< : 1+ m < n → m < n
       S<-< u = <-trans ltS u
 
+      <-O< : m < n → O < n
+      <-O< ltS = O<S m
+      <-O< (ltSR u) = O<S _
+
       <-S≤ : m < n → 1+ m ≤ n
       <-S≤ ltS = lteE
       <-S≤ (ltSR u) = inr (<-ap-S u)

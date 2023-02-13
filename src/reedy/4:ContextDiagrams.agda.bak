@@ -1,0 +1,95 @@
+{-# OPTIONS --without-K --rewriting --experimental-lossy-unification #-}
+
+open import cwfs.CwFs
+open import cwfs.Pi
+open import cwfs.Universe
+open import reedy.IndexSemicategories
+
+module reedy.4:ContextDiagrams {ℓₘᴵ ℓₒ ℓₘ}
+  (I : SuitableSemicategory ℓₘᴵ)
+  {C : WildCategory ℓₒ ℓₘ}
+  (cwfstr : CwFStructure C)
+  (pistr : PiStructure cwfstr)
+  (univstr : UniverseStructure cwfstr)
+  where
+
+open import reedy.LinearSieves I
+open SuitableSemicategory I
+open CwFStructure cwfstr renaming (_◦_ to _◦ˢᵘᵇ_)
+open PiStructure pistr
+open UniverseStructure univstr
+
+interleaved mutual
+  SCT : ℕ → Con
+  M_[_,_,_] : (n i h t : ℕ) → is-shape i h t → h < n → Con
+  -- Projection from larger to smaller matching context drops components
+  π⋆ᴹ_[_,_,_]→[_,_] :
+    (n i h t h' t' : ℕ)
+    (iS : is-shape i h t) (iS' : is-shape i h' t')
+    (u : h < n) (u' : h' < n)
+    → (h' , t') ≤ₛ (h , t)
+    → Sub (M n [ i , h , t ] iS u) (M n [ i , h' , t' ] iS' u')
+  M⃗_[_,_,_] :
+    (n i h t : ℕ) (iS : is-shape i h t) (u : h < n)
+    {m : ℕ} (f : hom i m)
+    {iS· : is-shape-Σ ([ i , h , t ] iS · f)}
+    {u· : 2nd ([ i , h , t ] iS · f) < n}
+    → let s = [ i , h , t ] iS · f in
+      Sub (M n [ i , h , t ] iS u)
+          (M n [ fst s , 2nd s , 3rd s ] iS· u·)
+  Π′⋆_[_,_,_]→[_,_] :
+    (n i h t h' t' : ℕ)
+    (iS : is-shape i h t) (iS' : is-shape i h' t')
+    (u : h < n) (u' : h' < n)
+    → (h' , t') ≤ₛ (h , t)
+    → Ty (M n [ i , h , t ] iS u) → Ty (M n [ i , h' , t' ] iS' u')
+  -- Drops higher dimensional fillers
+  π⋆ˢ : ∀ n h → h < n → Sub (SCT n) (SCT h)
+
+  {- A n h (where h < n) is meant to be the filler (in particular, the *variable*
+    term) of dimension h in context (SCT n).
+
+    It would be nice to be able to type the following *here* and use it in
+    definitions, but this needs the type of the expression in the hole to compute to
+    (SCT n), which we don't have at this point.
+
+    A : (n h : ℕ) (u : h < n)
+        → let iS = new-level (1+ h) h lteS
+              iS' = empty-shape (1+ h)
+              u' = <-O< u
+              w = O≤ₛ h O in
+          Tm[ SCT n ] {! Π′⋆ n [ h , h , O ]→[ O , O ] iS iS' u u' w U !}
+  -}
+
+  SCT O = ◆
+
+  SCT (1+ O) = SCT O ∷ U
+
+  -- Conversion check problem here: probably the same/a very related issue as in
+  -- `3:ContextDiagrams.bak`.
+  SCT (2+ n) = SCT (1+ n) ∷ {!Π′⋆ (1+ n) [ n , n , O ]→[ O , O ] iS iS' u u' w U!}
+    where
+    iS = new-level n n lteE
+    iS' = empty-shape n
+    u = ltS
+    u' = O<S n
+    w = O≤ₛ n O
+
+  M 1+ n [ i , h , 1+ t ] iS u =
+    M (1+ n) [ i , h , t ] iS' u ∷ {!!}
+    where
+    iS' = shapeₜ↓ iS
+  M 1+ n [ i , 1+ h , O ] iS u =
+    M (1+ n) [ i , h , hom-size i h ] iS' u'
+    where
+    iS' = shapeₕ↓ iS
+    u' = S<-< u
+  M 1+ n [ i , O , O ] iS u = SCT (1+ n)
+
+  π⋆ᴹ (1+ n) [ i , h , t ]→[ h' , t' ] iS iS' u u' w = {!!}
+
+  M⃗ (1+ n) [ i , h , t ] = {!!}
+
+  Π′⋆ (1+ n) [ i , h , t ]→[ h' , t' ] iS iS' u u' w = {!!}
+
+  π⋆ˢ (1+ n) h u = {!!}
