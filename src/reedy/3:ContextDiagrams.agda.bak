@@ -5,7 +5,7 @@ open import cwfs.Pi
 open import cwfs.Universe
 open import reedy.IndexSemicategories
 
-module reedy.ContextDiagrams {ℓₘᴵ ℓₒ ℓₘ}
+module reedy.3:ContextDiagrams {ℓₘᴵ ℓₒ ℓₘ}
   (I : SuitableSemicategory ℓₘᴵ)
   {C : WildCategory ℓₒ ℓₘ}
   (cwfstr : CwFStructure C)
@@ -13,7 +13,7 @@ module reedy.ContextDiagrams {ℓₘᴵ ℓₒ ℓₘ}
   (univstr : UniverseStructure cwfstr)
   where
 
-open import reedy.LinearSieves I
+open import reedy.1:LinearSieves I
 open SuitableSemicategory I
 open CwFStructure cwfstr renaming (_◦_ to _◦ˢᵘᵇ_)
 open PiStructure pistr
@@ -73,6 +73,12 @@ M n [ i , 1+ h , O ] iS u = M n [ i , h , hom-size i h ] (shapeₕ↓ iS) (S<-< 
 M n [ i , 1+ h , 1+ t ] iS u = M n [ i , 1+ h , t ] (shapeₜ↓ iS) u
   ∷ {!𝓐 n (1+ h) u -- un-Π'⋆ the preceding, then substitute!}
 
+F O = U
+F (1+ n) =
+  Π′⋆ (1+ n) [ 1+ n , n , hom-size (1+ n) n ]→[ O , O ]
+    (full-shape-1+ n) ltS (empty-shape (1+ n)) (O<S n)
+    (OO[≤ₛ] (full-shape-1+ n))  U
+
 M⃗ n [ i , h , t ] iS u f = {!!}
 
 Π′⋆ n [ i , h , t ]→[ .h , .t ] iS u iS' u' done A
@@ -112,9 +118,3 @@ M⃗ n [ i , h , t ] iS u f = {!!}
     iS'' = shape-conds (hcond iS') (<-S≤ v')
 
 π⋆ᴹ n i iS iS' u u' w = {!!}
-
-F O = U
-F (1+ n) =
-  Π′⋆ (1+ n) [ 1+ n , n , hom-size (1+ n) n ]→[ O , O ]
-    (full-shape-1+ n) ltS (empty-shape (1+ n)) (O<S n)
-    (OO[≤ₛ] (full-shape-1+ n))  U

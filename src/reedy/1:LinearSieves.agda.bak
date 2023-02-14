@@ -2,7 +2,7 @@
 
 open import reedy.IndexSemicategories
 
-module reedy.LinearSieves {ℓₘ} (I : SuitableSemicategory ℓₘ) where
+module reedy.1:LinearSieves {ℓₘ} (I : SuitableSemicategory ℓₘ) where
 
 open SuitableSemicategory I
 

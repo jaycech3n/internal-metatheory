@@ -23,7 +23,7 @@ interleaved mutual
   SCT : ℕ → Con
   M_[_,_,_] : (n i h t : ℕ) → is-shape i h t → h < n → Con
   -- Projection from larger to smaller matching context drops components
-  π⋆ᴹ_[_,_,_]→[_,_] :
+  {-π⋆ᴹ_[_,_,_]→[_,_] :
     (n i h t h' t' : ℕ)
     (iS : is-shape i h t) (iS' : is-shape i h' t')
     (u : h < n) (u' : h' < n)
@@ -36,7 +36,7 @@ interleaved mutual
     {u· : 2nd ([ i , h , t ] iS · f) < n}
     → let s = [ i , h , t ] iS · f in
       Sub (M n [ i , h , t ] iS u)
-          (M n [ fst s , 2nd s , 3rd s ] iS· u·)
+          (M n [ fst s , 2nd s , 3rd s ] iS· u·)-}
   Π′⋆_[_,_,_]→[_,_] :
     (n i h t h' t' : ℕ)
     (iS : is-shape i h t) (iS' : is-shape i h' t')
@@ -44,7 +44,7 @@ interleaved mutual
     → (h' , t') ≤ₛ (h , t)
     → Ty (M n [ i , h , t ] iS u) → Ty (M n [ i , h' , t' ] iS' u')
   -- Drops higher dimensional fillers
-  π⋆ˢ : ∀ n h → h < n → Sub (SCT n) (SCT h)
+  -- π⋆ˢ : ∀ n h → h < n → Sub (SCT n) (SCT h)
 
   {- A n h (where h < n) is meant to be the filler (in particular, the *variable*
     term) of dimension h in context (SCT n).
@@ -88,10 +88,10 @@ interleaved mutual
     u' = S<-< u
   M 1+ n [ i , O , O ] iS u = SCT (1+ n)
 
-  π⋆ᴹ (1+ n) [ i , h , t ]→[ h' , t' ] iS iS' u u' w = {!!}
+  -- π⋆ᴹ (1+ n) [ i , h , t ]→[ h' , t' ] iS iS' u u' w = {!!}
 
-  M⃗ (1+ n) [ i , h , t ] = {!!}
+  -- M⃗ (1+ n) [ i , h , t ] = {!!}
 
   Π′⋆ (1+ n) [ i , h , t ]→[ h' , t' ] iS iS' u u' w = {!!}
 
-  π⋆ˢ (1+ n) h u = {!!}
+  -- π⋆ˢ (1+ n) h u = {!!}
