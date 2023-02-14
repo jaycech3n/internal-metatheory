@@ -91,6 +91,10 @@ module LinearSieves-order where
   ≤ₛ-≤ₛ' s' s (inl u) = inl (<-witness u)
   ≤ₛ-≤ₛ' s' s (inr (idp , u)) = inr (idp , ≤-witness u)
 
+  ≤ₛ'-≤ₛ : (s' s : ℕ × ℕ) → s' ≤ₛ' s → s' ≤ₛ s
+  ≤ₛ'-≤ₛ s' s (inl (d , idp)) = inl <1+
+  ≤ₛ'-≤ₛ (.h , t') (h , t) (inr (idp , d , idp)) = inr (idp , ≤-+-r t'(O≤ d))
+
   -- An induction principle on two indexing pairs (h',t'), (h,t):
   data _≤ₛ+_ : (s' s : ℕ × ℕ) → Type₀ where
     done : ∀ {h t} → (h , t) ≤ₛ+ (h , t)
@@ -128,6 +132,15 @@ module LinearSieves-order where
 
   ≤ₛ-≤ₛ+ : (s' s : ℕ × ℕ) → s' ≤ₛ s → s' ≤ₛ+ s
   ≤ₛ-≤ₛ+ s' s = ≤ₛ'-≤ₛ+ s' s ∘ ≤ₛ-≤ₛ' s' s
+
+  ≤ₛ+-≤ₛ : (s' s : ℕ × ℕ) → s' ≤ₛ+ s → s' ≤ₛ s
+  ≤ₛ+-≤ₛ s' s = ≤ₛ'-≤ₛ s' s ∘ ≤ₛ+-≤ₛ' s' s
+
+  -- Some properties of ≤ₛ+-pairs
+  ≤ₛ+-width-≤ : ∀ {h t t'} → (h , t') ≤ₛ+ (h , t) → t' ≤ t
+  ≤ₛ+-width-≤ w with ≤ₛ+-≤ₛ _ _ w
+  ... | inl u = ⊥-rec (¬< u)
+  ... | inr w = snd w
 
 open LinearSieves-order public
 

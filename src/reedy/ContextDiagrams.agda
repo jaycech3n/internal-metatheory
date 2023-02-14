@@ -19,72 +19,74 @@ open CwFStructure cwfstr renaming (_◦_ to _◦ˢᵘᵇ_)
 open PiStructure pistr
 open UniverseStructure univstr
 
-interleaved mutual
-  M[_,_,_],F : (i h t n : ℕ) → is-shape i h t → h < n → Σ[ Γ ː Con ] Ty Γ
+record Components (n : ℕ) : Type (ℓₒ l⊔ ℓₘ) where
+  field
+    SCT : Con
+    F : Ty SCT
+    M : (i h t : ℕ) → is-shape i h t → h < n → Con
+    -- M⃗
+    Π′⋆ :
+      (i h t h' t' : ℕ)
+      (iS : is-shape i h t) (iS' : is-shape i h' t')
+      (u : h < n) (u' : h' < n)
+      → (h' , t') ≤ₛ+ (h , t)
+      → Ty (M i h t iS u) → Ty (M i h' t' iS' u')
+    -- Projection from larger to smaller matching context drops components
+    π⋆ᴹ : ∀ i {h t h' t'} iS iS' u u'
+      → (h' , t') ≤ₛ+ (h , t)
+      → Sub (M i h t iS u) (M i h' t' iS' u')
 
-  M_[_,_,_] : (n i h t : ℕ) → is-shape i h t → h < n → Con
-  M n [ i , h , t ] iS u = fst (M[ i , h , t ],F n iS u)
+open Components
 
-  SCT : ℕ → Con
-  SCT O = ◆
-  SCT (1+ n) = M (1+ n) [ 1+ n , O , O ] iS u
+module InnerInduction (n : ℕ) (at-n : Components n) where
+  -- Given components of the diagram at level n, define the components at level (n+1)
+  -- by induction on (i, h, t), etc.
+
+  SCT+ : Con
+  M+ : (i h t : ℕ) → is-shape i h t → h < 1+ n → Con
+  Π′⋆+ :
+    (i h t h' t' : ℕ)
+    (iS : is-shape i h t) (iS' : is-shape i h' t')
+    (u : h < 1+ n) (u' : h' < 1+ n)
+    → (h' , t') ≤ₛ+ (h , t)
+    → Ty (M+ i h t iS u) → Ty (M+ i h' t' iS' u')
+  F+ : Ty SCT+
+
+  SCT+ = SCT at-n ∷ F at-n
+
+  M+ i h (1+ t) iS u
+    = M+ i h t iS' u ∷ {!!}
+    where iS' = shapeₜ↓ iS
+  M+ i (1+ h) O iS u
+    = M+ i h (hom-size i h) iS' u'
     where
-    iS = empty-shape (1+ n)
-    u = O<S n
+    iS' = shapeₕ↓ iS
+    u' = S<-< u
+  M+ i O O iS u = SCT+
 
-  -- Projection from larger to smaller matching context drops components
-  π⋆ᴹ_[_,_,_]→[_,_] :
-    (n i h t h' t' : ℕ)
-    (iS : is-shape i h t) (iS' : is-shape i h' t')
-    (u : h < n) (u' : h' < n)
-    → (h' , t') ≤ₛ (h , t)
-    → Sub (M n [ i , h , t ] iS u) (M n [ i , h' , t' ] iS' u')
+  Π′⋆+ i h t .h .t iS iS' u u' done A = {!A!}
+  Π′⋆+ i h t h' t' iS iS' u u' (on-height w) A = {!!}
+  Π′⋆+ i h t .h t' iS iS' u u' (on-width w) A
+    = Π′ _ (Π′⋆+ i h t h (1+ t') iS iS'' u u' w A)
+      ◂$ transp-shape (λ ◻ → Ty (M+ i h t' ◻ u')) iS'
+    where
+    aux1 : 1+ t' ≤ t
+    aux1 = ≤ₛ+-width-≤ w
+    aux2 : 1+ t' ≤ hom-size i h
+    aux2 = ≤-trans aux1 (tcond iS)
+    iS'' : is-shape i h (1+ t')
+    iS'' = shape-conds (hcond iS') aux2
 
-  {- M⃗_[_,_,_] :
-    (n i h t : ℕ) (iS : is-shape i h t) (u : h < n)
-    {m : ℕ} (f : hom i m)
-    {iS· : is-shape-Σ ([ i , h , t ] iS · f)}
-    {u· : 2nd ([ i , h , t ] iS · f) < n}
-    → let s = [ i , h , t ] iS · f in
-      Sub (M n [ i , h , t ] iS u)
-          (M n [ fst s , 2nd s , 3rd s ] iS· u·) -}
-  Π′⋆_[_,_,_]→[_,_] :
-    (n i h t h' t' : ℕ)
-    (iS : is-shape i h t) (iS' : is-shape i h' t')
-    (u : h < n) (u' : h' < n)
-    → (h' , t') ≤ₛ (h , t)
-    → Ty (M n [ i , h , t ] iS u) → Ty (M n [ i , h' , t' ] iS' u')
-  -- Drops higher dimensional fillers
-  -- π⋆ˢ : ∀ n h → h < n → Sub (SCT n) (SCT h)
-
-  F : (n : ℕ) → Ty (SCT n)
-  F O = U
-  F (1+ n) =
-    Π′⋆ (1+ n) [ 1+ n , n , hom-size (1+ n) n ]→[ O , O ] iS iS' u u' w
-    $ U -- (snd (M[ 1+ n , n , hom-size (1+ n) n ],F (1+ n) iS ltS))
+  F+ = Π′⋆+ (1+ n) n (hom-size (1+ n) n) O O iS iS' u u' w U
     where
     iS = full-shape-1+ n
     iS' = empty-shape (1+ n)
     u = ltS
     u' = O<S n
-    w = O≤ₛ n (hom-size (1+ n) n)
+    w = ≤ₛ-≤ₛ+ _ _ (O≤ₛ n (hom-size (1+ n) n))
 
-  M[ i , h , 1+ t ],F (1+ n) iS u =
-    (M (1+ n) [ i , h , t ] iS' u ∷ {!!})
-    , U
-    where
-    iS' = shapeₜ↓ iS
-  M[ i , 1+ h , O ],F (1+ n) iS u =
-    M[ i , h , hom-size i h ],F (1+ n) iS' u'
-    where
-    iS' = shapeₕ↓ iS
-    u' = S<-< u
-  M[ i , O , O ],F (1+ n) iS u = (SCT n ∷ F n) , U
+comps : (n : ℕ) → Components n
+ind : (n : ℕ) → Components n → Components (1+ n)
 
-  π⋆ᴹ (1+ n) [ i , h , t ]→[ h' , t' ] iS iS' u u' w = {!!}
-
-  -- M⃗ (1+ n) [ i , h , t ] = {!!}
-
-  Π′⋆ (1+ n) [ i , h , t ]→[ h' , t' ] iS iS' u u' w = {!!}
-
-  -- π⋆ˢ (1+ n) h u = {!!}
+comps n = {!!}
+ind n = {!!}
