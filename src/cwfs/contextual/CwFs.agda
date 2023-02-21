@@ -1,11 +1,12 @@
 {-# OPTIONS --without-K --rewriting #-}
 
+-- This is a bundled version of cwfs.Contextual, where Con is indexed over lengths.
+
 module cwfs.contextual.CwFs where
 
 open import categories.Categories public
 
--- This is a bundled version of cwfs.Contextual, where Con is indexed over lengths.
-record ContextualCwF {ℓₒ ℓₘ} : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
+record ContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
   infixl 31 _∷_
   infixl 35 _,,_
   infixr 40 _◦_
@@ -129,6 +130,23 @@ record ContextualCwF {ℓₒ ℓₘ} : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
       ap↓-Tm = ap↓3 {A = ℕ} {B = Con} {C = Ty} {D = Tm}
 
       syntax ap↓-Tm g q = q |in-ctx↓ᵀᵐ g
+
+      Tm[_] : ∀ {n} (Γ : Con n) → Ty Γ → Type ℓₘ
+      Tm[ Γ ] A = Tm A
+
+      _ʷ : ∀ {n} {Γ : Con n} {A : Ty Γ} → Ty Γ → Ty (Γ ∷ A)
+      _ʷ {A = A} B = B [ π A ]
+
+      _ʷₜ : ∀ {n} {Γ : Con n} {A B : Ty Γ} → Tm B → Tm (B [ π A ])
+      _ʷₜ {A = A} b = b [ π A ]ₜ
+
+      instance
+        witness-∷ : ∀ {n} {Γ : Con n} {A : Ty Γ} → Γ ∷ A == Γ ∷ A
+        witness-∷ = idp
+
+      var : ∀ {n} {Γ : Con n} {A : Ty Γ} (Δ : Con (1+ n))
+            → ⦃ Δ == Γ ∷ A ⦄ → Tm[ Γ ∷ A ] (A ʷ)
+      var {Γ = Γ} {A} .(Γ ∷ A) ⦃ idp ⦄ = υ A
 
   open notation public
 
