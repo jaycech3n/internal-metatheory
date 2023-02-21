@@ -2,7 +2,7 @@
 
 module cwfs.CwFs where
 
-open import cwfs.Core public
+open import cwfs.Base public
 
 -- Precoherent CwFs
 record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsuc (ℓₒ l⊔ ℓₘ)) where

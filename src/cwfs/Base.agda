@@ -2,7 +2,7 @@
 
 -- Basic structures in precoherent categories with families
 
-module cwfs.Core where
+module cwfs.Base where
 
 open import categories.Categories public
 
