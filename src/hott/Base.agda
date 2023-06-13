@@ -7,7 +7,7 @@ open import HoTT
   ( if_then_else_ )
   renaming
   ( lsucc          to lsuc
-  ; lmax           to _l⊔_
+  ; lmax           to _∪_
   ; transport      to transp
   ; [_]            to ∣_∣
   ; ℕ-has-dec-eq   to _≟-ℕ_

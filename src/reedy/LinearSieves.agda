@@ -12,64 +12,74 @@ open import categories.DSM (SuitableSemicategory.wildsemicatstr I)
 
 ℕ³ = ℕ × ℕ × ℕ
 
-record is-shape (i h t : ℕ) : Type₀ where
-  constructor shape-conds
+record shape (i h t : ℕ) : Type₀ where
+  constructor bounds
   field
-    hcond : h ≤ i
-    tcond : t ≤ hom-size i h
+    onh : h ≤ i
+    ont : t ≤ hom-size i h
 
-open is-shape public
+open shape public
 
 abstract
-  is-shape-is-prop : ∀ {i h t} → is-prop (is-shape i h t)
-  is-shape-is-prop =
+  shape-is-prop : ∀ {i h t} → is-prop (shape i h t)
+  shape-is-prop =
     all-paths-is-prop
-      λ{(shape-conds hcond tcond)
-        (shape-conds hcond' tcond')
-      → is-shape= (prop-path ≤-is-prop hcond hcond')
-                  (prop-path ≤-is-prop tcond tcond')}
+      λ{(bounds onh ont)
+        (bounds onh' ont')
+      → shape= (prop-path ≤-is-prop onh onh')
+                  (prop-path ≤-is-prop ont ont')}
     where
-    is-shape= : ∀ {i h t} {iS iS' : is-shape i h t}
-      → hcond iS == hcond iS' → tcond iS == tcond iS' → iS == iS'
-    is-shape= idp idp = idp
+    shape= : ∀ {i h t} {iS iS' : shape i h t}
+      → onh iS == onh iS' → ont iS == ont iS' → iS == iS'
+    shape= idp idp = idp
 
-shape= : ∀ {i h t} (iS iS' : is-shape i h t) → iS == iS'
-shape= = prop-path is-shape-is-prop
+shape= : ∀ {i h t} (iS iS' : shape i h t) → iS == iS'
+shape= = prop-path shape-is-prop
 
 transp-shape :
-  ∀ {ℓ} {i h t} (B : is-shape i h t → Type ℓ)
-    {iS : is-shape i h t} (iS' : is-shape i h t)
+  ∀ {ℓ} {i h t} (B : shape i h t → Type ℓ)
+    {iS : shape i h t} (iS' : shape i h t)
   → B iS → B iS'
-transp-shape {i} {h} {t} B iS' = transp-Prop is-shape-is-prop B
+transp-shape {i} {h} {t} B iS' = transp-Prop shape-is-prop B
 
-is-shape-Σ : ℕ³ → Type₀
-is-shape-Σ (i , h , t) = is-shape i h t
+shape-Σ : ℕ³ → Type₀
+shape-Σ (i , h , t) = shape i h t
 
-empty-shape : ∀ i → is-shape i O O
-empty-shape i = shape-conds (O≤ i) (O≤ (hom-size i O))
+empty-shape : ∀ i → shape i O O
+empty-shape i = bounds (O≤ i) (O≤ (hom-size i O))
 
-full-level : ∀ i h → h ≤ i → is-shape i h (hom-size i h)
-full-level i h u = shape-conds u lteE
+full-level : ∀ i h → h ≤ i → shape i h (hom-size i h)
+full-level i h u = bounds u lteE
 
-new-level : ∀ i h → h ≤ i → is-shape i h O
-new-level i h u = shape-conds u (O≤ (hom-size i h))
+new-level : ∀ i h → h ≤ i → shape i h O
+new-level i h u = bounds u (O≤ (hom-size i h))
 
-full-shape-1+ : ∀ i → is-shape (1+ i) i (hom-size (1+ i) i)
+full-shape : ∀ i → shape i i O
+full-shape i = bounds lteE (O≤ _)
+
+full-shape-1+ : ∀ i → shape (1+ i) i (hom-size (1+ i) i)
 full-shape-1+ i = full-level (1+ i) i lteS
 
-shapeₕ↓ : ∀ {i h} → is-shape i (1+ h) O → is-shape i h (hom-size i h)
-shapeₕ↓ iS = shape-conds (≤-trans lteS (hcond iS)) lteE
+shapeₕ↓ : ∀ {i h} → shape i (1+ h) O → shape i h (hom-size i h)
+shapeₕ↓ iS = bounds (≤-trans lteS (onh iS)) lteE
 
-shapeₜ< : ∀ {i h t t'} → t' < t → is-shape i h t → is-shape i h t'
-shapeₜ< ltS iS = shape-conds (hcond iS) (≤-trans lteS (tcond iS))
-shapeₜ< (ltSR u) iS = shape-conds (hcond iS) (≤-trans (inr (ltSR u)) (tcond iS))
+shapeₜ< : ∀ {i h t t'} → t' < t → shape i h t → shape i h t'
+shapeₜ< ltS iS = bounds (onh iS) (≤-trans lteS (ont iS))
+shapeₜ< (ltSR u) iS = bounds (onh iS) (≤-trans (inr (ltSR u)) (ont iS))
 
-shapeₜ≤ : ∀ {i h t t'} → t' ≤ t → is-shape i h t → is-shape i h t'
+shapeₜ≤ : ∀ {i h t t'} → t' ≤ t → shape i h t → shape i h t'
 shapeₜ≤ (inl idp) iS = iS
 shapeₜ≤ (inr u) iS = shapeₜ< u iS
 
-shapeₜ↓ : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
+shapeₜ↓ : ∀ {i h t} → shape i h (1+ t) → shape i h t
 shapeₜ↓ = shapeₜ< ltS
+
+{- Counting -}
+
+#[_,_,_] : (i h t : ℕ) → shape i h t → ℕ
+#[ i , O , O ] iS = O
+#[ i , 1+ h , O ] iS = #[ i , h , hom-size i h ] (shapeₕ↓ iS)
+#[ i , h , 1+ t ] iS = 1+ (#[ i , h , t ] (shapeₜ↓ iS))
 
 module LinearSieves-order where
 {- In this module we define the lexicographic order on pairs (h, t) three ways: the
@@ -155,7 +165,7 @@ _~⋆_[_]_ :
   ((h₁ , t₁) : ℕ × ℕ) (n : ℕ) (i : ℕ) ((h₂ , t₂) : ℕ × ℕ) → Type₀
 (h₁ , t₁) ~⋆ O [ i ] (h₂ , t₂) = (h₁ , t₁) == (h₂ , t₂)
 (h₁ , t₁) ~⋆ 1+ n [ i ] (h₂ , t₂) =
-  Σ[ h ː ℕ ] Σ[ t ː ℕ ] Σ[ iS ː is-shape i h t ]
+  Σ[ h ː ℕ ] Σ[ t ː ℕ ] Σ[ iS ː shape i h t ]
     (h₁ , t₁) ~[ i ] (h , t) × (h , t) ~⋆ n [ i ] (h₂ , t₂)
 
 -- Shape restriction
@@ -166,7 +176,7 @@ _~⋆_[_]_ :
 -- formulation is.
 
 module _ (i : ℕ) where
-  shape-· : (h t : ℕ) (iS : is-shape i h t) {m : ℕ} (f : hom i m) → ℕ × ℕ
+  shape-· : (h t : ℕ) (iS : shape i h t) {m : ℕ} (f : hom i m) → ℕ × ℕ
   shape-· h (1+ t) iS {m} f =
     if h <? m then (λ h<m →
       if O <? hom-size m h then (λ O<hom-size
@@ -176,7 +186,7 @@ module _ (i : ℕ) where
     else λ _
       → m , O
     where
-      t-Fin = t , <-≤-< ltS (tcond iS)
+      t-Fin = t , <-≤-< ltS (ont iS)
   shape-· (1+ h) O iS {m} f = shape-· h (hom-size i h) (shapeₕ↓ iS) f
   shape-· O O _ {m} f = O , O
 
@@ -208,20 +218,20 @@ module _ (i : ℕ) where
     ... | inl u | inl v = #-factors-ub t-Fin f v
                           where
                           t-Fin : Fin (hom-size i h)
-                          t-Fin = t , <-≤-< ltS (tcond iS)
+                          t-Fin = t , <-≤-< ltS (ont iS)
     ... | inl _ | inr _ = O≤ _
     ... | inr x | s = O≤ _
     width-shape-· (1+ h) O iS f = width-shape-· h (hom-size i h) (shapeₕ↓ iS) f
     width-shape-· O O iS f = O≤ _
 
 
-[_,_,_]_· : (i h t : ℕ) (iS : is-shape i h t) {m : ℕ} (f : hom i m) → ℕ³
+[_,_,_]_· : (i h t : ℕ) (iS : shape i h t) {m : ℕ} (f : hom i m) → ℕ³
 [_,_,_]_· i h t iS {m} f = m , shape-· i h t iS f
 
 abstract
-  ·-is-shape : ∀ i h t iS {m} (f : hom i m) → is-shape-Σ ([ i , h , t ] iS · f)
-  ·-is-shape i h t iS {m} f =
-    shape-conds (height-shape-· i h t iS f) (width-shape-· i h t iS f)
+  ·-shape : ∀ i h t iS {m} (f : hom i m) → shape-Σ ([ i , h , t ] iS · f)
+  ·-shape i h t iS {m} f =
+    bounds (height-shape-· i h t iS f) (width-shape-· i h t iS f)
 
 
 {- (i, h, t)-admissibility -}
@@ -263,7 +273,7 @@ admissible-h-iff i h f =
 -- Important
 
 {- ·-admissible :
-  (i h t : ℕ) (iS : is-shape i h t)
+  (i h t : ℕ) (iS : shape i h t)
   {m : ℕ} (f : hom i m) (g : hom m h)
   → is-(i , h , t)-admissible (g ◦ f)
   → is- [ i , h , t ] iS · f -admissible g
@@ -294,7 +304,7 @@ record LinearSieve (i : ℕ) : Type ℓₘ where
   constructor S[_,_]
   field
     height width : ℕ
-    ⦃ shape-cond ⦄ : is-shape i height width
+    ⦃ shape-cond ⦄ : shape i height width
     char : DSM i
     char-∋-cond :
       ∀ {m} (f : hom i m)
@@ -302,7 +312,7 @@ record LinearSieve (i : ℕ) : Type ℓₘ where
 
 open LinearSieve
 
-linear-sieve : (i h t : ℕ) → is-shape i h t → LinearSieve i
+linear-sieve : (i h t : ℕ) → shape i h t → LinearSieve i
 linear-sieve i h t iS =
   S[ h , t ] ⦃ iS ⦄
     (λ _ f → to-Bool (is-(i , h , t )-admissible? f))

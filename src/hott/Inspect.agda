@@ -8,7 +8,7 @@ open import hott.Base public
 record Equate_·_and_ {ℓ₁ ℓ₂}
   {A : Type ℓ₁} {B : A → Type ℓ₂}
   (f : (x : A) → B x) (x : A) (y : B x)
-  : Type (ℓ₁ l⊔ ℓ₂) where
+  : Type (ℓ₁ ∪ ℓ₂) where
   constructor have
   field p : f x == y
 

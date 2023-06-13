@@ -27,6 +27,7 @@ record ContextualStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwf
     len-◆-equiv : ∀ {Γ} → (Γ == ◆) ≃ (len Γ == O)
       -- Do we actually need it to be this strong?
       -- What about just (len ◆ == O) × (len Γ == O → Γ == ◆)?
+      -- A : You do need this; see Con-codes in cwfs.contextual.CwFs
     len-∷-equiv : ∀ {n} → is-equiv (∷-len n)
 
   len-◆ : len ◆ == O

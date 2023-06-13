@@ -19,11 +19,41 @@ open CwFStructure cwfstr renaming (_◦_ to _◦ˢᵘᵇ_)
 open PiStructure pistr
 open UniverseStructure univstr
 
+SCT₁ : Con
+SCT₁ = ◆ ∷ U
+
+fill₀ : Tm[ SCT₁ ] (U [ π U ])
+fill₀ = var SCT₁
+
+mutual
+  M₁ : (h t : ℕ) → is-shape (1+ O) h t → Con
+  π⋆₁ : (h t : ℕ) (iS : is-shape (1+ O) h t) → Sub (M₁ h t iS) SCT₁
+
+  M₁ O O _ = SCT₁
+  M₁ O (1+ t) iS
+    = M₁ O t iS' ∷ el (fill₀ [ π⋆₁ O t iS' ]ₜ ◂$ coeᵀᵐ (![◦] ∙ U[]))
+    where iS' = shapeₜ↓ iS
+  M₁ (1+ h) O iS = M₁ h (hom-size 1 h) iS'
+    where iS' = shapeₕ↓ iS
+  M₁ (1+ .O) (1+ t) (shape-conds (inl idp) tcond)
+    = ⊥-rec (S≰O _ (transp (_ ≤_) (endo-hom-empty 1) tcond))
+  M₁ (1+ h) (1+ t) (shape-conds (inr (ltSR ())) _)
+
+  π⋆₁ O O iS = id
+  π⋆₁ O (1+ t) iS = π⋆₁ O t iS' ◦ˢᵘᵇ (π _)
+    where iS' = shapeₜ↓ iS
+  π⋆₁ (1+ h) O iS = π⋆₁ h (hom-size 1 h) iS'
+    where iS' = shapeₕ↓ iS
+  π⋆₁ (1+ h) (1+ t) (shape-conds (inl idp) tcond)
+    = ⊥-rec (S≰O _ (transp (_ ≤_) (endo-hom-empty 1) tcond))
+  π⋆₁ (1+ h) (1+ t) (shape-conds (inr (ltSR ())) _)
+
+
+{-
 record Components (n : ℕ) : Type (ℓₒ l⊔ ℓₘ) where
   field
     SCT : Con
-    F : Ty SCT
-    M : (i h t : ℕ) → is-shape i h t → h < n → Con
+    M : (i h t : ℕ) → is-shape i h t → h < k → Con
     -- M⃗
     Π′⋆ :
       (i h t h' t' : ℕ)
@@ -37,7 +67,8 @@ record Components (n : ℕ) : Type (ℓₒ l⊔ ℓₘ) where
       → Sub (M i h t iS u) (M i h' t' iS' u')
 
 open Components
-
+-}
+{-
 module InnerInduction (n : ℕ) (at-n : Components n) where
   -- Given components of the diagram at level n, define the components at level (n+1)
   -- by induction on (i, h, t), etc.
@@ -90,3 +121,4 @@ ind : (n : ℕ) → Components n → Components (1+ n)
 
 comps n = {!!}
 ind n = {!!}
+-}

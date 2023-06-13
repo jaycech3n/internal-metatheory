@@ -4,51 +4,37 @@ module categories.Semicategories where
 
 open import hott.HoTT public
 
-record WildSemicategoryStructure ℓₒ ℓₘ (Ob : Type ℓₒ) : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
+-- ᴳ for "graded", ᵂ for "wild"
+
+record ᴳᵂSemicategoryStructure ℓᵢ ℓₒ ℓₘ (G : Type ℓᵢ) (Ob : G → Type ℓₒ)
+  : Type (lsuc (ℓᵢ ∪ ℓₒ ∪ ℓₘ)) where
+
   infixr 40 _◦_
   field
-    hom : Ob → Ob → Type ℓₘ
-    _◦_ : ∀ {x y z} → hom y z → hom x y → hom x z
-    ass : ∀ {x y z w} {f : hom z w} {g : hom y z} {h : hom x y}
+    hom : ∀ {α β} → Ob α → Ob β → Type ℓₘ
+    _◦_ : ∀ {α β γ} {x : Ob α} {y : Ob β} {z : Ob γ} → hom y z → hom x y → hom x z
+    ass : ∀ {α β γ δ} {x : Ob α} {y : Ob β} {z : Ob γ} {w : Ob δ}
+            {f : hom z w} {g : hom y z} {h : hom x y}
           → (f ◦ g) ◦ h == f ◦ (g ◦ h)
 
-  dom : ∀ {x y} → hom x y → Ob
-  dom {x} _ = x
+  dom : ∀ {α β} {x : Ob α} {y : Ob β} → hom x y → Ob α
+  dom {x = x} _ = x
 
-  cod : ∀ {x y} → hom x y → Ob
+  cod : ∀ {α β} {x : Ob α} {y : Ob β} → hom x y → Ob β
   cod {y = y} _ = y
 
-  is-initial : (x : Ob) → Type (ℓₒ l⊔ ℓₘ)
-  is-initial x = (y : Ob) → is-contr (hom x y)
+  is-initial : ∀ {α} (x : Ob α) → Type _
+  is-initial x = ∀ {β} (y : Ob β) → is-contr (hom x y)
 
-  is-terminal : (x : Ob) → Type (ℓₒ l⊔ ℓₘ)
-  is-terminal x = (y : Ob) → is-contr (hom y x)
+  is-terminal : ∀ {α} (x : Ob α) → Type _
+  is-terminal x = ∀ {β} (y : Ob β) → is-contr (hom y x)
 
-record PreSemicategoryStructure ℓₒ ℓₘ (Ob : Type ℓₒ) : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
-  field ⦃ wildsemicatstr ⦄ : WildSemicategoryStructure ℓₒ ℓₘ Ob
-  open WildSemicategoryStructure wildsemicatstr public
+ᵂSemicategoryStructure : ∀ ℓₒ ℓₘ → (Ob : Type ℓₒ) → Type (lsuc (ℓₒ ∪ ℓₘ))
+ᵂSemicategoryStructure ℓₒ ℓₘ Ob = ᴳᵂSemicategoryStructure lzero ℓₒ ℓₘ ⊤ (λ _ → Ob)
 
-  field hom-is-set : ∀ {x y} → is-set (hom x y)
-
-record StrictSemicategoryStructure ℓₒ ℓₘ (Ob : Type ℓₒ) : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
-  field ⦃ presemicatstr ⦄ : PreSemicategoryStructure ℓₒ ℓₘ Ob
-  open PreSemicategoryStructure presemicatstr public
-
-  field Ob-is-set : is-set Ob
-
-record WildSemicategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
+record ᵂSemicategory ℓₒ ℓₘ : Type (lsuc (ℓₒ ∪ ℓₘ)) where
   field
     Ob : Type ℓₒ
-    wildsemicatstr : WildSemicategoryStructure ℓₒ ℓₘ Ob
+    wsemicatstr : ᵂSemicategoryStructure ℓₒ ℓₘ Ob
 
-  open WildSemicategoryStructure wildsemicatstr public
-
-record PreSemicategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
-  field
-    Ob : Type ℓₒ
-    presemicatstr : PreSemicategoryStructure ℓₒ ℓₘ Ob
-
-record StrictSemicategory ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
-  field
-    Ob : Type ℓₒ
-    strictsemicatstr : StrictSemicategoryStructure ℓₒ ℓₘ Ob
+  open ᴳᵂSemicategoryStructure wsemicatstr public

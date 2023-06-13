@@ -25,10 +25,10 @@ private
     first-two (a , b , _) = a , b
 
   module equivalences {ℓ₁ ℓ₂ ℓ₃} {A : Type ℓ₁} {B : Type ℓ₂} (e : A ≃ B) where
-    fwd-transp-Σ-dom : {C : B → Type ℓ₃} → Σ[ b ː B ] C b → Σ[ a ː A ] C (–> e a)
+    fwd-transp-Σ-dom : {C : B → Type ℓ₃} → Σ B C → Σ A (C ∘ –> e)
     fwd-transp-Σ-dom {C} (b , c) = <– e b , transp C (! (<–-inv-r e b)) c
 
-    bwd-transp-Σ-dom : {C : A → Type ℓ₃} → Σ[ a ː A ] C a → Σ[ b ː B ] C (<– e b)
+    bwd-transp-Σ-dom : {C : A → Type ℓ₃} → Σ A C → Σ B (C ∘ <– e)
     bwd-transp-Σ-dom {C} (a , c)= –> e a , transp C (! (<–-inv-l e a)) c
 
 open triples public

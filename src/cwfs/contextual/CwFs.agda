@@ -6,24 +6,16 @@ module cwfs.contextual.CwFs where
 
 open import categories.Categories public
 
-record ContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
+record ᵂContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ ∪ ℓₘ)) where
   infixl 31 _∷_
   infixl 35 _,,_
-  infixr 40 _◦_
   infixl 40 _[_] _[_]ₜ
-  field
-    -- Category of contexts with length
-    Con : ℕ → Type ℓₒ
-    Sub : ∀ {m n} → Con m → Con n → Type ℓₘ
-    _◦_ : ∀ {k m n} {Γ : Con m} {Δ : Con n} {Ε : Con k}
-          → Sub Δ Ε → Sub Γ Δ → Sub Γ Ε
-    ass : ∀ {m n k l} {Γ : Con m} {Δ : Con n} {Ε : Con k} {Ζ : Con l}
-          {f : Sub Ε Ζ} {g : Sub Δ Ε} {h : Sub Γ Δ}
-          → (f ◦ g) ◦ h == f ◦ (g ◦ h)
-    id  : ∀ {n} {Γ : Con n} → Sub Γ Γ
-    idl : ∀ {m n} {Γ : Con m} {Δ : Con n} {f : Sub Γ Δ} → id ◦ f == f
-    idr : ∀ {m n} {Γ : Con m} {Δ : Con n} {f : Sub Γ Δ} → f ◦ id == f
 
+  -- Category of contexts, graded by context length
+  field 𝒞 : ᴳᵂCategory _ ℓₒ ℓₘ ℕ
+  open ᴳᵂCategory 𝒞 renaming (Ob to Con; hom to Sub) public
+
+  field
     -- Empty context
     ◆ : Con O
     ◆-terminal : ∀ {n} (Γ : Con n) → is-contr (Sub Γ ◆)
@@ -67,31 +59,8 @@ record ContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
            → (g ,, t) ◦ f == (g ◦ f ,, transp Tm (! [◦]) (t [ f ]ₜ))
 
     -- Contextuality
-    Con-O : is-contr (Con O)
-      -- cf. comment on ContextualStructure.len-◆-equiv in cwfs.Contextual
+    instance Con-O : is-contr (Con O)
     Con-S : ∀ {n} → is-equiv (uncurry (_∷_ {n}))
-
-  private
-    module context-operations where
-      empty : (Γ : Con O) → Γ == ◆
-      empty Γ = contr-has-all-paths ⦃ Con-O ⦄ Γ ◆
-
-      dest : ∀ {n} → Con (1+ n) → Σ[ Δ ː Con n ] Ty Δ
-      dest = inv-equiv Con-S
-
-      dest= : ∀ {n} (Γ : Con (1+ n)) → fst (dest Γ) ∷ snd (dest Γ) == Γ
-      dest= Γ = <–-inv-r (uncurry _∷_ , Con-S) Γ
-
-      abstract
-        Con-case : ∀ {ℓ}
-          → {P : ∀ {n} → Con n → Type ℓ}
-          → P ◆
-          → (∀ {n} (Γ : Con n) (A : Ty Γ) → P (Γ ∷ A))
-          → ∀ {n} (Γ : Con n) → P Γ
-        Con-case P◆ _ {n = O} Γ rewrite empty Γ = P◆
-        Con-case {P = P} _ P∷ {1+ n} Γ = transp P (dest= Γ) (uncurry P∷ $ dest Γ)
-
-  open context-operations public
 
   private
     module notation where
@@ -100,7 +69,8 @@ record ContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
           (p : A == A') (t : Tm A) (t' : Tm A')
         → Type ℓₘ
       PathOver-Tm = PathOver Tm
-      syntax PathOver-Tm p t t' = t == t' over-Tm⟨ p ⟩
+
+      syntax PathOver-Tm p t t' = t == t' over⟨ p ⟩
 
       ![◦] :
         ∀ {l m n} {Γ : Con l} {Δ : Con m} {Ε : Con n}
@@ -117,7 +87,7 @@ record ContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
       [=_]ₜ :
         ∀ {m n} {Γ : Con m} {Δ : Con n}
           {f f' : Sub Γ Δ} {A : Ty Δ} {t : Tm A} (p : f == f')
-        → t [ f ]ₜ == t [ f' ]ₜ over-Tm⟨ [= p ] ⟩
+        → t [ f ]ₜ == t [ f' ]ₜ over⟨ [= p ] ⟩
       [= idp ]ₜ = idp
 
       infixl 40 ap↓-Tm
@@ -150,6 +120,63 @@ record ContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
 
   open notation public
 
+  private
+    module contexts where
+      ext : ∀ {n} → Σ (Con n) Ty → Con (1+ n)
+      ext {n} = uncurry (_∷_ {n})
+
+      split : ∀ {n} → Con (1+ n) → Σ (Con n) Ty
+      split = inv-equiv Con-S
+
+      mutual
+        Conᶜ : ℕ → Type ℓₒ
+        con-of : ∀ {n} → Conᶜ n → Con n
+
+        Conᶜ O = Lift ⊤
+        Conᶜ (1+ n) = Σ (Conᶜ n) (Ty ∘ con-of)
+
+        con-of {O} _ = ◆
+        con-of {1+ n} = ext ∘ Σ-fmap-l _ con-of
+          -- this is just (Γᶜ , A) ↦ con-of Γᶜ ∷ A
+
+      con-of-is-equiv : ∀ n → is-equiv (con-of {n})
+      con-of-is-equiv O = is-eq _ _
+        (contr-has-all-paths _) (contr-has-all-paths _)
+      con-of-is-equiv (1+ n) = Con-S ∘ise Σ-isemap-l _ (con-of-is-equiv n)
+
+      Tyᶜ : ∀ {n} → Conᶜ n → Type ℓₒ
+      Tyᶜ = Ty ∘ con-of
+
+      Subᶜ : ∀ {m n} → Conᶜ m → Conᶜ n → Type ℓₘ
+      Subᶜ {n = O} _ _ = Lift ⊤
+      Subᶜ {n = 1+ n} Γᶜ (Δᶜ , A) = {!!}
+
+      -- code-of : ∀ {n} → Con n → Conᶜ n
+      -- code-of {O} _ = lift unit
+      -- code-of {1+ n} Γ = Σ-fmap-l _ code-of {!split Γ!}
+
+  private
+    module context-operations where
+      empty : (Γ : Con O) → Γ == ◆
+      empty Γ = contr-has-all-paths ⦃ Con-O ⦄ Γ ◆
+
+      dest : ∀ {n} → Con (1+ n) → Σ[ Δ ː Con n ] Ty Δ
+      dest = inv-equiv Con-S
+
+      dest= : ∀ {n} (Γ : Con (1+ n)) → fst (dest Γ) ∷ snd (dest Γ) == Γ
+      dest= Γ = <–-inv-r (uncurry _∷_ , Con-S) Γ
+
+      abstract
+        Con-case : ∀ {ℓ}
+          → (P : ∀ {n} → Con n → Type ℓ)
+          → P ◆
+          → (∀ {n} (Γ : Con n) (A : Ty Γ) → P (Γ ∷ A))
+          → ∀ {n} (Γ : Con n) → P Γ
+        Con-case _ P◆ _ {n = O} Γ rewrite empty Γ = P◆
+        Con-case P _ P∷ {1+ n} Γ = transp P (dest= Γ) (uncurry P∷ $ dest Γ)
+
+  open context-operations public
+
   module extension where
     _,,₊_ : ∀ {n} (Γ : Con n) {A : Ty Γ} → Tm A → Sub Γ (Γ ∷ A)
     Γ ,,₊ a = id ,, a [ id ]ₜ
@@ -180,24 +207,24 @@ record ContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
 
     -- Mediating between dependent paths and coercions
     to-coeᵀᵐˡ : {A A' : Ty Γ} {t : Tm A} {t' : Tm A'} {p : A == A'}
-                → t == t' over-Tm⟨ p ⟩
+                → t == t' over⟨ p ⟩
                 → coeᵀᵐ p t == t'
     to-coeᵀᵐˡ {t = t} {t'} {idp} = idf (t == t')
 
     to-coeᵀᵐʳ : {A A' : Ty Γ} {t : Tm A} {t' : Tm A'} {p : A == A'}
-                → t == t' over-Tm⟨ p ⟩
+                → t == t' over⟨ p ⟩
                 → t == coe!ᵀᵐ p t'
     to-coeᵀᵐʳ {t = t} {t'} {idp} = idf (t == t')
 
     from-coeᵀᵐˡ : {A A' : Ty Γ} {t : Tm A} {t' : Tm A'} {p : A == A'}
                   → coeᵀᵐ p t == t'
-                  → t == t' over-Tm⟨ p ⟩
+                  → t == t' over⟨ p ⟩
     from-coeᵀᵐˡ {t = t} {t'} {idp} = idf (t == t')
 
     from-over-∙ :
       {A B C : Ty Γ} {p : A == B} {q : B == C}
       {a : Tm A} {c : Tm C}
-      → a == c over-Tm⟨ p ∙ q ⟩ → coeᵀᵐ p a == c over-Tm⟨ q ⟩
+      → a == c over⟨ p ∙ q ⟩ → coeᵀᵐ p a == c over⟨ q ⟩
     from-over-∙ {p = idp} = idf _
 
   open extension public
@@ -211,7 +238,7 @@ record ContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
       ⟨=_,,_=⟩ : ∀ {m n} {Γ : Con m} {Δ : Con n}
           {A : Ty Δ} {f f' : Sub Γ Δ} {t : Tm (A [ f ])} {t' : Tm (A [ f' ])}
         → (p : f == f')
-        → t == t' over-Tm⟨ [= p ] ⟩
+        → t == t' over⟨ [= p ] ⟩
         → (f ,, t ) == (f' ,, t')
       ⟨= idp ,, idp =⟩ = idp
 
@@ -242,7 +269,7 @@ record ContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
       coeᵀᵐ-,,-stable :
         ∀ {m n} {Γ : Con m} {Δ : Con n} {A : Ty Δ} {A' : Ty (Δ ∷ A)}
           (p : A [ π A ] == A') (x : Tm (A [ π A ])) (f : Sub Γ Δ) (t : Tm (A [ f ]))
-        → x [ f ,, t ]ₜ == (coeᵀᵐ p x) [ f ,, t ]ₜ over-Tm⟨ p |in-ctx (_[ f ,, t ]) ⟩
+        → x [ f ,, t ]ₜ == (coeᵀᵐ p x) [ f ,, t ]ₜ over⟨ p |in-ctx (_[ f ,, t ]) ⟩
       coeᵀᵐ-,,-stable idp x f t = idp
 
   open equalities public
@@ -253,7 +280,7 @@ record ContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
       ,,-uniq : ∀ {m n} {Γ : Con m} {Δ : Con n} {f : Sub Γ Δ} {A : Ty Δ} {t : Tm (A [ f ])}
                   (ϕ : Sub Γ (Δ ∷ A))
                   (πϕ : π A ◦ ϕ == f)
-                  (υϕ : υ A [ ϕ ]ₜ == t over-Tm⟨ (! [◦] ∙ [= πϕ ]) ⟩)
+                  (υϕ : υ A [ ϕ ]ₜ == t over⟨ (! [◦] ∙ [= πϕ ]) ⟩)
                 → ϕ == (f ,, t)
       ,,-uniq {f = f} {A} {t} ϕ πϕ υϕ =
         ϕ
@@ -384,7 +411,7 @@ record ContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
             =∎↓⟨ !-inv-r [◦] ⟩
 
         red2 : a [ π A ]ₜ [ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ == a [ f ]ₜ
-                 over-Tm⟨ ! [◦] ∙ [= ⊓-lemma f a ] ⟩
+                 over⟨ ! [◦] ∙ [= ⊓-lemma f a ] ⟩
         red2 = !ᵈ [◦]ₜ ∙ᵈ [= ⊓-lemma f a ]ₜ
 
       ,,₊-comm : {A : Ty Δ} (f : Sub Γ Δ) (a : Tm A)
