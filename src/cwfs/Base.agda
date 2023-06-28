@@ -6,7 +6,8 @@ module cwfs.Base where
 
 open import categories.Categories public
 
-record ContextStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
+record ContextStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsuc (ℓₒ ∪ ℓₘ))
+  where
 
   open WildCategory C renaming (Ob to Con ; hom to Sub) public
 
@@ -15,7 +16,8 @@ record ContextStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type 
     ◆-terminal : is-terminal ◆
 
 
-record TyTmStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
+record TyTmStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsuc (ℓₒ ∪ ℓₘ))
+  where
 
   field ctxstr : ContextStructure C
   open ContextStructure ctxstr public
@@ -26,7 +28,8 @@ record TyTmStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (ls
     Ty   : Con → Type ℓₒ
     _[_] : ∀ {Γ Δ} → Ty Δ → Sub Γ Δ → Ty Γ
     [id] : ∀ {Γ} {A : Ty Γ} → A [ id ] == A
-    [◦]  : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε} -- Greek capital epsilon, \GE
+    [◦]  : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
+             {A : Ty Ε} -- Greek capital epsilon, \GE
            → A [ g ◦ f ] == A [ g ] [ f ]
 
     Tm    : ∀ {Γ} → Ty Γ → Type ℓₘ
@@ -36,34 +39,42 @@ record TyTmStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (ls
             → t [ g ◦ f ]ₜ == t [ g ]ₜ [ f ]ₜ [ Tm ↓ [◦] ]
 
   private
-    module definitions where
+    module notation where
       ![◦] : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε}
              → A [ g ] [ f ] == A [ g ◦ f ]
       ![◦] = ! [◦]
-
-      PathOver-Tm : ∀ {Γ} {A A' : Ty Γ} (p : A == A') (t : Tm A) (t' : Tm A') → Type ℓₘ
-      PathOver-Tm = PathOver Tm
-      syntax PathOver-Tm p t t' = t == t' over-Tm⟨ p ⟩
 
       [=_] : ∀ {Γ Δ} {f f' : Sub Γ Δ} {A : Ty Δ}
              → f == f' → A [ f ] == A [ f' ]
       [=_] {A = A} = ap (A [_])
 
-      [=_]ₜ : ∀ {Γ Δ} {f f' : Sub Γ Δ} {A : Ty Δ} {t : Tm A} (p : f == f')
-              → t [ f ]ₜ == t [ f' ]ₜ over-Tm⟨ [= p ] ⟩
+      PathOver-Tm :
+        ∀ {Γ} {A A' : Ty Γ} (p : A == A') (t : Tm A) (t' : Tm A') → Type ℓₘ
+      PathOver-Tm = PathOver Tm
+      syntax PathOver-Tm p t t' = t == t' over⟨ p ⟩
+
+      ![◦]ₜ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε} {t : Tm A}
+              → t [ g ]ₜ [ f ]ₜ == t [ g ◦ f ]ₜ over⟨ ![◦] ⟩
+      ![◦]ₜ = !ᵈ [◦]ₜ
+
+      [=_]ₜ :
+        ∀ {Γ Δ} {f f' : Sub Γ Δ} {A : Ty Δ} {t : Tm A} (p : f == f')
+        → t [ f ]ₜ == t [ f' ]ₜ over⟨ [= p ] ⟩
       [= idp ]ₜ = idp
 
       -- Coercing terms to equal terms in equal types
       coeᵀᵐ : ∀ {Γ} {A A' : Ty Γ} → A == A' → Tm A → Tm A'
-      coeᵀᵐ {A = A} idp = idf (Tm A)
+      coeᵀᵐ p = transp Tm p
+      -- coeᵀᵐ {A = A} idp = idf (Tm A)
 
       coe!ᵀᵐ : ∀ {Γ} {A A' : Ty Γ} → A == A' → Tm A' → Tm A
       coe!ᵀᵐ p = coeᵀᵐ (! p)
 
-  open definitions public
+  open notation public
 
 
-record ComprehensionStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
+record ComprehensionStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ)
+  : Type (lsuc (ℓₒ ∪ ℓₘ)) where
 
   field tytmstr : TyTmStructure C
   open TyTmStructure tytmstr hiding (ctxstr) public
@@ -77,12 +88,13 @@ record ComprehensionStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) :
     υ    : ∀ {Γ} (A : Ty Γ) → Tm (A [ π A ])
     _,,_ : ∀ {Γ Δ} {A : Ty Δ} (f : Sub Γ Δ) (t : Tm (A [ f ])) → Sub Γ (Δ ∷ A)
 
-    -- The universal property of comprehensions is given by the following β and η rules.
+    -- The universal property of comprehensions is given by the following β and
+    -- η rules.
     βπ : ∀ {Γ Δ} {f : Sub Γ Δ} {A : Ty Δ} {t : Tm (A [ f ])}
          → π A ◦ (f ,, t) == f
 
     βυ : ∀ {Γ Δ} {f : Sub Γ Δ} {A : Ty Δ} {t : Tm (A [ f ])}
-         → υ A [ f ,, t ]ₜ == t over-Tm⟨ ! [◦] ∙ [= βπ ] ⟩
+         → υ A [ f ,, t ]ₜ == t over⟨ ! [◦] ∙ [= βπ ] ⟩
 
     η,, : ∀ {Γ} {A : Ty Γ} → (π A ,, υ A) == id
 

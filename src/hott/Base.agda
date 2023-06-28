@@ -19,3 +19,6 @@ open import HoTT
 infixl 1 _◂$_
 _◂$_ : ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} (a : A) (f : (x : A) → B x) → B a
 a ◂$ f = f a
+
+✶ : ∀ {ℓ} → Lift {j = ℓ} ⊤
+✶ = lift unit

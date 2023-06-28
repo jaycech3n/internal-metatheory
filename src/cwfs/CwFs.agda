@@ -5,7 +5,8 @@ module cwfs.CwFs where
 open import cwfs.Base public
 
 -- Precoherent CwFs
-record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
+record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsuc (ℓₒ ∪ ℓₘ))
+  where
 
   field compstr : ComprehensionStructure C
   open ComprehensionStructure compstr hiding (tytmstr) public
@@ -21,11 +22,10 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         → a == a' [ Tm ↓ p ]
         → g a == g a' [ Tm ↓ ap f p ]
       ap↓-Tm g q = ap↓2 {A = Con} {B = Ty} {C = Tm} g q
-
       syntax ap↓-Tm g q = q |in-ctx↓ᵀᵐ g
 
       Tm[_] : ∀ Γ → Ty Γ → Type ℓₘ
-      Tm[ Γ ] A = Tm A
+      Tm[ _ ] A = Tm A
 
       _ʷ : {Γ : Con} {A : Ty Γ} → Ty Γ → Ty (Γ ∷ A)
       _ʷ {A = A} B = B [ π A ]
@@ -46,58 +46,46 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
 
     module term-coercions {Γ : Con} where
       coeᵀᵐ-∙ : {A B C : Ty Γ} {t : Tm A} (p : A == B) (q : B == C)
-               → coeᵀᵐ (p ∙ q) t == coeᵀᵐ q (coeᵀᵐ p t)
+                → coeᵀᵐ (p ∙ q) t == coeᵀᵐ q (coeᵀᵐ p t)
       coeᵀᵐ-∙ idp q = idp
 
       coeᵀᵐ-∙! : {A B C : Ty Γ} {t : Tm A} (p : A == B) (q : B == C)
-                → coeᵀᵐ q (coeᵀᵐ p t) == coeᵀᵐ (p ∙ q) t
+                 → coeᵀᵐ q (coeᵀᵐ p t) == coeᵀᵐ (p ∙ q) t
       coeᵀᵐ-∙! p q = ! (coeᵀᵐ-∙ p q)
 
       coe!ᵀᵐ-∙ : {A B C : Ty Γ} {t : Tm C} (p : A == B) (q : B == C)
-                → coe!ᵀᵐ (p ∙ q) t == coe!ᵀᵐ p (coe!ᵀᵐ q t)
+                 → coe!ᵀᵐ (p ∙ q) t == coe!ᵀᵐ p (coe!ᵀᵐ q t)
       coe!ᵀᵐ-∙ idp q = idp
 
       coe!ᵀᵐ-∙! : {A B C : Ty Γ} {t : Tm C} (p : A == B) (q : B == C)
-                 → coe!ᵀᵐ p (coe!ᵀᵐ q t) == coe!ᵀᵐ (p ∙ q) t
+                  → coe!ᵀᵐ p (coe!ᵀᵐ q t) == coe!ᵀᵐ (p ∙ q) t
       coe!ᵀᵐ-∙! p q = ! (coe!ᵀᵐ-∙ p q)
 
       -- Mediating between dependent paths and coercions
       to-coeᵀᵐˡ : {A A' : Ty Γ} {t : Tm A} {t' : Tm A'} {p : A == A'}
-                 → t == t' over-Tm⟨ p ⟩
-                 → coeᵀᵐ p t == t'
+                  → t == t' over⟨ p ⟩
+                  → coeᵀᵐ p t == t'
       to-coeᵀᵐˡ {t = t} {t'} {idp} = idf (t == t')
 
       to-coeᵀᵐʳ : {A A' : Ty Γ} {t : Tm A} {t' : Tm A'} {p : A == A'}
-                 → t == t' over-Tm⟨ p ⟩
-                 → t == coe!ᵀᵐ p t'
+                  → t == t' over⟨ p ⟩
+                  → t == coe!ᵀᵐ p t'
       to-coeᵀᵐʳ {t = t} {t'} {idp} = idf (t == t')
 
       from-coeᵀᵐˡ : {A A' : Ty Γ} {t : Tm A} {t' : Tm A'} {p : A == A'}
                   → coeᵀᵐ p t == t'
-                  → t == t' over-Tm⟨ p ⟩
+                  → t == t' over⟨ p ⟩
       from-coeᵀᵐˡ {t = t} {t'} {idp} = idf (t == t')
 
       from-over-∙ :
         {A B C : Ty Γ} {p : A == B} {q : B == C}
         {a : Tm A} {c : Tm C}
-        → a == c over-Tm⟨ p ∙ q ⟩ → coeᵀᵐ p a == c over-Tm⟨ q ⟩
+        → a == c over⟨ p ∙ q ⟩ → coeᵀᵐ p a == c over⟨ q ⟩
       from-over-∙ {p = idp} = idf _
-
-    -- Codes for listlike contexts; see cwfs.Contextual.agda for more
-    module listlike-contexts where
-      Conᶜ : ℕ → Type ℓₒ
-      con-of : {n : ℕ} → Conᶜ n → Con
-
-      Conᶜ O = Lift ⊤
-      Conᶜ (1+ n) = Σ[ γ ː Conᶜ n ] Ty (con-of γ)
-
-      con-of {O} _ = ◆
-      con-of {1+ n} (γ , A) = con-of γ ∷ A
 
   open notation public
   open extension public
   open term-coercions public
-  open listlike-contexts public
 
   private
     module equalities where
@@ -106,7 +94,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       -- elements.
       ⟨=_,,_=⟩ : ∀ {Γ Δ} {A : Ty Δ} {f f' : Sub Γ Δ} {t : Tm (A [ f ])} {t' : Tm (A [ f' ])}
                 → (p : f == f')
-                → t == t' over-Tm⟨ [= p ] ⟩
+                → t == t' over⟨ [= p ] ⟩
                 → (f ,, t ) == (f' ,, t')
       ⟨= idp ,, idp =⟩ = idp
 
@@ -130,13 +118,11 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         a [ π A ]ₜ [ Γ ,,₊ a ]ₜ
           =∎↓⟨ <!∙>∙!∙ [◦] [= βπ ] ⟩
 
-      -- Important lemma: coercions along equalities of hypothetical/weakened elements
-      -- are stable under substitution by _,,_.
-      coeᵀᵐ-,,-stable :
-        ∀ {Γ Δ} {A : Ty Δ} {A' : Ty (Δ ∷ A)}
-          (p : A [ π A ] == A') (x : Tm (A [ π A ])) (f : Sub Γ Δ) (t : Tm (A [ f ]))
-        → x [ f ,, t ]ₜ == (coeᵀᵐ p x) [ f ,, t ]ₜ over-Tm⟨ p |in-ctx (_[ f ,, t ]) ⟩
-      coeᵀᵐ-,,-stable idp x f t = idp
+      -- Important lemma
+      coeᵀᵐ-[]ₜ-stable :
+        ∀ {Γ Δ} {A A' : Ty Δ} (p : A == A') (a : Tm A) (f : Sub Γ Δ)
+        → a [ f ]ₜ == (coeᵀᵐ p a) [ f ]ₜ over⟨ p |in-ctx _[ f ] ⟩
+      coeᵀᵐ-[]ₜ-stable idp a f = idp
 
   open equalities public
 
@@ -146,7 +132,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       ,,-uniq : ∀ {Γ Δ} {f : Sub Γ Δ} {A : Ty Δ} {t : Tm (A [ f ])}
                   (ϕ : Sub Γ (Δ ∷ A))
                   (πϕ : π A ◦ ϕ == f)
-                  (υϕ : υ A [ ϕ ]ₜ == t over-Tm⟨ (! [◦] ∙ [= πϕ ]) ⟩)
+                  (υϕ : υ A [ ϕ ]ₜ == t over⟨ (! [◦] ∙ [= πϕ ]) ⟩)
                 → ϕ == (f ,, t)
       ,,-uniq {f = f} {A} {t} ϕ πϕ υϕ =
         ϕ
@@ -231,7 +217,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
           υ A [ f ↑ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
             =⟨ βυ |in-ctx↓ᵀᵐ _[ Γ ,,₊ a [ f ]ₜ ]ₜ ⟫ᵈ
           coe!ᵀᵐ [◦] (υ (A [ f ])) [ Γ ,,₊ a [ f ]ₜ ]ₜ
-            =⟨ !ᵈ (coeᵀᵐ-,,-stable (! [◦]) (υ (A [ f ])) id (a [ f ]ₜ [ id ]ₜ)) ⟫ᵈ
+            =⟨ !ᵈ (coeᵀᵐ-[]ₜ-stable (! [◦]) (υ (A [ f ])) (Γ ,,₊ a [ f ]ₜ)) ⟫ᵈ
           υ (A [ f ]) [ Γ ,,₊ a [ f ]ₜ ]ₜ
             =⟨ υ-,, (A [ f ]) (a [ f ]ₜ) ⟫ᵈ
           a [ f ]ₜ [ π (A [ f ]) ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
@@ -277,15 +263,15 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
             =∎↓⟨ !-inv-r [◦] ⟩
 
         red2 : a [ π A ]ₜ [ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ == a [ f ]ₜ
-                 over-Tm⟨ ! [◦] ∙ [= ⊓-lemma f a ] ⟩
+                 over⟨ ! [◦] ∙ [= ⊓-lemma f a ] ⟩
         red2 = !ᵈ [◦]ₜ ∙ᵈ [= ⊓-lemma f a ]ₜ
 
         {- Failed attempt; just some random path in the total space may not lie over
         the path we want in the base:
 
-        wrong-red : υ A [ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ == a [ f ]ₜ
-                       over-Tm⟨ ! [◦] ∙ [= ⊓-lemma f a ] ⟩
-        wrong-red =
+        wrong : υ A [ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ == a [ f ]ₜ
+                       over⟨ ! [◦] ∙ [= ⊓-lemma f a ] ⟩
+        wrong =
           υ A [ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ
             =⟨ [◦]ₜ ↓ [◦] ⟫ᵈ
           υ A [ f ◦ π (A [ f ]) ,, coe!ᵀᵐ [◦] (υ (A [ f ])) ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ

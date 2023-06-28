@@ -5,7 +5,7 @@ module cwfs.Pi where
 open import cwfs.CwFs
 
 record PiStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : CwFStructure C)
-  : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
+  : Type (lsuc (ℓₒ ∪ ℓₘ)) where
 
   open CwFStructure cwfstr
 
@@ -21,7 +21,7 @@ record PiStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : Cw
             → (Π′ A B) [ f ] == Π′ (A [ f ]) (B [ f ↑ A ])
 
     λ′[]ₜ : ∀ {Γ Δ} {A B} {f : Sub Γ Δ} {b : Tm B}
-            → (λ′ b) [ f ]ₜ == λ′ (b [ f ↑ A ]ₜ) over-Tm⟨ Π′[] ⟩
+            → (λ′ b) [ f ]ₜ == λ′ (b [ f ↑ A ]ₜ) over⟨ Π′[] ⟩
 
   private
     module notation where

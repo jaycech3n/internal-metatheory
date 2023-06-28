@@ -5,7 +5,7 @@ module cwfs.Contextual where
 open import cwfs.CwFs
 
 record LenStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : CwFStructure C)
-  : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
+  : Type (lsuc (ℓₒ ∪ ℓₘ)) where
 
   open CwFStructure cwfstr
 
@@ -17,7 +17,7 @@ record LenStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : C
   ∷-len _ (Γ , A , idp) = (Γ ∷ A) , len-∷ Γ A
 
 record ContextualStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : CwFStructure C)
-  : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
+  : Type (lsuc (ℓₒ ∪ ℓₘ)) where
 
   field lenstr : LenStructure cwfstr
   open LenStructure lenstr
