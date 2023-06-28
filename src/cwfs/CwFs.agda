@@ -163,6 +163,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
                              f
       -}
 
+      infixl 40 _↑_
       _↑_ : (f : Sub Γ Δ) (A : Ty Δ) → Sub (Γ ∷ A [ f ]) (Δ ∷ A)
       f ↑ A = f ◦ π (A [ f ]) ,, coe!ᵀᵐ [◦] (υ (A [ f ]))
 
