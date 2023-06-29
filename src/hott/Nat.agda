@@ -17,126 +17,125 @@ module Nat-instances {n : ℕ} where
     O<S-inst : O < 1+ n
     O<S-inst = O<S n
 
-private
-  module trichotomy where
-    ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
-    ℕ-trichotomy' m n with ℕ-trichotomy m n
-    ... | inl m=n = inl (inl m=n)
-    ... | inr (inl m<n) = inl (inr m<n)
-    ... | inr (inr n<m) = inr n<m
-
-  module one-arg-lemmas where
-    S≮ : ∀ {n} → ¬ (S n < n)
-    S≮ {O} ()
-    S≮ {1+ n} = S≮ ∘ <-cancel-S
-
-    ¬O< : ∀ n → ¬ (O < n) → n == O
-    ¬O< O u = idp
-    ¬O< (1+ n) u = ⊥-rec (u (O<S n))
-
-    module _ {n} where
-      ¬< : ¬ (n < n)
-      ¬< u = <-to-≠ u idp
-
-      <1-=O : n < 1 → n == O
-      <1-=O ltS = idp
-
-  open one-arg-lemmas
-
-  module two-arg-lemmas where
-    S≤-1≤ : ∀ {m n} → 1+ m ≤ n → 1 ≤ n
-    S≤-1≤ {m} {O} u = ⊥-rec (S≰O m u)
-    S≤-1≤ {m} {1+ n} u = ≤-ap-S (O≤ n)
-
-    ≤-+-mid : ∀ {m n} → 1+ m ≤ 1+ (n + m)
-    ≤-+-mid {m} {O} = lteE
-    ≤-+-mid {m} {1+ n} = lteSR $ ≤-+-mid {m} {n}
-
-    <1+ : ∀ {m n} → n < 1+ m + n
-    <1+ {O} = ltS
-    <1+ {1+ m} = <-trans (<1+ {m}) ltS
-
-    module _ {m n} where
-      =-cancel-S : 1+ m == 1+ n :> ℕ → m == n
-      =-cancel-S idp = idp
-
-      S<-< : 1+ m < n → m < n
-      S<-< u = <-trans ltS u
-
-      <-O< : m < n → O < n
-      <-O< ltS = O<S m
-      <-O< (ltSR u) = O<S _
-
-      <-S≤ : m < n → 1+ m ≤ n
-      <-S≤ ltS = lteE
-      <-S≤ (ltSR u) = inr (<-ap-S u)
-
-      <S-≤ : m < 1+ n → m ≤ n
-      <S-≤ ltS = lteE
-      <S-≤ (ltSR u) = inr u
-
-      S≤-< : 1+ m ≤ n → m < n
-      S≤-< (inl idp) = ltS
-      S≤-< (inr u) = <-trans ltS u
-
-      S≤-≤ : 1+ m ≤ n → m ≤ n
-      S≤-≤ = ≤-trans lteS
-
-      no-between : m < n → n < 1+ m → ⊥
-      no-between u v with <-S≤ u
-      ... | inl idp = ¬< v
-      ... | inr w = ¬< (<-trans v w)
-
-      <-witness' : m < n → Σ ℕ (λ k → k + m == n)
-      <-witness' u = let w = <-witness u in 1+ (fst w) , snd w
-
-  module three-arg-lemmas where
-    module _ {k m n} where
-      ≤-<-< : k ≤ m → m < n → k < n
-      ≤-<-< (inl idp) u' = u'
-      ≤-<-< (inr u) u' = <-trans u u'
-
-      <-≤-< : k < m → m ≤ n → k < n
-      <-≤-< u (inl idp) = u
-      <-≤-< u (inr u') = <-trans u u'
-
-      <-≤-≤ : k < m → m ≤ n → k ≤ n
-      <-≤-≤ u u' = inr (<-≤-< u u')
-
-      3-comm-2 : k + m + n == m + k + n
-      3-comm-2 = +-comm k m |in-ctx (_+ n)
-
-  module four-arg-lemmas where
-    <-+ : ∀ {k l m n} → k < m → l < n → k + l < m + n
-    <-+ {k} ltS u' = ltSR (<-+-l k u')
-    <-+ (ltSR u) ltS = ltSR (<-+ u ltS)
-    <-+ (ltSR u) (ltSR u') = ltSR (<-+ u (<-trans u' ltS))
-
-    ≤-+ : ∀ {k l m n} → k ≤ m → l ≤ n → k + l ≤ m + n
-    ≤-+ {k} (inl idp) u' = ≤-+-l k u'
-    ≤-+ {l = l} (inr u) (inl idp) = inr (<-+-r l u)
-    ≤-+ (inr u) (inr u') = inr (<-+ u u')
-
-    +-assocr-≤ : ∀ {k} l m n → l + m + n ≤ k → l + (m + n) ≤ k
-    +-assocr-≤ {k} l m n u = transp (_≤ k) (+-assoc l m n) u
-
-    +-assocl-≤ : ∀ {k} l m n → l + (m + n) ≤ k → l + m + n ≤ k
-    +-assocl-≤ {k} l m n u = transp (_≤ k) (! (+-assoc l m n)) u
-
-    +-comm-≤ : ∀ {k} m n → m + n ≤ k → n + m ≤ k
-    +-comm-≤ {k} m n = transp (_≤ k) (+-comm m n)
+module trichotomy where
+  ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
+  ℕ-trichotomy' m n with ℕ-trichotomy m n
+  ... | inl m=n = inl (inl m=n)
+  ... | inr (inl m<n) = inl (inr m<n)
+  ... | inr (inr n<m) = inr n<m
 
 open trichotomy public
-open one-arg-lemmas public
-open two-arg-lemmas public
-open three-arg-lemmas public
-open four-arg-lemmas public
 
+module ad-hoc-lemmas where
 
-+-≤-dropl : ∀ {m n k} → m + n ≤ k → n ≤ k
-+-≤-dropl {O} {n} {k} u = u
-+-≤-dropl {1+ m} {n} {k} u = +-≤-dropl (S≤-≤ u)
+  {- One arg -}
 
+  module _ {n} where
+    ¬< : ¬ (n < n)
+    ¬< u = <-to-≠ u idp
+
+    <1-=O : n < 1 → n == O
+    <1-=O ltS = idp
+
+  S≮ : ∀ {n} → ¬ (S n < n)
+  S≮ {O} ()
+  S≮ {1+ n} = S≮ ∘ <-cancel-S
+
+  ¬O< : ∀ n → ¬ (O < n) → n == O
+  ¬O< O u = idp
+  ¬O< (1+ n) u = ⊥-rec (u (O<S n))
+
+  {- Two args -}
+
+  module _ {m n} where
+    =-cancel-S : 1+ m == 1+ n :> ℕ → m == n
+    =-cancel-S idp = idp
+
+    S<-< : 1+ m < n → m < n
+    S<-< u = <-trans ltS u
+
+    <-O< : m < n → O < n
+    <-O< ltS = O<S m
+    <-O< (ltSR u) = O<S _
+
+    <-S≤ : m < n → 1+ m ≤ n
+    <-S≤ ltS = lteE
+    <-S≤ (ltSR u) = inr (<-ap-S u)
+
+    <S-≤ : m < 1+ n → m ≤ n
+    <S-≤ ltS = lteE
+    <S-≤ (ltSR u) = inr u
+
+    S≤-< : 1+ m ≤ n → m < n
+    S≤-< (inl idp) = ltS
+    S≤-< (inr u) = <-trans ltS u
+
+    S≤-≤ : 1+ m ≤ n → m ≤ n
+    S≤-≤ = ≤-trans lteS
+
+    no-between : m < n → n < 1+ m → ⊥
+    no-between u v with <-S≤ u
+    ... | inl idp = ¬< v
+    ... | inr w = ¬< (<-trans v w)
+
+    <-witness' : m < n → Σ ℕ (λ k → k + m == n)
+    <-witness' u = let w = <-witness u in 1+ (fst w) , snd w
+
+  S≤-1≤ : ∀ {m n} → 1+ m ≤ n → 1 ≤ n
+  S≤-1≤ {m} {O} u = ⊥-rec (S≰O m u)
+  S≤-1≤ {m} {1+ n} u = ≤-ap-S (O≤ n)
+
+  ≤-+-mid : ∀ {m n} → 1+ m ≤ 1+ (n + m)
+  ≤-+-mid {m} {O} = lteE
+  ≤-+-mid {m} {1+ n} = lteSR $ ≤-+-mid {m} {n}
+
+  <1+ : ∀ {m n} → n < 1+ m + n
+  <1+ {O} = ltS
+  <1+ {1+ m} = <-trans (<1+ {m}) ltS
+
+  {- Three args -}
+
+  module _ {k m n} where
+    ≤-<-< : k ≤ m → m < n → k < n
+    ≤-<-< (inl idp) u' = u'
+    ≤-<-< (inr u) u' = <-trans u u'
+
+    <-≤-< : k < m → m ≤ n → k < n
+    <-≤-< u (inl idp) = u
+    <-≤-< u (inr u') = <-trans u u'
+
+    <-≤-≤ : k < m → m ≤ n → k ≤ n
+    <-≤-≤ u u' = inr (<-≤-< u u')
+
+    3-comm-2 : k + m + n == m + k + n
+    3-comm-2 = +-comm k m |in-ctx (_+ n)
+
+  +-≤-dropl : ∀ {m n k} → m + n ≤ k → n ≤ k
+  +-≤-dropl {O} {n} {k} u = u
+  +-≤-dropl {1+ m} {n} {k} u = +-≤-dropl (S≤-≤ u)
+
+  {- Four args -}
+
+  <-+ : ∀ {k l m n} → k < m → l < n → k + l < m + n
+  <-+ {k} ltS u' = ltSR (<-+-l k u')
+  <-+ (ltSR u) ltS = ltSR (<-+ u ltS)
+  <-+ (ltSR u) (ltSR u') = ltSR (<-+ u (<-trans u' ltS))
+
+  ≤-+ : ∀ {k l m n} → k ≤ m → l ≤ n → k + l ≤ m + n
+  ≤-+ {k} (inl idp) u' = ≤-+-l k u'
+  ≤-+ {l = l} (inr u) (inl idp) = inr (<-+-r l u)
+  ≤-+ (inr u) (inr u') = inr (<-+ u u')
+
+  +-assocr-≤ : ∀ {k} l m n → l + m + n ≤ k → l + (m + n) ≤ k
+  +-assocr-≤ {k} l m n u = transp (_≤ k) (+-assoc l m n) u
+
+  +-assocl-≤ : ∀ {k} l m n → l + (m + n) ≤ k → l + m + n ≤ k
+  +-assocl-≤ {k} l m n u = transp (_≤ k) (! (+-assoc l m n)) u
+
+  +-comm-≤ : ∀ {k} m n → m + n ≤ k → n + m ≤ k
+  +-comm-≤ {k} m n = transp (_≤ k) (+-comm m n)
+
+open ad-hoc-lemmas public
 
 module monus where
   infixl 80 _∸_
@@ -173,7 +172,6 @@ module monus where
   β∸1 {1+ n} (ltSR _) rewrite ∸-unit-r n = idp
 
 open monus public
-
 
 module subtraction where
   infixl 80 _-_

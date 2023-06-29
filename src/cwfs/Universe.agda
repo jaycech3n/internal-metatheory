@@ -21,4 +21,4 @@ record UniverseStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfst
       _ᵁ : ∀ {Γ Δ} {f : Sub Γ Δ} → Tm (U [ f ]) → Tm U
       _ᵁ = coeᵀᵐ U[]
 
-  open notation
+  open notation public

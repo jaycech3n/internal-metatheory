@@ -6,7 +6,7 @@ module categories.DSM {ℓₒ ℓₘ} {Ob : Type ℓₒ} (C : WildSemicategorySt
 
 open WildSemicategoryStructure C
 
-DSM : Ob → Type (ℓₒ l⊔ ℓₘ)
+DSM : Ob → Type (ℓₒ ∪ ℓₘ)
 DSM x = (y : Ob) → hom x y → Bool
 
 DSM= : {x : Ob} {σ τ : DSM x} → (∀ y → (f : hom x y) → σ y f == τ y f) → σ == τ

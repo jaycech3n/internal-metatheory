@@ -7,7 +7,7 @@ open import categories.Semicategories public
 -- Untruncatedly finite hom sets
 record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
   (C : WildSemicategoryStructure ℓₒ ℓₘ Ob)
-  : Type (lsuc (ℓₒ l⊔ ℓₘ)) where
+  : Type (lsuc (ℓₒ ∪ ℓₘ)) where
   open WildSemicategoryStructure C
 
   field

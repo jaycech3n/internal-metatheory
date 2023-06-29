@@ -8,7 +8,7 @@ module cwfs.Telescopes {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ}
 open CwFStructure cwfstr
 
 {- Small inductive-recursive definition of telescopes Θ in internal contexts Γ,
-   and context extension by telescopes -}
+and context extension by telescopes -}
 
 data Tel (Γ : Con) : Type ℓₒ
 _++ₜₑₗ_ : (Γ : Con) → Tel Γ → Con
@@ -64,8 +64,14 @@ private
     _ : Θ [ f ]ₜₑₗ == • ‣ A₁ [ f ] ‣ A₂ [ f ↑ A₁ ] ‣ A₃ [ f ↑ A₁ ↑ A₂ ]
     _ = idp
 
+-- Weaken a *telescope*
 wknₜₑₗ : ∀ {Γ} (X : Ty Γ) → Tel Γ → Tel (Γ ∷ X)
 wknₜₑₗ X Θ = Θ [ π X ]ₜₑₗ
+
+-- Weaken a *type* by a telescope
+wkn-by : ∀ {Γ} (Θ : Tel Γ) → Ty Γ → Ty (Γ ++ₜₑₗ Θ)
+wkn-by • X = X
+wkn-by (Θ ‣ A) X = wkn-by Θ X [ π A ]
 
 -- Internal Π types from telescopes
 open import cwfs.Pi
