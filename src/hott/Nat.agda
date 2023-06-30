@@ -137,6 +137,18 @@ module ad-hoc-lemmas where
 
 open ad-hoc-lemmas public
 
+module predecessor where
+  infix 999 _−1
+  _−1 : ℕ → ℕ
+  O −1 = O
+  (1+ n) −1 = n
+
+  −1≤ : ∀ {n} → n −1 ≤ n
+  −1≤ {O} = lteE
+  −1≤ {1+ n} = lteS
+
+open predecessor public
+
 module monus where
   infixl 80 _∸_
   _∸_ : ℕ → ℕ → ℕ
