@@ -14,7 +14,6 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
   private
     module notation where
       infixl 40 ap↓-Tm
-
       ap↓-Tm : {Γ Δ : Con} {f : Ty Γ → Ty Δ}
           (g : {A : Ty Γ} → Tm A → (Tm ∘ f) A)
           {A A' : Ty Γ} {p : A == A'}
@@ -27,6 +26,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       Tm[_] : ∀ Γ → Ty Γ → Type ℓₘ
       Tm[ _ ] A = Tm A
 
+      infix 999 _ʷ _ʷₜ
       _ʷ : {Γ : Con} {A : Ty Γ} → Ty Γ → Ty (Γ ∷ A)
       _ʷ {A = A} B = B [ π A ]
 
