@@ -64,14 +64,16 @@ private
     _ : Θ [ f ]ₜₑₗ == • ‣ A₁ [ f ] ‣ A₂ [ f ↑ A₁ ] ‣ A₃ [ f ↑ A₁ ↑ A₂ ]
     _ = idp
 
--- Weaken a *telescope*
-wknₜₑₗ : ∀ {Γ} (X : Ty Γ) → Tel Γ → Tel (Γ ∷ X)
-wknₜₑₗ X Θ = Θ [ π X ]ₜₑₗ
+-- Weaken a *telescope* by a type
+infix 32 wknₜₑₗ_by
+wknₜₑₗ_by : ∀ {Γ} → Tel Γ → (X : Ty Γ) → Tel (Γ ∷ X)
+wknₜₑₗ Θ by X = Θ [ π X ]ₜₑₗ
 
 -- Weaken a *type* by a telescope
-wkn-by : ∀ {Γ} (Θ : Tel Γ) → Ty Γ → Ty (Γ ++ₜₑₗ Θ)
-wkn-by • X = X
-wkn-by (Θ ‣ A) X = wkn-by Θ X [ π A ]
+infix 37 wkn_by
+wkn_by : ∀ {Γ} → Ty Γ → (Θ : Tel Γ) → Ty (Γ ++ₜₑₗ Θ)
+wkn X by • = X
+wkn X by (Θ ‣ A) = (wkn X by Θ) [ π A ]
 
 -- Internal Π types from telescopes
 open import cwfs.Pi
@@ -81,3 +83,9 @@ module Πₜₑₗ (pistr : PiStructure cwfstr) where
   Πₜₑₗ : ∀ {Γ} (Θ : Tel Γ) → Ty (Γ ++ₜₑₗ Θ) → Ty Γ
   Πₜₑₗ • B = B
   Πₜₑₗ (Θ ‣ A) B = Πₜₑₗ Θ (Π′ A B)
+
+  Πₜₑₗ-[]-comm :
+    ∀ {Γ Δ} {Θ : Tel Δ} (B : Ty (Δ ++ₜₑₗ Θ)) (f : Sub Γ Δ)
+    → (Πₜₑₗ Θ B) [ f ] == Πₜₑₗ (Θ [ f ]ₜₑₗ) (B [ f ↑ₜₑₗ Θ ])
+  Πₜₑₗ-[]-comm {Θ = •} B f = {!idp!}
+  Πₜₑₗ-[]-comm {Θ = Θ ‣ A} B f = {!!}

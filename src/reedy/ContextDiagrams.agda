@@ -23,25 +23,28 @@ open import cwfs.Telescopes cwfstr
 open Πₜₑₗ pistr
 
 SCT : ℕ → Con
+𝔸 : (n : ℕ) → Ty (SCT n)
 M : (i h t : ℕ) → shape i h t → Tel (SCT (1+ h))
 
 SCT O = ◆
-SCT (1+ O) = ◆ ∷ U
-SCT (2+ n) =
-  SCT (1+ n) ∷ Πₜₑₗ (M (1+ n) n (hom-size (1+ n) n) (full-shape-1+ n)) U
+SCT (1+ n) = SCT n ∷ 𝔸 n
+
+𝔸 O = U
+𝔸 (1+ n) = Πₜₑₗ (M (1+ n) n (hom-size (1+ n) n) (full-shape-1+ n)) U
+
+A : (n : ℕ) → Tm[ SCT (1+ n) ] (𝔸 n ʷ)
+A n = var (SCT (1+ n))
 
 M i O (1+ t) sh =
-  let M' = M i O t (shapeₜ↓ sh)
-    -- Putting this definition in the where block breaks termination checking?..
-  in M' ‣ wkn-by M' A₀
-  where
-    A₀ : Ty (SCT 1)
-    A₀ = el (var (SCT 1) ᵁ)
+  let M' = M i O t (shapeₜ↓ sh) -- (1)
+  in M' ‣ wkn el (A O ᵁ) by M'
 M i (1+ h) (1+ t) sh =
   let M' = M i (1+ h) t (shapeₜ↓ sh)
-  in {!M' ‣ ?!}
-  where
-    A₁₊ₕ : Ty (SCT (1+ h))
-    A₁₊ₕ = {!var (SCT (1+ h))!}
+  in M' ‣ {!!}
 M i (1+ h) O sh = (M i h (hom-size i h) (shapeₕ↓ sh)) [ π _ ]ₜₑₗ
 M i O O sh = •
+
+{- Comments
+
+(1) Putting the definition of M' in a where block causes termination errors?...
+-}
