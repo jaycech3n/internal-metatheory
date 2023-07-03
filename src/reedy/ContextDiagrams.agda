@@ -59,7 +59,7 @@ M i (1+ h) (1+ t) sh = M-prev ‣ el substituted-filler
   substituted-filler : Tm[ SCT (2+ h) ++ₜₑₗ M-prev ] U
   substituted-filler = generic-filler [ {!!} ]ₜ ᵁ
 
-M i (1+ h) O sh = (M i h (hom-size i h) (shapeₕ↓ sh)) [ π _ ]ₜₑₗ
+M i (1+ h) O sh = wknₜₑₗ M i h (hom-size i h) (shapeₕ↓ sh) by (𝔸 (1+ h))
 M i O O sh = •
 
 {- Comments
