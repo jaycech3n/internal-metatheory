@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --termination-depth=2 #-}
 
 open import reedy.IndexSemicategories
 
@@ -6,329 +6,116 @@ module reedy.LinearSieves {ℓₘ} (I : SuitableSemicategory ℓₘ) where
 
 open SuitableSemicategory I
 
-open import categories.DSM (SuitableSemicategory.wildsemicatstr I)
-
-{- Shapes -}
-
-ℕ³ = ℕ × ℕ × ℕ
-
 record shape (i h t : ℕ) : Type₀ where
   constructor bounds
   field
     on-h : h ≤ i
     on-t : t ≤ hom-size i h
-
 open shape public
 
-abstract
-  shape-is-prop : ∀ {i h t} → is-prop (shape i h t)
-  shape-is-prop =
-    all-paths-is-prop
-      λ{(bounds on-h on-t)
-        (bounds on-h' on-t')
-      → shape= (prop-path ≤-is-prop on-h on-h')
-                  (prop-path ≤-is-prop on-t on-t')}
-    where
-    shape= : ∀ {i h t} {iS iS' : shape i h t}
-      → on-h iS == on-h iS' → on-t iS == on-t iS' → iS == iS'
-    shape= idp idp = idp
+Shape = Σ[ i ː ℕ ] Σ[ h ː ℕ ] Σ[ t ː ℕ ] shape i h t
 
-shape= : ∀ {i h t} (iS iS' : shape i h t) → iS == iS'
-shape= = prop-path shape-is-prop
+height : Shape → ℕ
+height = fst ∘ snd
 
-transp-shape :
-  ∀ {ℓ} {i h t} (B : shape i h t → Type ℓ)
-    {iS : shape i h t} (iS' : shape i h t)
-  → B iS → B iS'
-transp-shape {i} {h} {t} B iS' = transp-Prop shape-is-prop B
+module shapes where
+  empty-shape : ∀ i → shape i O O
+  empty-shape i = bounds (O≤ _) (O≤ _)
 
-shape-Σ : ℕ³ → Type₀
-shape-Σ (i , h , t) = shape i h t
+  full-level : ∀ i h → h ≤ i → shape i h (hom-size i h)
+  full-level i h u = bounds u lteE
 
-empty-shape : ∀ i → shape i O O
-empty-shape i = bounds (O≤ i) (O≤ (hom-size i O))
+  full-shape[1+_] : ∀ i → shape (1+ i) i (hom-size (1+ i) i)
+  full-shape[1+ i ] = full-level (1+ i) i lteS
 
-full-level : ∀ i h → h ≤ i → shape i h (hom-size i h)
-full-level i h u = bounds u lteE
+  top-shape : ∀ i → shape i i O
+  top-shape i = bounds lteE (O≤ _)
 
-new-level : ∀ i h → h ≤ i → shape i h O
-new-level i h u = bounds u (O≤ (hom-size i h))
+  shapeₕ↓ : ∀ {i h} → shape i (1+ h) O → shape i h (hom-size i h)
+  shapeₕ↓ (bounds on-h _) = bounds (S≤-≤ on-h) lteE
 
-full-shape : ∀ i → shape i i O
-full-shape i = bounds lteE (O≤ _)
+  shapeₜ↓ : ∀ {i h t} → shape i h (1+ t) → shape i h t
+  shapeₜ↓ (bounds on-h on-t) = bounds on-h (S≤-≤ on-t)
 
-full-shape-1+ : ∀ i → shape (1+ i) i (hom-size (1+ i) i)
-full-shape-1+ i = full-level (1+ i) i lteS
+open shapes public
 
-shapeₕ↓ : ∀ {i h} → shape i (1+ h) O → shape i h (hom-size i h)
-shapeₕ↓ iS = bounds (≤-trans lteS (on-h iS)) lteE
+module restriction where
+  shape-∙ : (i h t : ℕ) → shape i h t
+    → {j : ℕ} → h ≤ j → hom i j → ℕ × ℕ
+  shape-∙ i h (1+ O) (bounds _ on-t) _ f =
+    if (hom[ i , h ]# (O , S≤-< on-t) factors-through? f)
+      (λ yes → h , 1)
+      (λ no → h , O)
+  shape-∙ i h (2+ t) sh@(bounds _ on-t) u f =
+    let t' = snd (shape-∙ i h (1+ t) (shapeₜ↓ sh) u f) in
+    if (hom[ i , h ]# (1+ t , S≤-< on-t) factors-through? f)
+      (λ yes → h , 1+ t')
+      (λ no → h , t')
+  shape-∙ i (1+ h) O sh u f = shape-∙ i h (hom-size i h) (shapeₕ↓ sh) (S≤-≤ u) f
+  shape-∙ i O O sh _ f = O , O
 
-shapeₜ< : ∀ {i h t t'} → t' < t → shape i h t → shape i h t'
-shapeₜ< ltS iS = bounds (on-h iS) (≤-trans lteS (on-t iS))
-shapeₜ< (ltSR u) iS = bounds (on-h iS) (≤-trans (inr (ltSR u)) (on-t iS))
-
-shapeₜ≤ : ∀ {i h t t'} → t' ≤ t → shape i h t → shape i h t'
-shapeₜ≤ (inl idp) iS = iS
-shapeₜ≤ (inr u) iS = shapeₜ< u iS
-
-shapeₜ↓ : ∀ {i h t} → shape i h (1+ t) → shape i h t
-shapeₜ↓ = shapeₜ< ltS
-
-{- Counting -}
-
-#[_,_,_] : (i h t : ℕ) → shape i h t → ℕ
-#[ i , h , 1+ t ] iS = 1+ (#[ i , h , t ] (shapeₜ↓ iS))
-#[ i , 1+ h , O ] iS = #[ i , h , hom-size i h ] (shapeₕ↓ iS)
-#[ i , O , O ] iS = O
-
-module LinearSieves-order where
-{- In this module we define the lexicographic order on pairs (h, t) three ways: the
-  third of which allows us to do induction on a range (h', t') → (h, t) "from the
-  end". -}
-
-  _≤ₛ_ : (s' s : ℕ × ℕ) → Type₀
-  (h' , t') ≤ₛ (h , t) = (h' < h) ⊔ ((h' == h) × (t' ≤ t))
-
-  O≤ₛ : ∀ h t → (O , O) ≤ₛ (h , t)
-  O≤ₛ O t = inr (idp , O≤ t)
-  O≤ₛ (1+ h) t = inl (O<S h)
-
-  _≤ₛ'_ : (s' s : ℕ × ℕ) → Type₀
-  (h' , t') ≤ₛ' (h , t) = (Σ[ dₕ ː ℕ ] (1+ dₕ) + h' == h) ⊔
-                         ((h' == h) × (Σ[ dₜ ː ℕ ] dₜ + t' == t))
-
-  ≤ₛ-≤ₛ' : (s' s : ℕ × ℕ) → s' ≤ₛ s → s' ≤ₛ' s
-  ≤ₛ-≤ₛ' s' s (inl u) = inl (<-witness u)
-  ≤ₛ-≤ₛ' s' s (inr (idp , u)) = inr (idp , ≤-witness u)
-
-  ≤ₛ'-≤ₛ : (s' s : ℕ × ℕ) → s' ≤ₛ' s → s' ≤ₛ s
-  ≤ₛ'-≤ₛ s' s (inl (d , idp)) = inl <1+
-  ≤ₛ'-≤ₛ (.h , t') (h , t) (inr (idp , d , idp)) = inr (idp , ≤-+-r t'(O≤ d))
-
-  -- An induction principle on two indexing pairs (h',t'), (h,t):
-  data _≤ₛ+_ : (s' s : ℕ × ℕ) → Type₀ where
-    done : ∀ {h t} → (h , t) ≤ₛ+ (h , t)
-    on-height : ∀ {h' t' h t} → h' < h → (h' , t') ≤ₛ+ (h , t)
-    on-width : ∀ {h t' t} → (h , 1+ t') ≤ₛ+ (h , t) → (h , t') ≤ₛ+ (h , t)
-
-  -- ≤ₛ' and ≤ₛ+ are fiberwise logically equivalent (probably also actually fiberwise
-  -- equivalent).
-  module _ where
-    ≤ₛ'-ind-height :
-      ((h' , t') (h , t) : ℕ × ℕ) (d : ℕ)
-      → (1+ d) + h' == h
-      → (h' , t') ≤ₛ+ (h , t)
-    ≤ₛ'-ind-height (h' , t') (h , t) d idp = on-height <1+
-
-    ≤ₛ'-ind-width :
-      (h t t' : ℕ) (d : ℕ)
-      → d + t' == t
-      → (h , t') ≤ₛ+ (h , t)
-    ≤ₛ'-ind-width h .(O + t') t' O idp = done
-    ≤ₛ'-ind-width h .(1+ d + t') t' (1+ d) idp =
-      on-width (≤ₛ'-ind-width h _ (1+ t') d (+-βr _ _))
-
-    ≤ₛ'-≤ₛ+ : (s' s : ℕ × ℕ) → s' ≤ₛ' s → s' ≤ₛ+ s
-    ≤ₛ'-≤ₛ+ s' s (inl (d , p)) = ≤ₛ'-ind-height s' s d p
-    ≤ₛ'-≤ₛ+ (.h , t') (h , t) (inr (idp , d , p)) = ≤ₛ'-ind-width h t t' d p
-
-    ≤ₛ+-≤ₛ' : (s' s : ℕ × ℕ) → s' ≤ₛ+ s → s' ≤ₛ' s
-    ≤ₛ+-≤ₛ' _ _ done = inr (idp , O , idp)
-    ≤ₛ+-≤ₛ' _ _ (on-height u) = inl (<-witness u)
-    ≤ₛ+-≤ₛ' (h' , t') s@(h , t) (on-width w)
-      with ≤ₛ+-≤ₛ' (h' , 1+ t') s w
-    ... | inl x = inl x
-    ... | inr (p , d , q) = inr (p , 1+ d , ! (+-βr _ _) ∙ q)
-
-  ≤ₛ-≤ₛ+ : (s' s : ℕ × ℕ) → s' ≤ₛ s → s' ≤ₛ+ s
-  ≤ₛ-≤ₛ+ s' s = ≤ₛ'-≤ₛ+ s' s ∘ ≤ₛ-≤ₛ' s' s
-
-  ≤ₛ+-≤ₛ : (s' s : ℕ × ℕ) → s' ≤ₛ+ s → s' ≤ₛ s
-  ≤ₛ+-≤ₛ s' s = ≤ₛ'-≤ₛ s' s ∘ ≤ₛ+-≤ₛ' s' s
-
-  -- Some properties of ≤ₛ+-pairs
-  ≤ₛ+-width-≤ : ∀ {h t t'} → (h , t') ≤ₛ+ (h , t) → t' ≤ t
-  ≤ₛ+-width-≤ w with ≤ₛ+-≤ₛ _ _ w
-  ... | inl u = ⊥-rec (¬< u)
-  ... | inr w = snd w
-
-open LinearSieves-order public
-
--- Shape equivalence: generated by (i, h, t) ~ (i, h + 1, 0)
-
-infix 90 _~[_]_ _~⋆_[_]_
-
-_~[_]_ : ((h₁ , t₁) : ℕ × ℕ) (i : ℕ) ((h₂ , t₂) : ℕ × ℕ) → Type₀
-(h₁ , t₁) ~[ i ] (h₂ , t₂) = (t₁ == hom-size i h₁) × (h₂ == 1+ h₁) × (t₂ == O)
-
-_~⋆_[_]_ :
-  ((h₁ , t₁) : ℕ × ℕ) (n : ℕ) (i : ℕ) ((h₂ , t₂) : ℕ × ℕ) → Type₀
-(h₁ , t₁) ~⋆ O [ i ] (h₂ , t₂) = (h₁ , t₁) == (h₂ , t₂)
-(h₁ , t₁) ~⋆ 1+ n [ i ] (h₂ , t₂) =
-  Σ[ h ː ℕ ] Σ[ t ː ℕ ] Σ[ iS ː shape i h t ]
-    (h₁ , t₁) ~[ i ] (h , t) × (h , t) ~⋆ n [ i ] (h₂ , t₂)
-
--- Shape restriction
-
--- [ i , h , t ] iS · f is a representative of the equivalence class of shapes
--- that describe the (i, h, t)-sieve restricted along f (no uniform choice of which).
--- The definition is a bit finicky, and it's currently a bit unclear what the best
--- formulation is.
-
-module _ (i : ℕ) where
-  shape-· : (h t : ℕ) (iS : shape i h t) {m : ℕ} (f : hom i m) → ℕ × ℕ
-  shape-· h (1+ t) iS {m} f =
-    if h <? m then (λ h<m →
-      if O <? hom-size m h then (λ O<hom-size
-        → h , #-factors-of-hom[ i , h ]≤[ t-Fin ]-through f O<hom-size)
-      else λ _
-        → h , O)
-    else λ _
-      → m , O
-    where
-      t-Fin = t , <-≤-< ltS (on-t iS)
-  shape-· (1+ h) O iS {m} f = shape-· h (hom-size i h) (shapeₕ↓ iS) f
-  shape-· O O _ {m} f = O , O
-
+  -- Proofs that shape-∙ is again a shape
   abstract
-    height-shape-· : ∀ h t iS {m} (f : hom i m) → fst (shape-· h t iS f) ≤ m
-    height-shape-· h (1+ t) iS {m} f with h <? m | O <? hom-size m h
-    ... | inl u | inl _ = inr u
-    ... | inl u | inr _ = inr u
-    ... | inr _ | _ = lteE
-    height-shape-· (1+ h) O iS f = height-shape-· h (hom-size i h) (shapeₕ↓ iS) f
-    height-shape-· O O iS f = O≤ _
+    height-shape-∙ : (i h t : ℕ) (sh : shape i h t)
+      → {j : ℕ} (u : h ≤ j) (f : hom i j)
+      → fst (shape-∙ i h t sh u f) ≤ j
+    height-shape-∙ i h (1+ O) (bounds _ on-t) u f
+     with (hom[ i , h ]# (O , S≤-< on-t) factors-through? f)
+    ... | inl yes = u
+    ... | inr no = u
+    height-shape-∙ i h (2+ t) (bounds _ on-t) u f
+     with (hom[ i , h ]# (1+ t , S≤-< on-t) factors-through? f)
+    ... | inl yes = u
+    ... | inr no = u
+    height-shape-∙ i (1+ h) O sh u f =
+      height-shape-∙ i h (hom-size i h) (shapeₕ↓ sh) (S≤-≤ u) f
+    height-shape-∙ i O O sh _ f = O≤ _
 
-    height-shape-·' : ∀ h t iS {m} (f : hom i m) → fst (shape-· h t iS f) ≤ h
-    height-shape-·' h (1+ t) iS {m} f with h <? m | O <? hom-size m h
-    ... | inl _    | inl _ = lteE
-    ... | inl _    | inr _ = lteE
-    ... | inr ¬h<m | _
-          with ℕ-trichotomy' m h
-    ...   | inl u = u
-    ...   | inr u = ⊥-rec $ ¬h<m u
-    height-shape-·' (1+ h) O iS f =
-      ≤-trans (height-shape-·' h (hom-size i h) (shapeₕ↓ iS) f) lteS
-    height-shape-·' O O iS f = lteE
+    -- By "nondegenerate" we mean a shape restriction of the form
+    -- (i, h, 1+ t) ∙ f.
+    height-nondeg-shape-∙ : (i h t : ℕ) (sh : shape i h (1+ t))
+      → {j : ℕ} (u : h ≤ j) (f : hom i j)
+      → fst (shape-∙ i h (1+ t) sh u f) == h
+    height-nondeg-shape-∙ i h O (bounds _ on-t) u f
+     with (hom[ i , h ]# (O , S≤-< on-t) factors-through? f)
+    ... | inl yes = idp
+    ... | inr no = idp
+    height-nondeg-shape-∙ i h (1+ t) (bounds _ on-t) u f
+     with (hom[ i , h ]# (1+ t , S≤-< on-t) factors-through? f)
+    ... | inl yes = idp
+    ... | inr no = idp
 
-    width-shape-· :
-      ∀ h t iS {m} (f : hom i m)
-      → snd (shape-· h t iS f) ≤ hom-size m (fst (shape-· h t iS f))
-    width-shape-· h (1+ t) iS {m} f with h <? m | O <? hom-size m h
-    ... | inl u | inl v = #-factors-ub t-Fin f v
-                          where
-                          t-Fin : Fin (hom-size i h)
-                          t-Fin = t , <-≤-< ltS (on-t iS)
-    ... | inl _ | inr _ = O≤ _
-    ... | inr x | s = O≤ _
-    width-shape-· (1+ h) O iS f = width-shape-· h (hom-size i h) (shapeₕ↓ iS) f
-    width-shape-· O O iS f = O≤ _
+    postulate
+      width-shape-∙ : (i h t : ℕ) (sh : shape i h t)
+        → {j : ℕ} (u : h ≤ j) (f : hom i j)
+        → let h' , t' = shape-∙ i h t sh u f in t' ≤ hom-size j h'
+    -- width-shape-∙ i h (1+ O) (bounds _ on-t) u f
+    --  with (hom[ i , h ]# (O , S≤-< on-t) factors-through? f)
+    -- ... | inl yes = {!!}
+    -- ... | inr no = O≤ _
+    -- width-shape-∙ i h (2+ t) sh@(bounds _ on-t) {j} u f
+    --  with (hom[ i , h ]# (1+ t , S≤-< on-t) factors-through? f)
+    -- ... | inl yes = {!!}
+    -- ... | inr no =
+    --         width-shape-∙ i h (1+ t) (shapeₜ↓ sh) u f
+    --         ◂$ transp (λ ◻ → snd (shape-∙ i h (1+ t) _ u f) ≤ hom-size j ◻) p
+    --         where
+    --         p : fst (shape-∙ i h (1+ t) (shapeₜ↓ sh) u f) == h
+    --         p = height-nondeg-shape-∙ i h t (shapeₜ↓ sh) u f
+    -- width-shape-∙ i (1+ h) O sh u f =
+    --   width-shape-∙ i h (hom-size i h) (shapeₕ↓ sh) (S≤-≤ u) f
+    -- width-shape-∙ i O O sh _ f = O≤ _
 
+    ∙-shape : (i h t : ℕ) (sh : shape i h t)
+      → {j : ℕ} (u : h ≤ j) (f : hom i j)
+      → let h' , t' = shape-∙ i h t sh u f in shape j h' t'
+    ∙-shape i h t sh u f =
+      bounds (height-shape-∙ i h t sh u f) (width-shape-∙ i h t sh u f)
 
-[_,_,_]_· : (i h t : ℕ) (iS : shape i h t) {m : ℕ} (f : hom i m) → ℕ³
-[_,_,_]_· i h t iS {m} f = m , shape-· i h t iS f
+  [_,_,_]_∙ : (i h t : ℕ) (sh : shape i h t)
+    → {j : ℕ} (u : h ≤ j) (f : hom i j)
+    → Shape
+  [ i , h , t ] sh ∙ {j} u f =
+    let h' , t' = shape-∙ i h t sh u f in j , h' , t' , ∙-shape i h t sh u f
 
-abstract
-  ·-shape : ∀ i h t iS {m} (f : hom i m) → shape-Σ ([ i , h , t ] iS · f)
-  ·-shape i h t iS {m} f =
-    bounds (height-shape-· i h t iS f) (width-shape-· i h t iS f)
-
-
-{- (i, h, t)-admissibility -}
-
-is-_-admissible : ((i , h , t) : ℕ³) {m : ℕ} (f : hom i m) → Type₀
-is-(i , h , t)-admissible f =
-  (cod f < h)
-  ⊔ ((cod f == h) × (to-ℕ (idx-of f) < t))
-
-is-_-admissible? :
-  ((i , h , t) : ℕ³) {m : ℕ} (f : hom i m)
-  → Dec (is-( i , h , t )-admissible f)
-is- _ -admissible? f = ⊔-dec (_ <? _) (×-dec (_ ≟-ℕ _) (_ <? _))
-
-admissibleₕ↑ : ∀ i h {m} (f : hom i m)
-  → is-( i , h , hom-size i h )-admissible f
-  → is-( i , 1+ h , O )-admissible f
-admissibleₕ↑ i h f (inl u) = inl (ltSR u)
-admissibleₕ↑ i h f (inr (idp , _)) = inl ltS
-
-admissibleₕ↓ : ∀ i h {m} (f : hom i m)
-  → is-( i , 1+ h , O )-admissible f
-  → is-( i , h , hom-size i h )-admissible f
-admissibleₕ↓ i h {m} f (inl u) with ℕ-trichotomy' m h
-... | inr h<m = ⊥-rec (no-between u (<-ap-S h<m))
-... | inl (inl idp) = inr (idp , idx<hom-size f)
-... | inl (inr m<h) = inl m<h
-
-admissible-h-iff : ∀ i h {m} (f : hom i m)
-  → to-Bool (is-(i , h , hom-size i h)-admissible? f)
-    == to-Bool (is-(i , 1+ h , O)-admissible? f)
-admissible-h-iff i h f =
-  ap-to-Bool
-    (is-(i , h , hom-size i h)-admissible? f)
-    (is-(i , 1+ h , O)-admissible? f)
-    (admissibleₕ↑ i h f)
-    (admissibleₕ↓ i h f)
-
--- Important
-
-{- ·-admissible :
-  (i h t : ℕ) (iS : shape i h t)
-  {m : ℕ} (f : hom i m) (g : hom m h)
-  → is-(i , h , t)-admissible (g ◦ f)
-  → is- [ i , h , t ] iS · f -admissible g
-·-admissible i O O iS f g (inl ())
-·-admissible i O O iS f g (inr ())
-·-admissible i (1+ h) O iS f g (inl u) = ⊥-rec $ ¬< u
-·-admissible i .(1+ _) (1+ t) iS f g (inl (ltSR u)) = ⊥-rec $ S≮ u
-·-admissible i h (1+ t) iS {m} f g (inr (p , u))
- with h <? m
-... | inr ¬h<m = ⊥-rec $ ¬h<m (hom-inverse m h g)
-... | inl  h<m
-     with O <? hom-size m h
-...     | inl v = inr (p , {!!})
-{-
-  g ◦ f ≼ [t] -- idx-of (g ◦ f) < 1+ t
-  ⊢ idx-of (g: m → h) < cumul-#-factors-of ([t]: i → h) through (f: i → m) -- (from [0])
-
-  Because:
-    If idx-of g ≥ cumul-#-factors-of [t] through f,
-    then idx-of (g ◦ f) ≥ 1+ t.
--}
-...     | inr ¬v = ⊥-rec $ ¬v $ hom[ m , h ]-inhab g -}
-
-
-{- Sieves -}
-
-record LinearSieve (i : ℕ) : Type ℓₘ where
-  constructor S[_,_]
-  field
-    height width : ℕ
-    ⦃ shape-cond ⦄ : shape i height width
-    char : DSM i
-    char-∋-cond :
-      ∀ {m} (f : hom i m)
-      → (char ∋ f) == to-Bool (is-(i , height , width)-admissible? f)
-
-open LinearSieve
-
-linear-sieve : (i h t : ℕ) → shape i h t → LinearSieve i
-linear-sieve i h t iS =
-  S[ h , t ] ⦃ iS ⦄
-    (λ _ f → to-Bool (is-(i , h , t )-admissible? f))
-    (λ _ → idp)
-
-{-
-_~⋆⟨_⟩_ : ∀ {i} → LinearSieve i → (n : ℕ) → LinearSieve i → Type₀
-_~⋆⟨_⟩_ {i} s n s' = (height s , width s) ~⋆⟨ n ⟩[ i ] (height s' , width s')
-
-~⋆-equal-char : ∀ {n} {i} (s s' : LinearSieve i) → s ~⋆⟨ n ⟩ s' → char s == char s'
-~⋆-equal-char {O} (S[ _ , _ ] χ χ-∋-cond) (S[ _ , _ ] χ' χ'-∋-cond) idp
-  = DSM= (λ m f → χ-∋-cond f ∙ ! (χ'-∋-cond f))
-~⋆-equal-char {1+ n} {i}
-  s@(S[ h , .(hom-size i h) ] χ χ-∋-cond)
-  s'@(S[ h' , t' ] χ' χ'-∋-cond)
-  (.(1+ h) , .O , iS , (idp , idp , idp) , ~⋆) =
-    DSM= (λ m f → χ-∋-cond f ∙ admissible-h-iff i h f)
-    ∙ ~⋆-equal-char (linear-sieve i (1+ h) O iS) s' ~⋆
--}
+open restriction public

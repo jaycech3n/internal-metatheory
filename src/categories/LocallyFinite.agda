@@ -138,4 +138,27 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
                            → Dec (h factors-through f)
       h factors-through? f = Σ-hom? (λ g → (g ◦ f) == h) (λ g → g ◦ f ≟-hom h)
 
+      #-factors :
+        ∀ {i h m} (t : Fin (hom-size i h)) (f : hom i m)
+        → O < hom-size m h
+        → Σ[ n ː ℕ ] n ≤ hom-size m h
+      #-factors{i} {h} {m} t f u =
+        #-hom[ m , h ]-from [O] st (λ α → α ◦ f ≼ [t]) (λ α → α ◦ f ≼? [t]) ,
+        #-hom-ub m h [O] (λ α → α ◦ f ≼ [t]) (λ α → α ◦ f ≼? [t])
+        where
+          [O] = hom[ m , h ]# (O , u)
+          [t] = hom[ i , h ]# t
+
+      #-factors-of-hom[_,_]≤[_]-through :
+        ∀ i h {m} (t : Fin (hom-size i h)) (f : hom i m)
+        → O < hom-size m h
+        → ℕ
+      #-factors-of-hom[_,_]≤[_]-through i h {m} t f u =
+        fst (#-factors {i} {h} {m} t f u)
+
+      #-factors-ub :
+        ∀ {i h m} t (f : hom i m) (u : O < hom-size m h)
+        → #-factors-of-hom[ i , h ]≤[ t ]-through f u ≤ hom-size m h
+      #-factors-ub t f u = snd (#-factors t f u)
+
   open hom-lemmas public

@@ -26,11 +26,18 @@ SCT : ℕ → Con
 𝔸 : (n : ℕ) → Ty (SCT n)
 M : (i h t : ℕ) → shape i h t → Tel (SCT (1+ h))
 
-M[1+_] : ∀ n → Tel (SCT(1+ n))
-M[1+ n ] = M (1+ n) n (hom-size (1+ n) n) (full-shape-1+ n)
-
 SCT O = ◆
 SCT (1+ n) = SCT n ∷ 𝔸 n
+
+M[1+_] : ∀ n → Tel (SCT(1+ n))
+M[1+ n ] = M (1+ n) n (hom-size (1+ n) n) full-shape[1+ n ]
+
+Mᵤ : (Sh : Shape) → Tel (SCT (1+ (height Sh)))
+Mᵤ (i , h , t , sh) = M i h t sh
+
+M⃗ : {i h t : ℕ} (sh : shape i h t) {j : ℕ} (u : h ≤ j) (f : hom i j)
+     → Sub (SCT (1+ h) ++ₜₑₗ M i h t sh)
+           (SCT (1+ h) ++ₜₑₗ {!Mᵤ ([ i , h , t ] sh ∙ u f)!})
 
 𝔸 O = U
 𝔸 (1+ n) = Πₜₑₗ M[1+ n ] U
@@ -38,16 +45,18 @@ SCT (1+ n) = SCT n ∷ 𝔸 n
 A : (n : ℕ) → Tm[ SCT (1+ n) ] (𝔸 n ʷ)
 A n = var (SCT (1+ n))
 
+M i O O sh = •
+M i (1+ h) O sh = wknₜₑₗ M i h (hom-size i h) (shapeₕ↓ sh) by (𝔸 (1+ h))
 M i O (1+ t) sh =
   let M-prev = M i O t (shapeₜ↓ sh) -- (1)
   in M-prev ‣ wkn el (A O ᵁ) byₜₑₗ M-prev
-
-M i (1+ h) (1+ t) sh = M-prev ‣ el substituted-filler
+M i (1+ h) (1+ t) sh =
+  M-prev ‣ el substituted-filler
   where
   M-prev = M i (1+ h) t (shapeₜ↓ sh)
 
   M[1+h]ʷ : Tel (SCT (2+ h))
-  M[1+h]ʷ = M[1+ h ] [ π (𝔸 (1+ h)) ]ₜₑₗ
+  M[1+h]ʷ = wknₜₑₗ M[1+ h ] by (𝔸 (1+ h))
 
   -- Bureaucratic conversion
   p : 𝔸 (1+ h) ʷ == Πₜₑₗ M[1+h]ʷ U
@@ -59,8 +68,8 @@ M i (1+ h) (1+ t) sh = M-prev ‣ el substituted-filler
   substituted-filler : Tm[ SCT (2+ h) ++ₜₑₗ M-prev ] U
   substituted-filler = generic-filler [ {!!} ]ₜ ᵁ
 
-M i (1+ h) O sh = wknₜₑₗ M i h (hom-size i h) (shapeₕ↓ sh) by (𝔸 (1+ h))
-M i O O sh = •
+
+M⃗ sh f = {!!}
 
 {- Comments
 
