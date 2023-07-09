@@ -23,6 +23,9 @@ data Tel Γ where
 Γ ++ₜₑₗ • = Γ
 Γ ++ₜₑₗ (Θ ‣ A) = (Γ ++ₜₑₗ Θ) ∷ A
 
+close : {Γ : Con} → Tel Γ → Con
+close {Γ} Θ = Γ ++ₜₑₗ Θ
+
 {- Substitution in telescopes
 
 Consider a telescope Θ = (Δ ⊢ A₁, A₂, ..., Aₙ) in context Δ. For any
@@ -74,6 +77,20 @@ infix 37 wkn_byₜₑₗ
 wkn_byₜₑₗ : ∀ {Γ} → Ty Γ → (Θ : Tel Γ) → Ty (Γ ++ₜₑₗ Θ)
 wkn X byₜₑₗ • = X
 wkn X byₜₑₗ (Θ ‣ A) = (wkn X byₜₑₗ Θ) [ π A ]
+
+-- Projection
+πₜₑₗ : ∀ {Γ} (Θ : Tel Γ) → Sub (Γ ++ₜₑₗ Θ) Γ
+πₜₑₗ • = id
+πₜₑₗ (Θ ‣ A) = πₜₑₗ Θ ◦ π A
+
+-- Weaken a *substitution* between telescopes by a type
+wkn-sub_by : ∀ {Γ} {Θ Θ' : Tel Γ}
+  → (σ : Sub (Γ ++ₜₑₗ Θ) (Γ ++ₜₑₗ Θ')) (X : Ty Γ)
+  → Sub (Γ ∷ X ++ₜₑₗ wknₜₑₗ Θ by X) (Γ ∷ X ++ₜₑₗ wknₜₑₗ Θ' by X)
+wkn-sub_by {Θ = Θ} {•} σ X = πₜₑₗ (wknₜₑₗ Θ by X)
+wkn-sub_by {Θ = Θ} {Θ' ‣ A} σ X =
+  wkn-sub_by {Θ = Θ} {Θ'} (π A ◦ σ) X ,, {!!}
+    -- do we need to restrict to substitutions built from terms?
 
 -- Internal Π types from telescopes
 open import cwfs.Pi

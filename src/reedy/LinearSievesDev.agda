@@ -2,10 +2,58 @@
 
 open import reedy.IndexSemicategories
 
-module reedy.LinearSieves {ℓₘ} (I : SuitableSemicategory ℓₘ) where
+module reedy.LinearSievesDev {ℓₘ} (I : SuitableSemicategory ℓₘ) where
 
 open SuitableSemicategory I
 
+record shape (i h t : ℕ) : Type₀ where
+  constructor bound
+  field b : t ≤ hom-size i h
+
+module shapes where
+  new-level : ∀ i → shape i O O
+  new-level i = bound (O≤ _)
+
+  full-level : ∀ i h → shape i h (hom-size i h)
+  full-level i h = bound lteE
+
+  full-shape[1+_] : ∀ i → shape (1+ i) i (hom-size (1+ i) i)
+  full-shape[1+ i ] = full-level (1+ i) i
+
+  shape↓ : ∀ {i h t} → shape i h (1+ t) → shape i h t
+  shape↓ (bound b) = bound (S≤-≤ b)
+
+open shapes public
+
+ℕ³ = ℕ × ℕ × ℕ
+Shape = Σ ℕ³ λ{ (i , h , t) → shape i h t }
+
+apex : Shape → ℕ
+apex ((i , h , t) , _) = i
+
+height : Shape → ℕ
+height ((i , h , t) , _) = h
+
+width : Shape → ℕ
+width ((i , h , t) , _) = t
+
+cumul-factors : (i h t : ℕ) (sh : shape i h t) {j : ℕ} (f : hom i j) → ℕ
+cumul-factors i h O _ f = O
+cumul-factors i h (1+ t) sh@(bound b) f =
+  if (hom[ i , h ]# (t , S≤-< b) factors-through? f)
+    (λ yes → 1+ rec)
+    (λ no → rec)
+  where rec = cumul-factors i h t (shape↓ sh) f
+
+postulate
+  cumul-factors-shape : ∀ i h t sh {j} (f : hom i j)
+    → cumul-factors i h t sh f ≤ hom-size j h
+
+[_]∙ : (sh : Shape) {j : ℕ} (f : hom (apex sh) j) → Shape
+[ (i , h , t) , sh ]∙ {j} f =
+  (j , h , cumul-factors i h t sh f) , bound (cumul-factors-shape i h t sh f)
+
+{-
 record shape (i h t : ℕ) : Type₀ where
   constructor bounds
   field
@@ -120,3 +168,4 @@ module restriction where
   [ i , h , t ] sh ∙ {j} u f = (j , shape-∙ i h t sh u f) , ∙-shape i h t sh u f
 
 open restriction public
+-}
