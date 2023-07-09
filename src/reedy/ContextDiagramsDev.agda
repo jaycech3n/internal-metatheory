@@ -68,7 +68,11 @@ M i (1+ h) (1+ t) sh =
   substituted-filler = generic-filler [ {!M⃗ i (1+ h) t (shapeₜ↓ sh)!} ]ₜ ᵁ
 
 M⃗ i h (1+ t) sh f = {!!}
-M⃗ i (1+ h) O sh f = {!M⃗ i h (hom-size i h) (full-level i h) f ↑ ?!}
+M⃗ i (1+ h) O sh f =
+  wkn-sub (M i h (hom-size i h) (full-level i h))
+          {!Mᵤ ([ (i , h , hom-size i h) , full-level i h ]∙ f)!}
+          (M⃗ i h (hom-size i h) (full-level i h) f)
+          (𝔸 (1+ h))
 M⃗ i O O sh f = id
 
 {- Comments

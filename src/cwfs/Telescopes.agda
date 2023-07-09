@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
 
 open import cwfs.CwFs
 
@@ -84,13 +84,11 @@ wkn X byₜₑₗ (Θ ‣ A) = (wkn X byₜₑₗ Θ) [ π A ]
 πₜₑₗ (Θ ‣ A) = πₜₑₗ Θ ◦ π A
 
 -- Weaken a *substitution* between telescopes by a type
-wkn-sub_by : ∀ {Γ} {Θ Θ' : Tel Γ}
-  → (σ : Sub (Γ ++ₜₑₗ Θ) (Γ ++ₜₑₗ Θ')) (X : Ty Γ)
+wkn-sub : ∀ {Γ} (Θ Θ' : Tel Γ) (σ : Sub (Γ ++ₜₑₗ Θ) (Γ ++ₜₑₗ Θ')) (X : Ty Γ)
   → Sub (Γ ∷ X ++ₜₑₗ wknₜₑₗ Θ by X) (Γ ∷ X ++ₜₑₗ wknₜₑₗ Θ' by X)
-wkn-sub_by {Θ = Θ} {•} σ X = πₜₑₗ (wknₜₑₗ Θ by X)
-wkn-sub_by {Θ = Θ} {Θ' ‣ A} σ X =
-  wkn-sub_by {Θ = Θ} {Θ'} (π A ◦ σ) X ,, {!!}
-    -- do we need to restrict to substitutions built from terms?
+wkn-sub Θ • σ X = πₜₑₗ (wknₜₑₗ Θ by X)
+wkn-sub Θ (Θ' ‣ A) σ X = wkn-sub Θ Θ' (π A ◦ σ) X ,, {!π X ↑ₜₑₗ Θ' ↑ A!}
+  -- do we need to restrict to substitutions built from terms?
 
 -- Internal Π types from telescopes
 open import cwfs.Pi
