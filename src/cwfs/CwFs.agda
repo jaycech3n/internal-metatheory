@@ -40,7 +40,6 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       var : {Γ : Con} {A : Ty Γ} (Δ : Con) → ⦃ Δ == Γ ∷ A ⦄ → Tm[ Γ ∷ A ] (A ʷ)
       var {Γ} {A} .(Γ ∷ A) ⦃ idp ⦄ = υ A
 
-    module extension where
       _,,₊_ : ∀ Γ {A : Ty Γ} → Tm A → Sub Γ (Γ ∷ A)
       Γ ,,₊ a = id ,, a [ id ]ₜ
 
@@ -80,11 +79,18 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       from-over-∙ :
         {A B C : Ty Γ} {p : A == B} {q : B == C}
         {a : Tm A} {c : Tm C}
-        → a == c over⟨ p ∙ q ⟩ → coeᵀᵐ p a == c over⟨ q ⟩
+        → a == c over⟨ p ∙ q ⟩
+        → coeᵀᵐ p a == c over⟨ q ⟩
       from-over-∙ {p = idp} = idf _
 
+      to-over-∙ :
+        {A B C : Ty Γ} {p : A == B} {q : B == C}
+        {a : Tm A} {c : Tm C}
+        → coeᵀᵐ p a == c over⟨ q ⟩
+        → a == c over⟨ p ∙ q ⟩
+      to-over-∙ {p = idp} = idf _
+
   open notation public
-  open extension public
   open term-coercions public
 
   private
@@ -146,16 +152,45 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         (f ,, t)
           =∎
 
+      η-sub : ∀ {Γ Δ} {A : Ty Δ} (ϕ : Sub Γ (Δ ∷ A))
+              → ϕ == (π A ◦ ϕ ,, coe!ᵀᵐ [◦] (υ A [ ϕ ]ₜ))
+      η-sub {A = A} ϕ =
+        ϕ
+          =⟨ ! idl ⟩
+        id ◦ ϕ
+          =⟨ ! η,, |in-ctx (_◦ ϕ) ⟩
+        (π A ,, υ A) ◦ ϕ
+          =⟨ ,,-◦ ⟩
+        (π A ◦ ϕ ,, coe!ᵀᵐ [◦] (υ A [ ϕ ]ₜ) )
+          =∎
+
+      sub= : ∀ {Γ Δ} {A : Ty Δ} (f g : Sub Γ (Δ ∷ A))
+        → (p : π A ◦ f == π A ◦ g)
+        → coe!ᵀᵐ [◦] (υ A [ f ]ₜ) == coe!ᵀᵐ [◦] (υ A [ g ]ₜ) over⟨ [= p ] ⟩
+        → f == g
+      sub= {A = A} f g p q = η-sub f ∙ ⟨= p ,, q =⟩ ∙ ! (η-sub g)
+
+      ext-sub-elim : ∀ {ℓ} {Γ Δ} {A : Ty Δ} (P : Sub Γ (Δ ∷ A) → Type ℓ)
+        → ((f : Sub Γ Δ) (t : Tm (A [ f ])) → P (f ,, t))
+        → (f : Sub Γ (Δ ∷ A)) → P f
+      ext-sub-elim {A = A} P m f =
+        transp P (! (η-sub f)) $ m (π A ◦ f) (coe!ᵀᵐ [◦] (υ A [ f ]ₜ))
+
+      ext-sub-rec : ∀ {ℓ} {Γ Δ} {A : Ty Δ} {B : Type ℓ}
+        → ((f : Sub Γ Δ) (t : Tm (A [ f ])) → B)
+        → (f : Sub Γ (Δ ∷ A)) → B
+      ext-sub-rec {ℓ} {Γ} {Δ} {A} {B} = ext-sub-elim {ℓ} {Γ} {Δ} {A} (λ _ → B)
+
   open universal-properties public
 
   private
-    module weakening {Γ Δ : Con} where
+    module extension {Γ Δ : Con} where
 
-      {- Given f : Sub Δ Γ and A : Ty Γ, we get the weakening (f ↑ A) of f by A that,
-      intuitively, acts as f does, and leaves the "free variable x : A" alone. This
-      diagram commutes:
+      {- Given f : Sub Γ Δ and A : Ty Δ, we get the weakening (f ∷ₛ A) of f by A
+      that, intuitively, acts as f does, and leaves the "last term a : A[f]"
+      alone. This diagram commutes:
 
-                            f ↑ A
+                            f ∷ₛ A
                    Γ ∷ A[f] -----> Δ ∷ A
             π (A[f]) |               | π A    (*)
                      ↓               ↓
@@ -163,17 +198,17 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
                              f
       -}
 
-      infixl 40 _↑_
-      _↑_ : (f : Sub Γ Δ) (A : Ty Δ) → Sub (Γ ∷ A [ f ]) (Δ ∷ A)
-      f ↑ A = f ◦ π (A [ f ]) ,, coe!ᵀᵐ [◦] (υ (A [ f ]))
+      infixl 40 _∷ₛ_
+      _∷ₛ_ : (f : Sub Γ Δ) (A : Ty Δ) → Sub (Γ ∷ A [ f ]) (Δ ∷ A)
+      f ∷ₛ A = f ◦ π (A [ f ]) ,, coe!ᵀᵐ [◦] (υ (A [ f ]))
 
-      ↑-comm : {A : Ty Δ} {f : Sub Γ Δ} → π A ◦ (f ↑ A) == f ◦ π (A [ f ])
-      ↑-comm = βπ
+      ∷ₛ-comm : {A : Ty Δ} {f : Sub Γ Δ} → π A ◦ (f ∷ₛ A) == f ◦ π (A [ f ])
+      ∷ₛ-comm = βπ
 
       {- Given f and A as in (*) above and a : Tm A, we have (Γ ,,₊ a) := (id ,, a[id]ₜ)
       and the two compositions forming the boundary of the square below:
 
-                            f ↑ A
+                            f ∷ₛ A
                    Γ ∷ A[f] -----> Δ ∷ A
           Γ ,,₊ a[f] ↑               ↑ Δ ,,₊ a    (**)
                      |               |
@@ -201,21 +236,21 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
 
       -- In (**), going up, left and then down (by π) is the same as f.
       ⊓-lemma : {A : Ty Δ} (f : Sub Γ Δ) (a : Tm A)
-                → π A ◦ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) == f
+                → π A ◦ (f ∷ₛ A) ◦ (Γ ,,₊ a [ f ]ₜ) == f
       ⊓-lemma f a = ! ass
-                    ∙ (↑-comm |in-ctx (_◦ (Γ ,,₊ a [ f ]ₜ)))
+                    ∙ (∷ₛ-comm |in-ctx (_◦ (Γ ,,₊ a [ f ]ₜ)))
                     ∙ ass
                     ∙ (βπ |in-ctx (f ◦_))
                     ∙ idr
 
-      ↑-,,₊ : {A : Ty Δ} (f : Sub Γ Δ) (a : Tm A)
-              → (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) == (f ,, a [ f ]ₜ)
-      ↑-,,₊ {A} f a = ,,-uniq ((f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ)) (⊓-lemma f a) (red1 ∙ᵈ red2)
+      ∷ₛ-,,₊ : {A : Ty Δ} (f : Sub Γ Δ) (a : Tm A)
+              → (f ∷ₛ A) ◦ (Γ ,,₊ a [ f ]ₜ) == (f ,, a [ f ]ₜ)
+      ∷ₛ-,,₊ {A} f a = ,,-uniq ((f ∷ₛ A) ◦ (Γ ,,₊ a [ f ]ₜ)) (⊓-lemma f a) (red1 ∙ᵈ red2)
         where
-        calc : υ A [ f ↑ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
-              == a [ π A ]ₜ [ f ↑ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
+        calc : υ A [ f ∷ₛ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
+              == a [ π A ]ₜ [ f ∷ₛ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
         calc =
-          υ A [ f ↑ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
+          υ A [ f ∷ₛ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
             =⟨ βυ |in-ctx↓ᵀᵐ _[ Γ ,,₊ a [ f ]ₜ ]ₜ ⟫ᵈ
           coe!ᵀᵐ [◦] (υ (A [ f ])) [ Γ ,,₊ a [ f ]ₜ ]ₜ
             =⟨ !ᵈ (coeᵀᵐ-[]ₜ-stable (! [◦]) (υ (A [ f ])) (Γ ,,₊ a [ f ]ₜ)) ⟫ᵈ
@@ -224,8 +259,8 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
           a [ f ]ₜ [ π (A [ f ]) ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
             =⟨ !ᵈ [◦]ₜ |in-ctx↓ᵀᵐ _[ Γ ,,₊ a [ f ]ₜ ]ₜ ⟫ᵈ
           a [ f ◦ π (A [ f ]) ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
-            =⟨ !ᵈ [= ↑-comm ]ₜ ∙ᵈ [◦]ₜ |in-ctx↓ᵀᵐ _[ Γ ,,₊ a [ f ]ₜ ]ₜ ⟩ᵈ
-          a [ π A ]ₜ [ f ↑ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
+            =⟨ !ᵈ [= ∷ₛ-comm ]ₜ ∙ᵈ [◦]ₜ |in-ctx↓ᵀᵐ _[ Γ ,,₊ a [ f ]ₜ ]ₜ ⟩ᵈ
+          a [ π A ]ₜ [ f ∷ₛ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
             =∎↓⟨ =ₛ-out base-paths-equal ⟩
           where
             base-paths-equal :
@@ -251,29 +286,29 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
 
               idp ◃∎ ∎ₛ
 
-        red1 : υ A [ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ
-               == a [ π A ]ₜ [ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ
+        red1 : υ A [ (f ∷ₛ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ
+               == a [ π A ]ₜ [ (f ∷ₛ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ
         red1 =
-          υ A [ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ
+          υ A [ (f ∷ₛ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ
             =⟨ [◦]ₜ ↓ [◦] ⟫ᵈ
-          υ A [ f ↑ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
+          υ A [ f ∷ₛ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
             =⟨ calc ⟫ᵈ
-          a [ π A ]ₜ [ f ↑ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
+          a [ π A ]ₜ [ f ∷ₛ A ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
             =⟨ !ᵈ [◦]ₜ ↓ ! [◦] ⟩ᵈ
-          a [ π A ]ₜ [ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ
+          a [ π A ]ₜ [ (f ∷ₛ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ
             =∎↓⟨ !-inv-r [◦] ⟩
 
-        red2 : a [ π A ]ₜ [ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ == a [ f ]ₜ
+        red2 : a [ π A ]ₜ [ (f ∷ₛ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ == a [ f ]ₜ
                  over⟨ ! [◦] ∙ [= ⊓-lemma f a ] ⟩
         red2 = !ᵈ [◦]ₜ ∙ᵈ [= ⊓-lemma f a ]ₜ
 
         {- Failed attempt; just some random path in the total space may not lie over
         the path we want in the base:
 
-        wrong : υ A [ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ == a [ f ]ₜ
+        wrong : υ A [ (f ∷ₛ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ == a [ f ]ₜ
                        over⟨ ! [◦] ∙ [= ⊓-lemma f a ] ⟩
         wrong =
-          υ A [ (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ
+          υ A [ (f ∷ₛ A) ◦ (Γ ,,₊ a [ f ]ₜ) ]ₜ
             =⟨ [◦]ₜ ↓ [◦] ⟫ᵈ
           υ A [ f ◦ π (A [ f ]) ,, coe!ᵀᵐ [◦] (υ (A [ f ])) ]ₜ [ Γ ,,₊ a [ f ]ₜ ]ₜ
             =⟨ βυ |in-ctx↓ᵀᵐ (_[ Γ ,,₊ a [ f ]ₜ ]ₜ) ⟫ᵈ
@@ -287,10 +322,10 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
             =∎↓⟨ {!!} ⟩ -}
 
       ,,₊-comm : {A : Ty Δ} (f : Sub Γ Δ) (a : Tm A)
-                 → (Δ ,,₊ a) ◦ f == (f ↑ A) ◦ (Γ ,,₊ a [ f ]ₜ)
-      ,,₊-comm f a = ,,₊-◦ f a ∙ ! (↑-,,₊ f a)
+                 → (Δ ,,₊ a) ◦ f == (f ∷ₛ A) ◦ (Γ ,,₊ a [ f ]ₜ)
+      ,,₊-comm f a = ,,₊-◦ f a ∙ ! (∷ₛ-,,₊ f a)
 
-  open weakening public
+  open extension public
 
   private
     module substitutions where
@@ -304,7 +339,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
 
       -- Commutation law
       []-⟦⟧ : ∀ {Γ Δ} {A : Ty Δ} (B : Ty (Δ ∷ A)) (f : Sub Γ Δ) (a : Tm A)
-              → B [ f ↑ A ] ⟦ a [ f ]ₜ ⟧ == B ⟦ a ⟧ [ f ]
+              → B [ f ∷ₛ A ] ⟦ a [ f ]ₜ ⟧ == B ⟦ a ⟧ [ f ]
       []-⟦⟧ B f a = ! [◦] ∙ ! [= ,,₊-comm f a ] ∙ [◦]
 
       -- Coercing to equal substitutions

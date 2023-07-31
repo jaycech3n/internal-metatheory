@@ -18,10 +18,10 @@ record PiStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : Cw
     ηΠ′ : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} (f : Tm (Π′ A B)) → λ′ (app f) == f
 
     Π′[]  : ∀ {Γ Δ} {A B} {f : Sub Γ Δ}
-            → (Π′ A B) [ f ] == Π′ (A [ f ]) (B [ f ↑ A ])
+            → (Π′ A B) [ f ] == Π′ (A [ f ]) (B [ f ∷ₛ A ])
 
     λ′[]ₜ : ∀ {Γ Δ} {A B} {f : Sub Γ Δ} {b : Tm B}
-            → (λ′ b) [ f ]ₜ == λ′ (b [ f ↑ A ]ₜ) over⟨ Π′[] ⟩
+            → (λ′ b) [ f ]ₜ == λ′ (b [ f ∷ₛ A ]ₜ) over⟨ Π′[] ⟩
 
   private
     module notation where
@@ -43,14 +43,14 @@ record PiStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfstr : Cw
       →′[] {A = A} {B} {f} =
         (Π′ A (B [ π A ])) [ f ]
           =⟨ Π′[] ⟩
-        Π′ (A [ f ]) (B [ π A ] [ f ↑ A ])
-          =⟨ ! [◦] ∙ [= ↑-comm ] ∙ [◦]  |in-ctx (Π′ (A [ f ])) ⟩
+        Π′ (A [ f ]) (B [ π A ] [ f ∷ₛ A ])
+          =⟨ ! [◦] ∙ [= ∷ₛ-comm ] ∙ [◦]  |in-ctx (Π′ (A [ f ])) ⟩
         Π′ (A [ f ]) (B [ f ] [ π (A [ f ]) ])
           =∎
 
       appʷ : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)}
              → Tm[ Γ ∷ Π′ A B ] ((Π′ A B) ʷ)
-             → Tm[ Γ ∷ Π′ A B ∷ A [ π (Π′ A B) ] ] (B [ π (Π′ A B) ↑ A ])
+             → Tm[ Γ ∷ Π′ A B ∷ A [ π (Π′ A B) ] ] (B [ π (Π′ A B) ∷ₛ A ])
       appʷ t = app $ transp Tm Π′[] t
 
   open definitions public
