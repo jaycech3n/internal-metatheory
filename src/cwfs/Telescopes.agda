@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --termination-depth=4 #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import cwfs.CwFs
 
@@ -154,8 +154,7 @@ module _ {Γ Δ} (X : Ty Δ) (Θ : Tel Γ) where
         =∎
 
   wkn-sub-comm • σ σ₀ p = βπ
-  wkn-sub-comm (Θ' ‣ A) σ σ₀ p = sub= _ _ π◦= {!!}
-    where
+  wkn-sub-comm (Θ' ‣ A) σ σ₀ p = let
     p' = ! ass ∙ p
     wkn-sub-rec = wkn-sub Θ' (π A ◦ σ) σ₀ p'
 
@@ -163,17 +162,25 @@ module _ {Γ Δ} (X : Ty Δ) (Θ : Tel Γ) where
       (π X ++ₛ Θ') ◦ wkn-sub-rec == π A ◦ σ ◦ (π (X [ σ₀ ]) ++ₛ Θ)
     wkn-sub-comm-rec = wkn-sub-comm Θ' (π A ◦ σ) σ₀ p' ∙ ass
 
-    topright = (π X ++ₛ Θ' ∷ₛ A) ◦ wkn-sub (Θ' ‣ A) σ σ₀ p
+    wkn-sub-σ = wkn-sub (Θ' ‣ A) σ σ₀ p
+    topright = (π X ++ₛ Θ' ∷ₛ A) ◦ wkn-sub-σ
     botleft = σ ◦ (π (X [ σ₀ ]) ++ₛ Θ)
 
     π◦= : π A ◦ topright == π A ◦ botleft
     π◦= =
-      {!π A ◦ topright
+      π A ◦ topright
         =⟨ ! ass  ⟩
-      (π A ◦ (π X ++ₛ Θ' ∷ₛ A)) ◦ wkn-sub _ σ σ₀ p
-        =⟨ ? ⟩
+      (π A ◦ (π X ++ₛ Θ' ∷ₛ A)) ◦ wkn-sub-σ
+        =⟨ βπ |in-ctx (_◦ wkn-sub-σ) ⟩
+      ((π X ++ₛ Θ') ◦ π _) ◦ wkn-sub-σ
+        =⟨ ass ⟩
+      (π X ++ₛ Θ') ◦ π _ ◦ wkn-sub-σ
+        =⟨ βπ |in-ctx (_ ◦_) ⟩
+      (π X ++ₛ Θ') ◦ wkn-sub-rec
+        =⟨ wkn-sub-comm-rec ⟩
       π A ◦ botleft
-        =∎!}
+        =∎
+    in sub= _ _ π◦= {!!}
 
 -- Internal Π types from telescopes
 open import cwfs.Pi
