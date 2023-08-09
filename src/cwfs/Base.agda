@@ -65,7 +65,6 @@ record TyTmStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (ls
       -- Coercing terms to equal terms in equal types
       coeᵀᵐ : ∀ {Γ} {A A' : Ty Γ} → A == A' → Tm A → Tm A'
       coeᵀᵐ p = transp Tm p
-      -- coeᵀᵐ {A = A} idp = idf (Tm A)
 
       coe!ᵀᵐ : ∀ {Γ} {A A' : Ty Γ} → A == A' → Tm A' → Tm A
       coe!ᵀᵐ p = coeᵀᵐ (! p)

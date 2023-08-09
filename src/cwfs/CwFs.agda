@@ -95,24 +95,15 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
 
   private
     module equalities where
-      -- An equality of extended substitutions is a pair consisting of an equality
-      -- between the first substitutions and a dependent path between the extending
-      -- elements.
-      ⟨=_,,_=⟩ : ∀ {Γ Δ} {A : Ty Δ} {f f' : Sub Γ Δ} {t : Tm (A [ f ])} {t' : Tm (A [ f' ])}
-                → (p : f == f')
-                → t == t' over⟨ [= p ] ⟩
-                → (f ,, t ) == (f' ,, t')
-      ⟨= idp ,, idp =⟩ = idp
+      -- Important lemma; substitution of transported terms
+      coeᵀᵐ-[]ₜ-stable :
+        ∀ {Γ Δ} {A A' : Ty Δ} (p : A == A') (a : Tm A) (f : Sub Γ Δ)
+        → a [ f ]ₜ == (coeᵀᵐ p a) [ f ]ₜ over⟨ p |in-ctx _[ f ] ⟩
+      coeᵀᵐ-[]ₜ-stable idp a f = idp
 
-      ⟨=,,_=⟩ : ∀ {Γ Δ} {A : Ty Δ} {f : Sub Γ Δ} {t t' : Tm (A [ f ])}
-                → t == t'
-                → (f ,, t ) == (f ,, t')
-      ⟨=,, idp =⟩ = idp
-
-      ⟨=_,,=⟩ : ∀ {Γ Δ} {A : Ty Δ} {f f' : Sub Γ Δ} {t : Tm (A [ f ])}
-                → (p : f == f')
-                → (f ,, t ) == (f' ,, coeᵀᵐ [= p ] t)
-      ⟨= idp ,,=⟩ = idp
+      coeᵀᵐ[]ₜ : ∀ {Γ Δ} {A A' : Ty Δ} (p : A == A') (a : Tm A) (f : Sub Γ Δ)
+        → (coeᵀᵐ p a) [ f ]ₜ == coeᵀᵐ (ap (_[ f ]) p) (a [ f ]ₜ)
+      coeᵀᵐ[]ₜ idp _ _ = idp
 
       υ-,, : ∀ {Γ} (A : Ty Γ) (a : Tm A)
              → υ A [ Γ ,,₊ a ]ₜ == a [ π A ]ₜ [ Γ ,,₊ a ]ₜ
@@ -124,33 +115,35 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         a [ π A ]ₜ [ Γ ,,₊ a ]ₜ
           =∎↓⟨ <!∙>∙!∙ [◦] [= βπ ] ⟩
 
-      -- Important lemma
-      coeᵀᵐ-[]ₜ-stable :
-        ∀ {Γ Δ} {A A' : Ty Δ} (p : A == A') (a : Tm A) (f : Sub Γ Δ)
-        → a [ f ]ₜ == (coeᵀᵐ p a) [ f ]ₜ over⟨ p |in-ctx _[ f ] ⟩
-      coeᵀᵐ-[]ₜ-stable idp a f = idp
+      {- Equality of substitutions
 
-  open equalities public
+      An equality of extended substitutions is a pair consisting of an equality
+      between the first substitutions and a dependent path between the extending
+      elements.
+      -}
+      ⟨=_,,_=⟩ :
+        ∀ {Γ Δ} {A : Ty Δ} {f f' : Sub Γ Δ} {t : Tm (A [ f ])} {t' : Tm (A [ f' ])}
+        → (p : f == f')
+        → t == t' over⟨ [= p ] ⟩
+        → (f ,, t ) == (f' ,, t')
+      ⟨= idp ,, idp =⟩ = idp
 
-  private
-    module universal-properties where
+      ⟨=,,_=⟩ :
+        ∀ {Γ Δ} {A : Ty Δ} {f : Sub Γ Δ} {t t' : Tm (A [ f ])}
+        → t == t'
+        → (f ,, t ) == (f ,, t')
+      ⟨=,, idp =⟩ = idp
 
-      ,,-uniq : ∀ {Γ Δ} {f : Sub Γ Δ} {A : Ty Δ} {t : Tm (A [ f ])}
-                  (ϕ : Sub Γ (Δ ∷ A))
-                  (πϕ : π A ◦ ϕ == f)
-                  (υϕ : υ A [ ϕ ]ₜ == t over⟨ (! [◦] ∙ [= πϕ ]) ⟩)
-                → ϕ == (f ,, t)
-      ,,-uniq {f = f} {A} {t} ϕ πϕ υϕ =
-        ϕ
-          =⟨ ! idl ⟩
-        id ◦ ϕ
-          =⟨ ! η,, |in-ctx (_◦ ϕ) ⟩
-        (π A ,, υ A) ◦ ϕ
-          =⟨ ,,-◦ ⟩
-        (π A ◦ ϕ ,, coe!ᵀᵐ [◦] (υ A [ ϕ ]ₜ) )
-          =⟨ ⟨= πϕ ,, from-over-∙ υϕ =⟩ ⟩
-        (f ,, t)
-          =∎
+      ⟨=_,,=⟩ :
+        ∀ {Γ Δ} {A : Ty Δ} {f f' : Sub Γ Δ} {t : Tm (A [ f ])}
+        → (p : f == f')
+        → (f ,, t) == (f' ,, coeᵀᵐ [= p ] t)
+      ⟨= idp ,,=⟩ = idp
+
+      -- ⟨=_,,=⟩∙ :
+      --   ∀ {Γ Δ} {A : Ty Δ} {f f' : Sub Γ Δ} {t : Tm (A [ f ])}
+      --   → (p : f == f')
+      --   → (f ,, coeᵀᵐ t) == (f' ,, coeᵀᵐ [= p ] t)
 
       η-sub : ∀ {Γ Δ} {A : Ty Δ} (ϕ : Sub Γ (Δ ∷ A))
               → ϕ == (π A ◦ ϕ ,, coe!ᵀᵐ [◦] (υ A [ ϕ ]ₜ))
@@ -180,6 +173,35 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         → ((f : Sub Γ Δ) (t : Tm (A [ f ])) → B)
         → (f : Sub Γ (Δ ∷ A)) → B
       ext-sub-rec {ℓ} {Γ} {Δ} {A} {B} = ext-sub-elim {ℓ} {Γ} {Δ} {A} (λ _ → B)
+
+      -- Commutativity properties
+      [=]-[◦]-comm :
+        ∀ {Γ Δ Ε} {f f' : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε}
+        → (p : f == f')
+        → [= p ] ∙ ![◦] {A = A} == ![◦] ∙ [= ap (g ◦_) p ]
+      [=]-[◦]-comm idp = ! (∙-unit-r ![◦])
+
+  open equalities public
+
+  private
+    module universal-properties where
+
+      ,,-uniq : ∀ {Γ Δ} {f : Sub Γ Δ} {A : Ty Δ} {t : Tm (A [ f ])}
+                  (ϕ : Sub Γ (Δ ∷ A))
+                  (πϕ : π A ◦ ϕ == f)
+                  (υϕ : υ A [ ϕ ]ₜ == t over⟨ (! [◦] ∙ [= πϕ ]) ⟩)
+                → ϕ == (f ,, t)
+      ,,-uniq {f = f} {A} {t} ϕ πϕ υϕ =
+        ϕ
+          =⟨ ! idl ⟩
+        id ◦ ϕ
+          =⟨ ! η,, |in-ctx (_◦ ϕ) ⟩
+        (π A ,, υ A) ◦ ϕ
+          =⟨ ,,-◦ ⟩
+        (π A ◦ ϕ ,, coe!ᵀᵐ [◦] (υ A [ ϕ ]ₜ) )
+          =⟨ ⟨= πϕ ,, from-over-∙ υϕ =⟩ ⟩
+        (f ,, t)
+          =∎
 
   open universal-properties public
 
@@ -225,14 +247,15 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
               → (Δ ,,₊ a) ◦ f == (f ,, a [ f ]ₜ)
       ,,₊-◦ f a =
         (Δ ,,₊ a) ◦ f
-          =⟨ ,,-◦ ⟩
-        (id ◦ f ,, coe!ᵀᵐ [◦] (a [ id ]ₜ [ f ]ₜ))
+          =⟨ ,,-◦ ⟩        (id ◦ f ,, coe!ᵀᵐ [◦] (a [ id ]ₜ [ f ]ₜ))
           =⟨ ⟨= idl ,, from-over-∙ (!ᵈ [◦]ₜ ∙ᵈ [= idl ]ₜ) =⟩ ⟩
         (f ,, a [ f ]ₜ)
           =∎
 
       {- The second is a bit more work. We use the universal property ,,-uniq and
-      prove a series of somewhat lengthy reductions. -}
+      prove a series of somewhat lengthy reductions.
+
+      COMMENT 2023-08-09: Can this proof be simplified using sub= instead? -}
 
       -- In (**), going up, left and then down (by π) is the same as f.
       ⊓-lemma : {A : Ty Δ} (f : Sub Γ Δ) (a : Tm A)

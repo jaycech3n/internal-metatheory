@@ -18,3 +18,10 @@ transp-∘ P f idp = idp
 <!∙>∙!∙ : ∀ {ℓ} {A : Type ℓ} {x y z : A} (p : y == x) (q : y == z)
           → (! p ∙ q) ∙ ! q ∙ p == idp
 <!∙>∙!∙ idp idp = idp
+
+from-over-lr : ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} (B : A → Type ℓ₂)
+  → {x y z w : A} {u : B x} {v : B w}
+  → (p : x == y) (q : y == z) (r : z == w)
+  → u == v [ B ↓ p ∙ q ∙ r ]
+  → transp B p u == transp! B r v [ B ↓ q ]
+from-over-lr B idp idp idp p = p

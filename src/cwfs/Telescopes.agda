@@ -74,7 +74,7 @@ private
 
 {- The following diagram commutes:
 
-                    σ ++ Θ
+                    σ ++ₛ Θ
           Γ ++ Θ[σ] ------> Δ ++ Θ
     π (Θ[σ]) |                | π Θ
              ↓                ↓
@@ -112,75 +112,112 @@ wknₜ x byₜₑₗ Θ = x [ πₜₑₗ Θ ]ₜ
 
 -- A particular version of a weakened variable υ that we need.
 υ⁺ : ∀ {Γ} (Θ : Tel Γ) (X : Ty Γ) → Tm (X [ πₜₑₗ Θ ◦ (π X ++ₛ Θ) ])
-υ⁺ Θ X = coeᵀᵐ p (υ X [ πₜₑₗ (Θ [ π _ ]ₜₑₗ) ]ₜ)
+υ⁺ Θ X = coeᵀᵐ p (υ X [ πₜₑₗ (Θ [ π X ]ₜₑₗ) ]ₜ)
   where
   p : X [ π X ] [ πₜₑₗ (wknₜₑₗ Θ by X) ] == X [ πₜₑₗ Θ ◦ (π X ++ₛ Θ) ]
   p = ![◦] ∙ [= ! (++ₛ-comm (π X) Θ)]
 
 -- Weaken a *substitution* between telescopes by a type
-module _ {Γ Δ} (X : Ty Δ) (Θ : Tel Γ) where
-  wkn-sub :
-    (Θ' : Tel Δ) (σ : Sub (Γ ++ₜₑₗ Θ) (Δ ++ₜₑₗ Θ'))
-    (σ₀ : Sub Γ Δ) (p : πₜₑₗ Θ' ◦ σ == σ₀ ◦ πₜₑₗ Θ)
-    → Sub (Γ ∷ X [ σ₀ ] ++ₜₑₗ wkₜₑₗ Θ) (Δ ∷ X ++ₜₑₗ wkₜₑₗ Θ')
+wkn-sub-lemma : ∀ {Γ Δ} (Θ : Tel Γ) (X : Ty Δ) (σ₀ : Sub Γ Δ)
+  (Θ' : Tel Δ)
+  (σ : Sub (Γ ++ₜₑₗ Θ) (Δ ++ₜₑₗ Θ'))
+  (p : πₜₑₗ Θ' ◦ σ == σ₀ ◦ πₜₑₗ Θ)
+  → Σ (Sub (Γ ∷ X [ σ₀ ] ++ₜₑₗ wkₜₑₗ Θ) (Δ ∷ X ++ₜₑₗ wkₜₑₗ Θ'))
+    λ σ↑X → (π X ++ₛ Θ') ◦ σ↑X == σ ◦ (π (X [ σ₀ ]) ++ₛ Θ)
 
-  wkn-sub-comm :
-    (Θ' : Tel Δ) (σ : Sub (Γ ++ₜₑₗ Θ) (Δ ++ₜₑₗ Θ'))
-    (σ₀ : Sub Γ Δ) (p : πₜₑₗ Θ' ◦ σ == σ₀ ◦ πₜₑₗ Θ)
-    → (π X ++ₛ Θ') ◦ wkn-sub Θ' σ σ₀ p == σ ◦ (π _ ++ₛ Θ)
+wkn-sub-lemma Θ X σ₀ • σ p =
+  (σ ◦ (π (X [ σ₀ ]) ++ₛ Θ) ,, coeᵀᵐ q (υ⁺ Θ (X [ σ₀ ])))
+  , βπ
+  where
+  σ-σ₀ : σ == σ₀ ◦ πₜₑₗ Θ
+  σ-σ₀ = ! idl ∙ p
 
-  wkn-sub • σ σ₀ p = σ ◦ (π (X [ σ₀ ]) ++ₛ Θ) ,, coeᵀᵐ q (υ⁺ Θ (X [ σ₀ ]))
-    where
-    p' : σ₀ ◦ πₜₑₗ Θ == σ
-    p' = ! p ∙ idl
+  q : X [ σ₀ ] [ πₜₑₗ Θ ◦ (π (X [ σ₀ ]) ++ₛ Θ) ]
+      == X [ σ ◦ (π (X [ σ₀ ]) ++ₛ Θ) ]
+  q = ![◦] ∙ [= ! ass ∙ ap (_◦ (π (X [ σ₀ ]) ++ₛ Θ)) (! σ-σ₀) ]
 
-    q : X [ σ₀ ] [ πₜₑₗ Θ ◦ (π _ ++ₛ Θ) ] == X [ σ ◦ (π (X [ σ₀ ]) ++ₛ Θ) ]
-    q = ![◦] ∙ [= ! ass ∙ ap (_◦ (π _ ++ₛ Θ)) p' ]
+wkn-sub-lemma {Γ} {Δ} Θ X σ₀ (Θ' ‣ A) σ p =
+  σ↑X , comm
+  where
+  -- Notation
+  π++Θ = π (X [ σ₀ ]) ++ₛ Θ
+  π++Θ' = π X ++ₛ Θ'
+  π++Θ'‣A = π X ++ₛ (Θ' ‣ A)
 
-  wkn-sub (Θ' ‣ A) σ σ₀ p =
-    wkn-sub Θ' (π A ◦ σ) σ₀ p' ,, coeᵀᵐ q (υ A [ σ ◦ (π _ ++ₛ Θ) ]ₜ)
-    where
-    p' : πₜₑₗ Θ' ◦ π A ◦ σ == σ₀ ◦ πₜₑₗ Θ
-    p' = ! ass ∙ p
+  πσ-σ₀ : πₜₑₗ Θ' ◦ π A ◦ σ == σ₀ ◦ πₜₑₗ Θ
+  πσ-σ₀ = ! ass ∙ p
 
-    q : A ʷ [ σ ◦ (π (X [ σ₀ ]) ++ₛ Θ) ]
-        == A [ π X ++ₛ Θ' ] [ wkn-sub Θ' (π A ◦ σ) σ₀ p' ]
-    q =
-      A ʷ [ σ ◦ (π _ ++ₛ Θ) ]
-        =⟨ ![◦] ∙ [= ! ass ] ⟩
-      A [ (π A ◦ σ) ◦ (π _ ++ₛ Θ) ]
-        =⟨ ! [= wkn-sub-comm Θ' (π _ ◦ σ) σ₀ (! ass ∙ p) ] ∙ [◦] ⟩
-      A [ π X ++ₛ Θ' ] [ wkn-sub Θ' (π A ◦ σ) σ₀ p' ]
-        =∎
+  rec = wkn-sub-lemma Θ X σ₀ Θ' (π A ◦ σ) πσ-σ₀
+  πσ↑X = fst rec
 
-  wkn-sub-comm • σ σ₀ p = βπ
-  wkn-sub-comm (Θ' ‣ A) σ σ₀ p = let
-    p' = ! ass ∙ p
-    wkn-sub-rec = wkn-sub Θ' (π A ◦ σ) σ₀ p'
+  πσ↑X-comm : π++Θ' ◦ πσ↑X == (π A ◦ σ) ◦ π++Θ
+  πσ↑X-comm = snd rec
 
-    wkn-sub-comm-rec :
-      (π X ++ₛ Θ') ◦ wkn-sub-rec == π A ◦ σ ◦ (π (X [ σ₀ ]) ++ₛ Θ)
-    wkn-sub-comm-rec = wkn-sub-comm Θ' (π A ◦ σ) σ₀ p' ∙ ass
+  botleft = σ ◦ π++Θ
 
-    wkn-sub-σ = wkn-sub (Θ' ‣ A) σ σ₀ p
-    topright = (π X ++ₛ Θ' ∷ₛ A) ◦ wkn-sub-σ
-    botleft = σ ◦ (π (X [ σ₀ ]) ++ₛ Θ)
+  q : A ʷ [ botleft ] == A [ π++Θ' ] [ πσ↑X ]
+  q = ![◦] ∙ ! [= ass ] ∙ ! [= πσ↑X-comm ] ∙ [◦]
 
-    π◦= : π A ◦ topright == π A ◦ botleft
-    π◦= =
-      π A ◦ topright
-        =⟨ ! ass  ⟩
-      (π A ◦ (π X ++ₛ Θ' ∷ₛ A)) ◦ wkn-sub-σ
-        =⟨ βπ |in-ctx (_◦ wkn-sub-σ) ⟩
-      ((π X ++ₛ Θ') ◦ π _) ◦ wkn-sub-σ
-        =⟨ ass ⟩
-      (π X ++ₛ Θ') ◦ π _ ◦ wkn-sub-σ
-        =⟨ βπ |in-ctx (_ ◦_) ⟩
-      (π X ++ₛ Θ') ◦ wkn-sub-rec
-        =⟨ wkn-sub-comm-rec ⟩
-      π A ◦ botleft
-        =∎
-    in sub= _ _ π◦= {!!}
+  σ↑X = (πσ↑X ,, coeᵀᵐ q (υ A [ botleft ]ₜ))
+
+  topright = π++Θ'‣A ◦ σ↑X
+
+  comm : topright == botleft
+  comm =
+    topright
+      =⟨ idp ⟩
+    ( π++Θ' ◦ π _ ,, coeᵀᵐ ![◦] (υ _) ) ◦ σ↑X
+      =⟨ ,,-◦ ⟩
+    ( (π++Θ' ◦ π _) ◦ σ↑X ,, _ )
+      =⟨ ⟨= ass ,,=⟩ ⟩
+    ( π++Θ' ◦ π _ ◦ σ↑X ,, _ )
+      =⟨ ⟨= βπ |in-ctx (π++Θ' ◦_) ,,=⟩ ⟩
+    ( π++Θ' ◦ πσ↑X ,, _ )
+      =⟨ ⟨= πσ↑X-comm ,,=⟩ ⟩
+    ( (π A ◦ σ) ◦ π++Θ ,, _ )
+      =⟨ ⟨= ass ,,=⟩ ⟩
+    ( π A ◦ botleft ,, _ )
+      =⟨ ⟨=,, {!!} =⟩ ⟩
+    ( π A ◦ botleft ,, coe!ᵀᵐ [◦] (υ A [ botleft ]ₜ) )
+      =⟨ ! (η-sub botleft) ⟩
+    botleft
+      =∎
+
+  {- A "classical" categorical proof of commutativity is
+
+  comm : (π X ++ₛ Θ' ∷ₛ A) ◦ σ↑X == σ ◦ (π (X [ σ₀ ]) ++ₛ Θ)
+  comm = sub= topright botleft π= (from-over-lr Tm ![◦] [= π= ] [◦] υ=)
+
+  where
+
+  π= : π A ◦ topright == π A ◦ botleft
+  π= =
+    π A ◦ topright
+      =⟨ ! ass ∙ (βπ |in-ctx (_◦ σ↑X)) ∙ ass ⟩
+    π++Θ' ◦ π _ ◦ σ↑X
+      =⟨ βπ |in-ctx (π++Θ' ◦_) ⟩
+    π++Θ' ◦ πσ↑X
+      =⟨ πσ↑X-comm ∙ ass ⟩
+    π A ◦ botleft
+      =∎
+
+  υ= : υ A [ topright ]ₜ == υ A [ botleft ]ₜ over⟨ (![◦] ∙ [= π= ] ∙ [◦]) ⟩
+  υ= =
+    υ A [ topright ]ₜ
+      =⟨ [= idp ]ₜ ⟫ᵈ
+    υ A [ (π++Θ' ◦ π _ ,, coeᵀᵐ ![◦] (υ _)) ◦ σ↑X ]ₜ
+      =⟨ [= ,,-◦ ]ₜ ⟫ᵈ
+    υ A [ (π++Θ' ◦ π _) ◦ σ↑X ,, coeᵀᵐ ![◦] (coeᵀᵐ ![◦] (υ _) [ σ↑X ]ₜ) ]ₜ
+      =⟨ βυ ⟫ᵈ
+    coeᵀᵐ ![◦] (coeᵀᵐ ![◦] (υ _) [ σ↑X ]ₜ)
+      =⟨ !ᵈ (coeᵀᵐ-[]ₜ-stable ![◦] (υ _) σ↑X) |in-ctx↓ coeᵀᵐ ![◦] ⟫ᵈ
+    coeᵀᵐ ![◦] (υ _ [ σ↑X ]ₜ)
+      =⟨ {!!} ⟫ᵈ
+    coeᵀᵐ ![◦] (coeᵀᵐ q (υ A [ botleft ]ₜ))
+      =⟨ {!!} ⟩ᵈ
+    υ A [ botleft ]ₜ
+      =∎↓⟨ {!!} ⟩
+  -}
 
 -- Internal Π types from telescopes
 open import cwfs.Pi
