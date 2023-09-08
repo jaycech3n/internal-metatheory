@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
 
 open import cwfs.CwFs
 
@@ -121,7 +121,7 @@ wknₜ x byₜₑₗ Θ = x [ πₜₑₗ Θ ]ₜ
 wkn-sub-lemma : ∀ {Γ Δ} (Θ : Tel Γ) (X : Ty Δ) (σ₀ : Sub Γ Δ)
   (Θ' : Tel Δ)
   (σ : Sub (Γ ++ₜₑₗ Θ) (Δ ++ₜₑₗ Θ'))
-  (p : πₜₑₗ Θ' ◦ σ == σ₀ ◦ πₜₑₗ Θ)
+  → πₜₑₗ Θ' ◦ σ == σ₀ ◦ πₜₑₗ Θ
   → Σ (Sub (Γ ∷ X [ σ₀ ] ++ₜₑₗ wkₜₑₗ Θ) (Δ ∷ X ++ₜₑₗ wkₜₑₗ Θ'))
     λ σ↑X → (π X ++ₛ Θ') ◦ σ↑X == σ ◦ (π (X [ σ₀ ]) ++ₛ Θ)
 
@@ -165,10 +165,27 @@ wkn-sub-lemma {Γ} {Δ} Θ X σ₀ (Θ' ‣ A) σ p =
   comm : topright == botleft
   comm =
     topright
+
       =⟨ idp ⟩
+
     ( π++Θ' ◦ π _ ,, coeᵀᵐ ![◦] (υ _) ) ◦ σ↑X
+
       =⟨ ,,-◦ ⟩
-    ( (π++Θ' ◦ π _) ◦ σ↑X ,, _ )
+
+    ( (π++Θ' ◦ π _) ◦ σ↑X ,,
+      coeᵀᵐ ![◦] (coeᵀᵐ ![◦] (υ _) [ σ↑X ]ₜ) )
+
+      =⟨ ⟨=,, coeᵀᵐ[]ₜ ![◦] (υ _) σ↑X |in-ctx (coeᵀᵐ ![◦]) =⟩ ⟩
+
+    ( (π++Θ' ◦ π _) ◦ σ↑X ,,
+      coeᵀᵐ ![◦] (coeᵀᵐ (ap (_[ σ↑X ]) ![◦]) (υ _ [ σ↑X ]ₜ)) )
+
+      =⟨ ⟨=,, {!!} =⟩ ⟩
+
+    ( (π++Θ' ◦ π _) ◦ σ↑X ,,
+      coeᵀᵐ ![◦] (coeᵀᵐ (ap (_[ σ↑X ]) ![◦]) (coeᵀᵐ ([= ! βπ ] ∙ [◦]) (coeᵀᵐ q
+        (υ _ [ botleft ]ₜ)))) )
+
       =⟨ ⟨= ass ,,=⟩ ⟩
     ( π++Θ' ◦ π _ ◦ σ↑X ,, _ )
       =⟨ ⟨= βπ |in-ctx (π++Θ' ◦_) ,,=⟩ ⟩
@@ -212,12 +229,19 @@ wkn-sub-lemma {Γ} {Δ} Θ X σ₀ (Θ' ‣ A) σ p =
     coeᵀᵐ ![◦] (coeᵀᵐ ![◦] (υ _) [ σ↑X ]ₜ)
       =⟨ !ᵈ (coeᵀᵐ-[]ₜ-stable ![◦] (υ _) σ↑X) |in-ctx↓ coeᵀᵐ ![◦] ⟫ᵈ
     coeᵀᵐ ![◦] (υ _ [ σ↑X ]ₜ)
-      =⟨ {!!} ⟫ᵈ
+      =⟨ ? ⟫ᵈ
     coeᵀᵐ ![◦] (coeᵀᵐ q (υ A [ botleft ]ₜ))
-      =⟨ {!!} ⟩ᵈ
+      =⟨ ? ⟩ᵈ
     υ A [ botleft ]ₜ
-      =∎↓⟨ {!!} ⟩
+      =∎↓⟨ ? ⟩
   -}
+
+wkn-sub : ∀ {Γ Δ} (Θ : Tel Γ) (X : Ty Δ) (σ₀ : Sub Γ Δ)
+  (Θ' : Tel Δ)
+  (σ : Sub (Γ ++ₜₑₗ Θ) (Δ ++ₜₑₗ Θ'))
+  → πₜₑₗ Θ' ◦ σ == σ₀ ◦ πₜₑₗ Θ
+  → Sub (Γ ∷ X [ σ₀ ] ++ₜₑₗ wkₜₑₗ Θ) (Δ ∷ X ++ₜₑₗ wkₜₑₗ Θ')
+wkn-sub {Γ} {Δ} Θ X σ₀ Θ' σ p = fst (wkn-sub-lemma {Γ} {Δ} Θ X σ₀ Θ' σ p)
 
 -- Internal Π types from telescopes
 open import cwfs.Pi

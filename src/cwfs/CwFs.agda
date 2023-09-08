@@ -178,8 +178,8 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       [=]-[◦]-comm :
         ∀ {Γ Δ Ε} {f f' : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε}
         → (p : f == f')
-        → [= p ] ∙ ![◦] {A = A} == ![◦] ∙ [= ap (g ◦_) p ]
-      [=]-[◦]-comm idp = ! (∙-unit-r ![◦])
+        → [◦] {A = A} ∙ [= p ] == [= ap (g ◦_) p ] ∙ [◦]
+      [=]-[◦]-comm idp = ∙-unit-r [◦]
 
   open equalities public
 
@@ -368,5 +368,25 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       -- Coercing to equal substitutions
       coe-cod : ∀ {Γ Δ Δ'} → Δ == Δ' → Sub Γ Δ → Sub Γ Δ'
       coe-cod idp = idf _
+
+      -- Important; comment on it later
+      module _ {Γ Δ Ε} (A : Ty Ε) (σ : Sub Δ Ε) (τ : Sub Γ Δ) where
+        id-sub-◦ : Sub (Γ ∷ A [ σ ◦ τ ]) (Γ ∷ A [ σ ] [ τ ])
+        id-sub-◦ = let X = A [ σ ◦ τ ] in
+          π X ,, coeᵀᵐ (ap (_[ π X ]) [◦]) (υ X)
+
+        id-sub-!◦ : Sub (Γ ∷ A [ σ ] [ τ ]) (Γ ∷ A [ σ ◦ τ ])
+        id-sub-!◦ = let X = A [ σ ] [ τ ] in
+          π X ,, coeᵀᵐ (ap (_[ π X ]) ![◦]) (υ X)
+
+        -- _ : id-sub-!◦ ◦ id-sub-◦ == id
+        -- _ = id-sub-!◦ ◦ id-sub-◦
+        --   =⟨ ,,-◦ ⟩
+        --   {!!}
+        --   =⟨ ⟨= βπ ,,=⟩ ⟩
+        --   {!!}
+        --   =⟨ {!!} ⟩
+        --   id
+        --   =∎
 
   open substitutions public
