@@ -200,48 +200,13 @@ wkn-sub-lemma {Γ} {Δ} Θ X σ₀ (Θ' ‣ A) σ p =
     botleft
       =∎
 
-  {- A "classical" categorical proof of commutativity is
-
-  comm : (π X ++ₛ Θ' ∷ₛ A) ◦ σ↑X == σ ◦ (π (X [ σ₀ ]) ++ₛ Θ)
-  comm = sub= topright botleft π= (from-over-lr Tm ![◦] [= π= ] [◦] υ=)
-
-  where
-
-  π= : π A ◦ topright == π A ◦ botleft
-  π= =
-    π A ◦ topright
-      =⟨ ! ass ∙ (βπ |in-ctx (_◦ σ↑X)) ∙ ass ⟩
-    π++Θ' ◦ π _ ◦ σ↑X
-      =⟨ βπ |in-ctx (π++Θ' ◦_) ⟩
-    π++Θ' ◦ πσ↑X
-      =⟨ πσ↑X-comm ∙ ass ⟩
-    π A ◦ botleft
-      =∎
-
-  υ= : υ A [ topright ]ₜ == υ A [ botleft ]ₜ over⟨ (![◦] ∙ [= π= ] ∙ [◦]) ⟩
-  υ= =
-    υ A [ topright ]ₜ
-      =⟨ [= idp ]ₜ ⟫ᵈ
-    υ A [ (π++Θ' ◦ π _ ,, coeᵀᵐ ![◦] (υ _)) ◦ σ↑X ]ₜ
-      =⟨ [= ,,-◦ ]ₜ ⟫ᵈ
-    υ A [ (π++Θ' ◦ π _) ◦ σ↑X ,, coeᵀᵐ ![◦] (coeᵀᵐ ![◦] (υ _) [ σ↑X ]ₜ) ]ₜ
-      =⟨ βυ ⟫ᵈ
-    coeᵀᵐ ![◦] (coeᵀᵐ ![◦] (υ _) [ σ↑X ]ₜ)
-      =⟨ !ᵈ (coeᵀᵐ-[]ₜ-stable ![◦] (υ _) σ↑X) |in-ctx↓ coeᵀᵐ ![◦] ⟫ᵈ
-    coeᵀᵐ ![◦] (υ _ [ σ↑X ]ₜ)
-      =⟨ ? ⟫ᵈ
-    coeᵀᵐ ![◦] (coeᵀᵐ q (υ A [ botleft ]ₜ))
-      =⟨ ? ⟩ᵈ
-    υ A [ botleft ]ₜ
-      =∎↓⟨ ? ⟩
-  -}
-
 wkn-sub : ∀ {Γ Δ} (Θ : Tel Γ) (X : Ty Δ) (σ₀ : Sub Γ Δ)
   (Θ' : Tel Δ)
   (σ : Sub (Γ ++ₜₑₗ Θ) (Δ ++ₜₑₗ Θ'))
   → πₜₑₗ Θ' ◦ σ == σ₀ ◦ πₜₑₗ Θ
   → Sub (Γ ∷ X [ σ₀ ] ++ₜₑₗ wkₜₑₗ Θ) (Δ ∷ X ++ₜₑₗ wkₜₑₗ Θ')
 wkn-sub {Γ} {Δ} Θ X σ₀ Θ' σ p = fst (wkn-sub-lemma {Γ} {Δ} Θ X σ₀ Θ' σ p)
+
 
 -- Internal Π types from telescopes
 open import cwfs.Pi
@@ -252,13 +217,27 @@ module Πₜₑₗ (pistr : PiStructure cwfstr) where
   Πₜₑₗ • B = B
   Πₜₑₗ (Θ ‣ A) B = Πₜₑₗ Θ (Π′ A B)
 
-  Πₜₑₗ-[]-comm :
+  Πₜₑₗ[] :
     ∀ {Γ Δ} (Θ : Tel Δ) (B : Ty (Δ ++ₜₑₗ Θ)) (f : Sub Γ Δ)
     → (Πₜₑₗ Θ B) [ f ] == Πₜₑₗ (Θ [ f ]ₜₑₗ) (B [ f ++ₛ Θ ])
-  Πₜₑₗ-[]-comm • B f = idp
-  Πₜₑₗ-[]-comm (Θ ‣ A) B f =
-    Πₜₑₗ-[]-comm Θ (Π′ A B) f ∙ ap (Πₜₑₗ (Θ [ f ]ₜₑₗ)) Π′[]
+  Πₜₑₗ[] • B f = idp
+  Πₜₑₗ[] (Θ ‣ A) B f = Πₜₑₗ[] Θ (Π′ A B) f ∙ ap (Πₜₑₗ (Θ [ f ]ₜₑₗ)) Π′[]
 
   appₜₑₗ : ∀ {Γ} (Θ : Tel Γ) {B : Ty (Γ ++ₜₑₗ Θ)} → Tm (Πₜₑₗ Θ B) → Tm B
   appₜₑₗ • f = f
   appₜₑₗ (Θ ‣ A) f = app (appₜₑₗ Θ f)
+
+  λₜₑₗ : ∀ {Γ} (Θ : Tel Γ) {B : Ty (Γ ++ₜₑₗ Θ)} → Tm B → Tm (Πₜₑₗ Θ B)
+  λₜₑₗ • b = b
+  λₜₑₗ (Θ ‣ A) b = λₜₑₗ Θ (λ′ b)
+
+  λₜₑₗappₜₑₗ : ∀ {Γ} Θ {B : Ty (Γ ++ₜₑₗ Θ)} f → λₜₑₗ Θ {B} (appₜₑₗ Θ {B} f) == f
+  λₜₑₗappₜₑₗ • f = idp
+  λₜₑₗappₜₑₗ (Θ ‣ A) f = ap (λₜₑₗ Θ) (ηΠ′ _) ∙ λₜₑₗappₜₑₗ Θ f
+
+  appₜₑₗλₜₑₗ : ∀ {Γ} Θ {B : Ty (Γ ++ₜₑₗ Θ)} b → appₜₑₗ Θ {B} (λₜₑₗ Θ b) == b
+  appₜₑₗλₜₑₗ • b = idp
+  appₜₑₗλₜₑₗ (Θ ‣ A) b = ap app (appₜₑₗλₜₑₗ Θ _) ∙ βΠ′ b
+
+  Tm-Πₜₑₗ-equiv : ∀ {Γ} (Θ : Tel Γ) (B : Ty (Γ ++ₜₑₗ Θ)) → Tm B ≃ Tm (Πₜₑₗ Θ B)
+  Tm-Πₜₑₗ-equiv Θ B = equiv (λₜₑₗ Θ) (appₜₑₗ Θ) (λₜₑₗappₜₑₗ Θ) (appₜₑₗλₜₑₗ Θ)

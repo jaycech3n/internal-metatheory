@@ -59,7 +59,7 @@ M i (1+ h) (1+ t) sh =
 
   -- Bureaucratic conversion
   p : 𝔸 (1+ h) ʷ == Πₜₑₗ M[1+h]ʷ U
-  p = Πₜₑₗ-[]-comm M[1+ h ] U (π (𝔸 (1+ h))) ∙ ap (Πₜₑₗ M[1+h]ʷ) U[]
+  p = Πₜₑₗ[] M[1+ h ] U (π (𝔸 (1+ h))) ∙ ap (Πₜₑₗ M[1+h]ʷ) U[]
 
   generic-filler : Tm[ SCT (2+ h) ++ₜₑₗ M[1+h]ʷ ] U
   generic-filler = appₜₑₗ M[1+h]ʷ (coeᵀᵐ p (A (1+ h)))
@@ -68,11 +68,11 @@ M i (1+ h) (1+ t) sh =
   substituted-filler = generic-filler [ {!M⃗ i (1+ h) t (shapeₜ↓ sh)!} ]ₜ ᵁ
 
 M⃗ i h (1+ t) sh f = {!!}
-M⃗ i (1+ h) O sh f =
-  wkn-sub (M i h (hom-size i h) (full-level i h))
-          {!Mᵤ ([ (i , h , hom-size i h) , full-level i h ]∙ f)!}
-          (M⃗ i h (hom-size i h) (full-level i h) f)
-          (𝔸 (1+ h))
+M⃗ i (1+ h) O sh f = {!wkn-sub (M i h (hom-size i h) ?)!}
+  -- wkn-sub (M i h (hom-size i h) (full-level i h))
+  --         {!Mᵤ ([ (i , h , hom-size i h) , full-level i h ]∙ f)!}
+  --         {!M⃗ i h (hom-size i h) (full-level i h) f!}
+  --         {!𝔸 (1+ h)!}
 M⃗ i O O sh f = id
 
 {- Comments

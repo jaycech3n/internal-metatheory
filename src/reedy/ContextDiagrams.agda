@@ -59,7 +59,7 @@ M i (1+ h) (1+ t) sh =
 
   -- Bureaucratic conversion
   p : 𝔸 (1+ h) ʷ == Πₜₑₗ M[1+h]ʷ U
-  p = Πₜₑₗ-[]-comm M[1+ h ] U (π (𝔸 (1+ h))) ∙ ap (Πₜₑₗ M[1+h]ʷ) U[]
+  p = Πₜₑₗ[] M[1+ h ] U (π (𝔸 (1+ h))) ∙ ap (Πₜₑₗ M[1+h]ʷ) U[]
 
   generic-filler : Tm[ SCT (2+ h) ++ₜₑₗ M[1+h]ʷ ] U
   generic-filler = appₜₑₗ M[1+h]ʷ (coeᵀᵐ p (A (1+ h)))
