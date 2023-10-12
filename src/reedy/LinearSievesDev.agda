@@ -6,166 +6,28 @@ module reedy.LinearSievesDev {ℓₘ} (I : SuitableSemicategory ℓₘ) where
 
 open SuitableSemicategory I
 
-record shape (i h t : ℕ) : Type₀ where
-  constructor bound
-  field b : t ≤ hom-size i h
+width-of-[_,_,_]∙ : ∀ i h t {j} → hom i j → t ≤ hom-size i h → ℕ
+width-of-[ i , h , 0 ]∙ f b = 0
+width-of-[ i , h , 1+ t ]∙ f b =
+  if f ∣ hom[ i , h ]# (t , S≤-< b)
+  then (λ _ → 1+ rec)
+  else λ _ → rec
+  where
+  rec = width-of-[ i , h , t ]∙ f (S≤-≤ b)
 
-module shapes where
-  new-level : ∀ i → shape i O O
-  new-level i = bound (O≤ _)
+abstract
+  width-[_,_,_]∙_-top :
+    ∀ i h t (f : hom i h) (b : t ≤ hom-size i h)
+    → width-of-[ i , h , t ]∙ f b == 0
+  width-[ i , h , O ]∙ f -top b = idp
+  width-[ i , h , 1+ t ]∙ f -top b with f ∣ hom[ i , h ]# (t , S≤-< b)
+  ... | inl (g , _) = ⊥-rec (endo-hom-empty g)
+  ... | inr x = width-[ i , h , t ]∙ f -top (S≤-≤ b)
 
-  full-level : ∀ i h → shape i h (hom-size i h)
-  full-level i h = bound lteE
-
-  full-shape[1+_] : ∀ i → shape (1+ i) i (hom-size (1+ i) i)
-  full-shape[1+ i ] = full-level (1+ i) i
-
-  shape↓ : ∀ {i h t} → shape i h (1+ t) → shape i h t
-  shape↓ (bound b) = bound (S≤-≤ b)
-
-open shapes public
-
-ℕ³ = ℕ × ℕ × ℕ
-Shape = Σ ℕ³ λ{ (i , h , t) → shape i h t }
-
-apex : Shape → ℕ
-apex ((i , h , t) , _) = i
-
-height : Shape → ℕ
-height ((i , h , t) , _) = h
-
-width : Shape → ℕ
-width ((i , h , t) , _) = t
-
-cumul-factors : (i h t : ℕ) (sh : shape i h t) {j : ℕ} (f : hom i j) → ℕ
-cumul-factors i h O _ f = O
-cumul-factors i h (1+ t) sh@(bound b) f =
-  if (hom[ i , h ]# (t , S≤-< b) factors-through? f)
-    (λ yes → 1+ rec)
-    (λ no → rec)
-  where rec = cumul-factors i h t (shape↓ sh) f
-
-postulate
-  cumul-factors-shape : ∀ i h t sh {j} (f : hom i j)
-    → cumul-factors i h t sh f ≤ hom-size j h
-
-[_]∙ : (sh : Shape) {j : ℕ} (f : hom (apex sh) j) → Shape
-[ (i , h , t) , sh ]∙ {j} f =
-  (j , h , cumul-factors i h t sh f) , bound (cumul-factors-shape i h t sh f)
-
-{-
-record shape (i h t : ℕ) : Type₀ where
-  constructor bounds
-  field
-    on-h : h ≤ i
-    on-t : t ≤ hom-size i h
-open shape public
-
-ℕ³ = ℕ × ℕ × ℕ
-Shape = Σ ℕ³ λ{ (i' , h' , t') → shape i' h' t' }
-height : Shape → ℕ
-height ((i , h , t) , _) = h
-width : Shape → ℕ
-width ((i , h , t) , _) = t
-
-module shapes where
-  empty-shape : ∀ i → shape i O O
-  empty-shape i = bounds (O≤ _) (O≤ _)
-
-  full-level : ∀ i h → h ≤ i → shape i h (hom-size i h)
-  full-level i h u = bounds u lteE
-
-  full-shape[1+_] : ∀ i → shape (1+ i) i (hom-size (1+ i) i)
-  full-shape[1+ i ] = full-level (1+ i) i lteS
-
-  top-shape : ∀ i → shape i i O
-  top-shape i = bounds lteE (O≤ _)
-
-  shapeₕ↓ : ∀ {i h} → shape i (1+ h) O → shape i h (hom-size i h)
-  shapeₕ↓ (bounds on-h _) = bounds (S≤-≤ on-h) lteE
-
-  shapeₜ↓ : ∀ {i h t} → shape i h (1+ t) → shape i h t
-  shapeₜ↓ (bounds on-h on-t) = bounds on-h (S≤-≤ on-t)
-
-open shapes public
-
-module restriction where
-  shape-∙ : (i h t : ℕ) → shape i h t
-    → {j : ℕ} → h ≤ j → hom i j → ℕ × ℕ
-  shape-∙ i h (1+ O) (bounds _ on-t) _ f =
-    if (hom[ i , h ]# (O , S≤-< on-t) factors-through? f)
-      (λ yes → h , 1)
-      (λ no → h , O)
-  shape-∙ i h (2+ t) sh@(bounds _ on-t) u f =
-    let t' = snd (shape-∙ i h (1+ t) (shapeₜ↓ sh) u f) in
-    if (hom[ i , h ]# (1+ t , S≤-< on-t) factors-through? f)
-      (λ yes → h , 1+ t')
-      (λ no → h , t')
-  shape-∙ i (1+ h) O sh u f = shape-∙ i h (hom-size i h) (shapeₕ↓ sh) (S≤-≤ u) f
-  shape-∙ i O O sh _ f = O , O
-
-  -- Proofs that shape-∙ is again a shape
-  abstract
-    height-shape-∙ : (i h t : ℕ) (sh : shape i h t)
-      → {j : ℕ} (u : h ≤ j) (f : hom i j)
-      → fst (shape-∙ i h t sh u f) ≤ j
-    height-shape-∙ i h (1+ O) (bounds _ on-t) u f
-     with (hom[ i , h ]# (O , S≤-< on-t) factors-through? f)
-    ... | inl yes = u
-    ... | inr no = u
-    height-shape-∙ i h (2+ t) (bounds _ on-t) u f
-     with (hom[ i , h ]# (1+ t , S≤-< on-t) factors-through? f)
-    ... | inl yes = u
-    ... | inr no = u
-    height-shape-∙ i (1+ h) O sh u f =
-      height-shape-∙ i h (hom-size i h) (shapeₕ↓ sh) (S≤-≤ u) f
-    height-shape-∙ i O O sh _ f = O≤ _
-
-    -- By "nondegenerate" we mean a shape restriction of the form
-    -- (i, h, 1+ t) ∙ f.
-    height-nondeg-shape-∙ : (i h t : ℕ) (sh : shape i h (1+ t))
-      → {j : ℕ} (u : h ≤ j) (f : hom i j)
-      → fst (shape-∙ i h (1+ t) sh u f) == h
-    height-nondeg-shape-∙ i h O (bounds _ on-t) u f
-     with (hom[ i , h ]# (O , S≤-< on-t) factors-through? f)
-    ... | inl yes = idp
-    ... | inr no = idp
-    height-nondeg-shape-∙ i h (1+ t) (bounds _ on-t) u f
-     with (hom[ i , h ]# (1+ t , S≤-< on-t) factors-through? f)
-    ... | inl yes = idp
-    ... | inr no = idp
-
-    postulate
-      width-shape-∙ : (i h t : ℕ) (sh : shape i h t)
-        → {j : ℕ} (u : h ≤ j) (f : hom i j)
-        → let h' , t' = shape-∙ i h t sh u f in t' ≤ hom-size j h'
-    -- width-shape-∙ i h (1+ O) (bounds _ on-t) u f
-    --  with (hom[ i , h ]# (O , S≤-< on-t) factors-through? f)
-    -- ... | inl yes = {!!}
-    -- ... | inr no = O≤ _
-    -- width-shape-∙ i h (2+ t) sh@(bounds _ on-t) {j} u f
-    --  with (hom[ i , h ]# (1+ t , S≤-< on-t) factors-through? f)
-    -- ... | inl yes = {!!}
-    -- ... | inr no =
-    --         width-shape-∙ i h (1+ t) (shapeₜ↓ sh) u f
-    --         ◂$ transp (λ ◻ → snd (shape-∙ i h (1+ t) _ u f) ≤ hom-size j ◻) p
-    --         where
-    --         p : fst (shape-∙ i h (1+ t) (shapeₜ↓ sh) u f) == h
-    --         p = height-nondeg-shape-∙ i h t (shapeₜ↓ sh) u f
-    -- width-shape-∙ i (1+ h) O sh u f =
-    --   width-shape-∙ i h (hom-size i h) (shapeₕ↓ sh) (S≤-≤ u) f
-    -- width-shape-∙ i O O sh _ f = O≤ _
-
-    ∙-shape : (i h t : ℕ) (sh : shape i h t)
-      → {j : ℕ} (u : h ≤ j) (f : hom i j)
-      → let h' , t' = shape-∙ i h t sh u f in shape j h' t'
-    ∙-shape i h t sh u f =
-      bounds (height-shape-∙ i h t sh u f) (width-shape-∙ i h t sh u f)
-
-  [_,_,_]_∙ : (i h t : ℕ) (sh : shape i h t)
-    → {j : ℕ} (u : h ≤ j) (f : hom i j)
-    → Shape
-  [ i , h , t ] sh ∙ {j} u f = (j , shape-∙ i h t sh u f) , ∙-shape i h t sh u f
-
-open restriction public
--}
+module _ {i j h : ℕ} {u : O < hom-size j h} where
+  [_,_]/_ : (t : ℕ) → t < hom-size i h → hom i j → hom j h
+  [ O , v ]/ f =
+    if f ∣ hom[ i , h ]# (0 , v)
+    then (λ{ (g , _) → g })
+    else λ _ → hom[ j , h ]# (0 , u)
+  [ 1+ t , v ]/ f = {!!}
