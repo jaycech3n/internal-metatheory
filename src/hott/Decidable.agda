@@ -43,3 +43,9 @@ True D = is-true ⌞ D ⌟
 by : {A : Type ℓ} {D : Dec A} → A → True D
 by {D = inl a} a' = tt
 by {D = inr ¬a} a = ⊥-rec (¬a a)
+
+-- Reasoning
+
+contrapos : {A : Type ℓ₁} {B : Type ℓ₂} → Dec A → Dec B → (¬ B → ¬ A) → A → B
+contrapos decA (inl b) c a = b
+contrapos decA (inr ¬b) c a = ⊥-rec $  c ¬b a

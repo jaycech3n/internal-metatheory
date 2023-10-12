@@ -31,8 +31,8 @@ module ad-hoc-lemmas where
   {- One arg -}
 
   module _ {n} where
-    ¬< : ¬ (n < n)
-    ¬< u = <-to-≠ u idp
+    ¬<-self : ¬ (n < n)
+    ¬<-self u = <-to-≠ u idp
 
     <1-=O : n < 1 → n == O
     <1-=O ltS = idp
@@ -41,9 +41,16 @@ module ad-hoc-lemmas where
   S≮ {O} ()
   S≮ {1+ n} = S≮ ∘ <-cancel-S
 
-  ¬O< : ∀ n → ¬ (O < n) → n == O
-  ¬O< O u = idp
-  ¬O< (1+ n) u = ⊥-rec (u (O<S n))
+  ¬O<-=O : ∀ n → ¬ (O < n) → n == O
+  ¬O<-=O O u = idp
+  ¬O<-=O (1+ n) u = ⊥-rec (u (O<S n))
+
+  <O¬=O : ∀ n → O < n → ¬ (n == O)
+  <O¬=O n u idp = ¬<-self u
+
+  ¬=O-O< : ∀ n → ¬ (n == O) → O < n
+  ¬=O-O< O u = ⊥-rec (u idp)
+  ¬=O-O< (1+ n) u = O<S n
 
   {- Two args -}
 
@@ -75,8 +82,8 @@ module ad-hoc-lemmas where
 
     no-between : m < n → n < 1+ m → ⊥
     no-between u v with <-S≤ u
-    ... | inl idp = ¬< v
-    ... | inr w = ¬< (<-trans v w)
+    ... | inl idp = ¬<-self v
+    ... | inr w = ¬<-self (<-trans v w)
 
     <-witness' : m < n → Σ ℕ (λ k → k + m == n)
     <-witness' u = let w = <-witness u in 1+ (fst w) , snd w
@@ -185,6 +192,7 @@ module monus where
 
 open monus public
 
+{-
 module subtraction where
   infixl 80 _-_
   _-_ : (m n : ℕ) → ⦃ n ≤ m ⦄ → ℕ
@@ -193,3 +201,4 @@ module subtraction where
   ((1+ m) - n) ⦃ inr (ltSR u) ⦄ = 1+ ((m - n) ⦃ inr u ⦄)
 
 open subtraction public
+-}

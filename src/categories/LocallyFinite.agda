@@ -5,22 +5,22 @@ module categories.LocallyFinite where
 open import categories.Semicategories public
 
 -- Untruncatedly finite hom sets
-record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
+record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
   (C : WildSemicategoryStructure ℓₒ ℓₘ Ob)
   : Type (lsuc (ℓₒ ∪ ℓₘ)) where
   open WildSemicategoryStructure C
 
   field
-    hom-finitely-indexed : ∀ x y → Σ[ n ː ℕ ] (hom x y ≃ Fin n)
+    hom-finite : ∀ x y → Σ[ n ː ℕ ] (hom x y ≃ Fin n)
 
   private
     module basic-definitions where
       abstract
         hom-size : (x y : Ob) → ℕ
-        hom-size x y = fst (hom-finitely-indexed x y)
+        hom-size x y = fst (hom-finite x y)
 
         hom-equiv : (x y : Ob) → hom x y ≃ Fin (hom-size x y)
-        hom-equiv x y = snd (hom-finitely-indexed x y)
+        hom-equiv x y = snd (hom-finite x y)
 
         idx-of : ∀ {x y} → hom x y → Fin (hom-size x y)
         idx-of {x} {y} f = –> (hom-equiv x y) f
@@ -39,27 +39,140 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
         idx<hom-size : ∀ {x y} (f : hom x y) → to-ℕ (idx-of f) < hom-size x y
         idx<hom-size f = snd (idx-of f)
 
-      module _ {x y : Ob} where
-        _≺_ : (f g : hom x y) → Type₀
-        f ≺ g = idx-of f <-Fin idx-of g
+      _≺_ : ∀ {x y} (f g : hom x y) → Type₀
+      f ≺ g = idx-of f <-Fin idx-of g
 
-        _≼_ : (f g : hom x y) → Type₀
-        f ≼ g = idx-of f ≤-Fin idx-of g
+      _≼_ : ∀ {x y} (f g : hom x y) → Type₀
+      f ≼ g = idx-of f ≤-Fin idx-of g
 
-        _≺?_ : Decidable _≺_
-        f ≺? g = (idx-of f) <?-Fin (idx-of g)
+      #[_] : (t : ℕ) (x y : Ob) → t < hom-size x y → hom x y
+      #[ t ] x y u = hom[ x , y ]#(t , u)
 
-        _≼?_ : Decidable _≼_
-        f ≼? g = (idx-of f) ≤?-Fin (idx-of g)
-
-      -- Not sure if the following will end up being useful...
+      {- Not sure if the following will end up being useful...
       next : ∀ {x y} → hom x y → hom x y
       next {x} {y} f with hom-size x y | inspect (hom-size x) y | idx-of f
       ... | .(1+ idx) | _ | idx , ltS = f
       ... | 1+ n | have p | idx , ltSR idx<n =
         hom[ x , y ]# (1+ idx , transp! (_ <_) p (<-ap-S idx<n))
+      -}
 
   open basic-definitions public
+
+  private
+    module hom-equality where
+      hom=' : ∀ {x y} {f g : hom x y}
+        → idx-of f == idx-of g
+        → f == g
+      hom=' {x} {y} {f = f} {g = g} p =
+        f =⟨ ! (hom#-idx f) ⟩
+        hom[ x , y ]# (idx-of f) =⟨ ap hom[ x , y ]# p ⟩
+        hom[ x , y ]# (idx-of g) =⟨ hom#-idx g ⟩
+        g =∎
+
+      hom= : ∀ {x y} {f g : hom x y}
+        → to-ℕ (idx-of f) == to-ℕ (idx-of g)
+        → f == g
+      hom= = hom=' ∘ Fin=
+
+      #[]-eq : ∀ t x y u u' → #[ t ] x y u == #[ t ] x y u'
+      #[]-eq t x y u u' = ap hom[ x , y ]# (Fin= idp)
+
+  open hom-equality public
+
+  private
+    module decidability where
+      _≟-hom_ : ∀ {x y} → has-dec-eq (hom x y)
+      f ≟-hom g = if (idx-of f ≟-Fin idx-of g)
+                    (λ  p → inl (hom=' p))
+                    (λ ¬p → inr (¬p ∘ ap idx-of))
+
+      Σ-hom? : ∀ {ℓ} {x y} (P : hom x y → Type ℓ)
+               → ((f : hom x y) → Dec (P f))
+               → Dec (Σ[ f ː hom x y ] (P f))
+      Σ-hom? {ℓ} {x} {y} P u =
+        transp (Dec ∘ Σ (hom x y)) (λ= (ap P ∘ <–-inv-l e)) dec-hom
+          where
+          n = hom-size x y
+          e = hom-equiv x y
+
+          u' : (i : Fin n) → Dec (P (<– e i))
+          u' = bwd-transp-Π-dom e u
+
+          dec-Fin : Dec (Σ[ i ː Fin n ] P (<– e i))
+          dec-Fin = Σ-Fin? (P ∘ (<– e)) u'
+
+          dec-hom : Dec (Σ[ f ː hom x y ] P (<– e (–> e f)))
+          dec-hom = if dec-Fin
+                      (λ  u → inl (fwd-transp-Σ-dom e u))
+                      (λ ¬u → inr (λ (f , p) → ¬u (–> e f , p)))
+
+      _≺?_ : ∀ {x y} → Decidable $ _≺_ {x} {y}
+      f ≺? g = (idx-of f) <?-Fin (idx-of g)
+
+      _≼?_ : ∀ {x y} → Decidable $ _≼_ {x} {y}
+      f ≼? g = (idx-of f) ≤?-Fin (idx-of g)
+
+  open decidability
+
+  private
+    module hom-order {x y : Ob} where
+      ≺-trans : {f g h : hom x y} → f ≺ g → g ≺ h → f ≺ h
+      ≺-trans = <-trans
+
+      ≼-trans : {f g h : hom x y} → f ≼ g → g ≼ h → f ≼ h
+      ≼-trans {f} {g} {h} u v =
+        ≤-Fin-trans {hom-size x y} {idx-of f} {idx-of g} {idx-of h} u v
+
+      ≼-≺-≺ : {f g h : hom x y} → f ≼ g → g ≺ h → f ≺ h
+      ≼-≺-≺ = ≤-<-<
+
+      ≺S-≼ : (f : hom x y) (t : ℕ)
+        {u : 1+ t < hom-size x y} {v : t < hom-size x y}
+        → f ≺ #[ 1+ t ] x y u → f ≼ #[ t ] x y v
+      ≺S-≼ f t {u} {v} w = transp (_ ≤_) (ap to-ℕ $ ! $ idx-hom# _) w'
+        where
+        w' : idx-of f ≤-Fin (t , v)
+        w' = <S-≤ $ transp (_ <_) (ap to-ℕ $ idx-hom# _) w
+
+      idx≤-≼ : (f g : hom x y) → idx-of f ≤-Fin idx-of g → f ≼ g
+      idx≤-≼ f g u = u
+
+      abstract
+        =-≼ : {f g : hom x y} → f == g → f ≼ g
+        =-≼ idp = inl idp
+
+        ¬≺-self : (f : hom x y) → ¬ (f ≺ f)
+        ¬≺-self f = ¬<-self
+
+        ≺-trichotomy : (f g : hom x y) → (f == g) ⊔ (f ≺ g) ⊔ (g ≺ f)
+        ≺-trichotomy f g = ⊔-rec
+          (inl ∘ hom=')
+          (λ{ (inl u) → inr $ inl u
+            ; (inr u) → inr $ inr u })
+          $ Fin-trichotomy (idx-of f) (idx-of g)
+
+        ≺-dichot : (f g : hom x y) → (f ≺ g) ⊔ (g ≼ f)
+        ≺-dichot f g = ⊔-rec
+          (λ{ idp → inr (=-≼ idp) })
+          (λ{ (inl u) → inl u ; (inr u) → inr (inr u) })
+          $ ≺-trichotomy f g
+
+        ≺-contrapos : (f' g' f g : hom x y) → (g ≼ f → g' ≼ f') → f' ≺ g' → f ≺ g
+        ≺-contrapos f' g' f g w f'≺g' = ⊔-rec
+          (idf _)
+          (λ g≼f → ⊥-rec $ ¬≺-self _ $ ≼-≺-≺ (w g≼f) f'≺g')
+          $ ≺-dichot f g
+
+      module _ (u : O < hom-size x y) where
+        [O]-min : (f : hom x y) → #[ O ] x y u ≼ f
+        [O]-min f = transp (_≤-Fin (idx-of f)) (! $ idx-hom#(O , u)) (O≤ _)
+
+        ≼[O] : (f : hom x y) → f ≼ #[ O ] x y u → f == #[ O ] x y u
+        ≼[O] f (inl p) = hom= p
+        ≼[O] f (inr v) = ⊥-rec $ ≮O _
+          (transp (λ ◻ → to-ℕ (idx-of f) < to-ℕ ◻) (idx-hom# _) v)
+
+  open hom-order public
 
   private
     module hom-lemmas where
@@ -74,43 +187,19 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
                              e' : Lift {j = ℓₘ} (Fin n) ≃ hom x y
                              e' = (lift-equiv ∘e e)⁻¹
 
-      -- Equality
-      hom= : ∀ {x y} {f g : hom x y}
-             → idx-of f == idx-of g
-             → f == g
-      hom= {x} {y} {f = f} {g = g} p =
-        f =⟨ ! (hom#-idx f) ⟩
-        hom[ x , y ]# (idx-of f) =⟨ ap hom[ x , y ]# p ⟩
-        hom[ x , y ]# (idx-of g) =⟨ hom#-idx g ⟩
-        g =∎
+      _divides_ : ∀ {x y z} (f : hom x y) (h : hom x z) → Type ℓₘ
+      _divides_ {y = y} {z} f h = Σ[ g ː hom y z ] g ◦ f == h
 
-      _≟-hom_ : ∀ {x y} → has-dec-eq (hom x y)
-      f ≟-hom g = if (idx-of f ≟-Fin idx-of g)
-                    (λ  p → inl (hom= p))
-                    (λ ¬p → inr (¬p ∘ ap idx-of))
+      _∣_ : ∀ {x y z} (f : hom x y) (h : hom x z) → Dec (f divides h)
+      f ∣ h = Σ-hom? (λ g → g ◦ f == h) (λ g → g ◦ f ≟-hom h)
 
-      -- hom existence is decidable
-      Σ-hom? : ∀ {ℓ} {x y} (P : hom x y → Type ℓ)
-               → ((f : hom x y) → Dec (P f))
-               → Dec (Σ[ f ː hom x y ] (P f))
-      Σ-hom? {ℓ} {x} {y} P u =
-        transp (Dec ∘ Σ (hom x y)) (λ= (ap P ∘ <–-inv-l e)) dec-hom
-          where
-          n = hom-size x y
-          e = hom-equiv x y
+  open hom-lemmas public
 
-          u' : (i : Fin n) → Dec (P (<– e i))
-          u' = bwd-transp-Π-dom e u --tr-Π-≃-r (Dec ∘ P) e u
-
-          dec-Fin : Dec (Σ[ i ː Fin n ] P (<– e i))
-          dec-Fin = Σ-Fin? (P ∘ (<– e)) u'
-
-          dec-hom : Dec (Σ[ f ː hom x y ] P (<– e (–> e f)))
-          dec-hom = if dec-Fin
-                      (λ  u → inl (fwd-transp-Σ-dom e u))
-                      (λ ¬u → inr (λ (f , p) → ¬u (–> e f , p)))
-
-      -- Counting: the number of (g : hom x y) satisfying f ≼ g and (P g)
+  {- Unused for now; was meant to be a more "semantic" way of implementing
+  -- cosieve restriction for the internal inverse diagram construction.
+  private
+    module counting where
+      -- The number of (g : hom x y) satisfying f ≼ g and (P g)
       #-hom[_,_]-from_st :
         ∀ {ℓ} x y
         → (f : hom x y)
@@ -130,14 +219,7 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
         #-Fin-coarse-ub n (idx-of f) n lteE (idx<hom-size f) _ _
         where n = hom-size x y
 
-      -- Factors
-      _factors-through_ : ∀ {x y z} (h : hom x z) (f : hom x y) → Type ℓₘ
-      _factors-through_ {y = y} {z} h f = Σ[ g ː hom y z ] g ◦ f == h
-
-      _factors-through?_ : ∀ {x y z} (h : hom x z) (f : hom x y)
-                           → Dec (h factors-through f)
-      h factors-through? f = Σ-hom? (λ g → (g ◦ f) == h) (λ g → g ◦ f ≟-hom h)
-
+      -- Counting factors
       #-factors :
         ∀ {i h m} (t : Fin (hom-size i h)) (f : hom i m)
         → O < hom-size m h
@@ -160,5 +242,4 @@ record LocallyFinitelyIndexedWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Typ
         ∀ {i h m} t (f : hom i m) (u : O < hom-size m h)
         → #-factors-of-hom[ i , h ]≤[ t ]-through f u ≤ hom-size m h
       #-factors-ub t f u = snd (#-factors t f u)
-
-  open hom-lemmas public
+  -}

@@ -52,7 +52,7 @@ abstract
   Fin-trichotomy (m , m<k) (n , n<k) = Fin-trichotomy-aux m n m<k n<k
     where
     Fin-trichotomy-aux : ∀ {k} (m n : ℕ) (m<k : m < k) (n<k : n < k)
-                         →   ((m , m<k) == (n , n<k))
+                         → ((m , m<k) == (n , n<k))
                            ⊔ ((m , m<k) <-Fin (n , n<k))
                            ⊔ ((n , n<k) <-Fin (m , m<k))
     Fin-trichotomy-aux O O _ _ = inl (Fin= idp)
@@ -112,7 +112,7 @@ module Fin-decidability where
                      (λ i=Sn → ¬PSn (transp P (Fin= i=Sn) Pi))
                      (λ i<Sn → ¬ΣFin-n-P ((i , i<Sn) , (transp P (Fin= idp) Pi)))
                      i≤Sn)
-                 (λ Sn<i → ¬< (≤-<-< (<-S≤ Sn<i) i<2+n))
+                 (λ Sn<i → ¬<-self (≤-<-< (<-S≤ Sn<i) i<2+n))
                  (ℕ-trichotomy' i (1+ n)) })
 
   -- Deciding fibers of maps between finite types
