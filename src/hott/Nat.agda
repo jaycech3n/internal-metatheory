@@ -17,16 +17,16 @@ module Nat-instances {n : ℕ} where
     O<S-inst : O < 1+ n
     O<S-inst = O<S n
 
-module trichotomy where
+module Nat-trichotomy where
   ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
   ℕ-trichotomy' m n with ℕ-trichotomy m n
   ... | inl m=n = inl (inl m=n)
   ... | inr (inl m<n) = inl (inr m<n)
   ... | inr (inr n<m) = inr n<m
 
-open trichotomy public
+open Nat-trichotomy public
 
-module ad-hoc-lemmas where
+module Nat-ad-hoc-lemmas where
 
   {- One arg -}
 
@@ -142,9 +142,9 @@ module ad-hoc-lemmas where
   +-comm-≤ : ∀ {k} m n → m + n ≤ k → n + m ≤ k
   +-comm-≤ {k} m n = transp (_≤ k) (+-comm m n)
 
-open ad-hoc-lemmas public
+open Nat-ad-hoc-lemmas public
 
-module predecessor where
+module Nat-predecessor where
   infix 999 _−1
   _−1 : ℕ → ℕ
   O −1 = O
@@ -154,9 +154,9 @@ module predecessor where
   −1≤ {O} = lteE
   −1≤ {1+ n} = lteS
 
-open predecessor public
+open Nat-predecessor public
 
-module monus where
+module Nat-monus where
   infixl 80 _∸_
   _∸_ : ℕ → ℕ → ℕ
   O ∸ n = O
@@ -190,7 +190,7 @@ module monus where
   β∸1 {.1} ltS = idp
   β∸1 {1+ n} (ltSR _) rewrite ∸-unit-r n = idp
 
-open monus public
+open Nat-monus public
 
 {-
 module subtraction where
@@ -202,3 +202,16 @@ module subtraction where
 
 open subtraction public
 -}
+
+module Nat-induction where
+  ℕ-ind-from : ∀ {ℓ} (n₀ : ℕ) (P : ℕ → Type ℓ)
+    → P n₀
+    → (∀ n → n₀ ≤ n → P n → P (1+ n))
+    → ∀ n → n₀ ≤ n → P n
+  ℕ-ind-from n₀ P P₀ Pₛ n (inl idp) = P₀
+  ℕ-ind-from n₀ P P₀ Pₛ (1+ n) (inr u) =
+    let n₀≤n = <S-≤ u in
+    Pₛ n n₀≤n (ℕ-ind-from n₀ P P₀ Pₛ n n₀≤n)
+    -- definitionally equal to Pₛ "up to equality of <-witness"
+
+open Nat-induction public

@@ -96,12 +96,13 @@ module _
   ...          | inr u = divby-lub t _ _ (≺S-≼ _ _ u)
 
   -- Lemma 6.12 (12.10.23)
-  module smallest-divisible (t₀ : ℕ) (u : t₀ < hom-size i h)
+  module smallest-divisible
+    (t₀ : ℕ)
+    (u : t₀ < hom-size i h)
     (divisible : f divides #[ t₀ ] i h u)
-    (smallest :
-      (t : ℕ) (v : t < hom-size i h)
-      → f divides #[ t ] i h v
-      → t₀ ≤ t)
+    (smallest : (t : ℕ) (v : t < hom-size i h)
+                → f divides #[ t ] i h v
+                → t₀ ≤ t)
     where
     smallest-divisible-divby : {v : O < hom-size j h}
       → divby t₀ u == #[ O ] j h v
@@ -127,3 +128,22 @@ module _
 
       lem' : divby t₀ u ≼ [0]
       lem' = ≼-cancel-r _ _ _ lem
+
+    divby-◦-ub : (t : ℕ) (v : t < hom-size i h)
+      → t₀ ≤ t → divby t v ◦ f ≼ #[ t ] i h v
+    divby-◦-ub t v =
+      Fin[ hom-size i h ]-ind-from (t₀ , u)
+        (λ (t , v) → divby t v ◦ f ≼ #[ t ] i h v)
+        (=-≼ (divby-◦ t₀ u divisible))
+        ind-case
+        (t , v)
+      where
+      ind-case :
+        (t : ℕ)
+        (v : 1+ t < hom-size i h)
+        (w : (t₀ , u) ≤-Fin (t , S<-< v))
+        (ih : (divby t (S<-< v) ◦ f) ≼ #[ t ] i h (S<-< v))
+        → divby (1+ t) v ◦ f ≼ #[ 1+ t ] i h v
+      ind-case t v w ih with f ∣ #[ 1+ t ] i h v
+      ... | inl (_ , p) = =-≼ p
+      ... | inr no = inr (≼-≺-≺ ih (#[ t ]≺S (S<-< v) v))

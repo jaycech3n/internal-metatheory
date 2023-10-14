@@ -217,3 +217,31 @@ module Fin-counting where
   #-Fin-coarse-ub n i j v u P P? = ≤-trans (+-≤-dropl (#-Fin-ub n i j v u P P?)) v
 
 open Fin-counting public
+
+-- This is a bit inconvenient to use, but in some cases we use it to avoid
+-- having to lift universes.
+module Fin-induction where
+  Fin[_]-ind : ∀ {ℓ} (n : ℕ) (P : Fin n → Type ℓ)
+    → (∀ u → P (O , u))
+    → ((i : ℕ) (v : 1+ i < n) → P (i , S<-< v) → P (1+ i , v))
+    → (i : Fin n) → P i
+  Fin[ n ]-ind P P₀ Pₛ (i , u) = aux i u
+    where
+    aux : (i : ℕ) (u : i < n) → P (i , u)
+    aux O u = P₀ u
+    aux (1+ i) u = Pₛ i u (aux i (S<-< u))
+
+  Fin[_]-ind-from : ∀ {ℓ} (n : ℕ) (i₀ : Fin n) (P : Fin n → Type ℓ)
+    → P i₀
+    → ( (j : ℕ) (v : 1+ j < n)
+        → let i = (j , S<-< v)
+              i+1 = (1+ j , v)
+           in i₀ ≤-Fin i → P i → P i+1 )
+    → (i : Fin n) → i₀ ≤-Fin i → P i
+  Fin[ n ]-ind-from i₀ P P₀ Pₛ i (inl p) = transp P (Fin= p) P₀
+  Fin[ n ]-ind-from i₀ P P₀ Pₛ (.(1+ (to-ℕ i₀)) , _) (inr ltS) =
+    Pₛ (to-ℕ i₀) _ lteE (transp P (Fin= idp) P₀)
+  Fin[ n ]-ind-from i₀ P P₀ Pₛ (1+ i , u) (inr (ltSR v)) =
+    Pₛ i u (inr v) (Fin[ n ]-ind-from i₀ P P₀ Pₛ (i , S<-< u) (inr v))
+
+open Fin-induction public

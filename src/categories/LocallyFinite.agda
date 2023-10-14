@@ -48,6 +48,10 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
       #[_] : (t : ℕ) (x y : Ob) → t < hom-size x y → hom x y
       #[ t ] x y u = hom[ x , y ]#(t , u)
 
+      -- idx-ℕ-hom# : (i : Fin (hom-size x y))
+      --   → to-ℕ (idx-of (hom[ x , y ]# i)) == to-ℕ i
+      -- idx-ℕ-hom# = ap to-ℕ ∘ idx-hom#
+
       {- Not sure if the following will end up being useful...
       next : ∀ {x y} → hom x y → hom x y
       next {x} {y} f with hom-size x y | inspect (hom-size x) y | idx-of f
@@ -123,6 +127,12 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
       ≼-trans {f} {g} {h} u v =
         ≤-Fin-trans {hom-size x y} {idx-of f} {idx-of g} {idx-of h} u v
 
+      idx<-≺ : (f g : hom x y) → idx-of f <-Fin idx-of g → f ≺ g
+      idx<-≺ f g u = u
+
+      idx≤-≼ : (f g : hom x y) → idx-of f ≤-Fin idx-of g → f ≼ g
+      idx≤-≼ f g u = u
+
       ≼-≺-≺ : {f g h : hom x y} → f ≼ g → g ≺ h → f ≺ h
       ≼-≺-≺ = ≤-<-<
 
@@ -134,16 +144,13 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
         w' : idx-of f ≤-Fin (t , v)
         w' = <S-≤ $ transp (_ <_) (ap to-ℕ $ idx-hom# _) w
 
-      idx≤-≼ : (f g : hom x y) → idx-of f ≤-Fin idx-of g → f ≼ g
-      idx≤-≼ f g u = u
+      =-≼ : {f g : hom x y} → f == g → f ≼ g
+      =-≼ idp = inl idp
+
+      ¬≺-self : (f : hom x y) → ¬ (f ≺ f)
+      ¬≺-self f = ¬<-self
 
       abstract
-        =-≼ : {f g : hom x y} → f == g → f ≼ g
-        =-≼ idp = inl idp
-
-        ¬≺-self : (f : hom x y) → ¬ (f ≺ f)
-        ¬≺-self f = ¬<-self
-
         ≺-trichotomy : (f g : hom x y) → (f == g) ⊔ (f ≺ g) ⊔ (g ≺ f)
         ≺-trichotomy f g = ⊔-rec
           (inl ∘ hom=')
@@ -151,17 +158,17 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
             ; (inr u) → inr $ inr u })
           $ Fin-trichotomy (idx-of f) (idx-of g)
 
-        ≺-dichot : (f g : hom x y) → (f ≺ g) ⊔ (g ≼ f)
-        ≺-dichot f g = ⊔-rec
-          (λ{ idp → inr (=-≼ idp) })
-          (λ{ (inl u) → inl u ; (inr u) → inr (inr u) })
-          $ ≺-trichotomy f g
+      ≺-dichot : (f g : hom x y) → (f ≺ g) ⊔ (g ≼ f)
+      ≺-dichot f g = ⊔-rec
+        (λ{ idp → inr (=-≼ idp) })
+        (λ{ (inl u) → inl u ; (inr u) → inr (inr u) })
+        $ ≺-trichotomy f g
 
-        ≺-contrapos : (f' g' f g : hom x y) → (g ≼ f → g' ≼ f') → f' ≺ g' → f ≺ g
-        ≺-contrapos f' g' f g w f'≺g' = ⊔-rec
-          (idf _)
-          (λ g≼f → ⊥-rec $ ¬≺-self _ $ ≼-≺-≺ (w g≼f) f'≺g')
-          $ ≺-dichot f g
+      ≺-contrapos : (f' g' f g : hom x y) → (g ≼ f → g' ≼ f') → f' ≺ g' → f ≺ g
+      ≺-contrapos f' g' f g w f'≺g' = ⊔-rec
+        (idf _)
+        (λ g≼f → ⊥-rec $ ¬≺-self _ $ ≼-≺-≺ (w g≼f) f'≺g')
+        $ ≺-dichot f g
 
       module _ (u : O < hom-size x y) where
         [O]-min : (f : hom x y) → #[ O ] x y u ≼ f
@@ -171,6 +178,10 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
         ≼[O] f (inl p) = hom= p
         ≼[O] f (inr v) = ⊥-rec $ ≮O _
           (transp (λ ◻ → to-ℕ (idx-of f) < to-ℕ ◻) (idx-hom# _) v)
+
+      #[_]≺S : (t : ℕ) (u : t < hom-size x y) (u' : 1+ t < hom-size x y)
+        → #[ t ] x y u ≺ #[ 1+ t ] x y u'
+      #[ t ]≺S u u' rewrite idx-hom# (t , u) | idx-hom# (1+ t , u') = ltS
 
   open hom-order public
 
