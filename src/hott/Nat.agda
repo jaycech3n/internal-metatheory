@@ -45,8 +45,8 @@ module Nat-ad-hoc-lemmas where
   ¬O<-=O O u = idp
   ¬O<-=O (1+ n) u = ⊥-rec (u (O<S n))
 
-  <O¬=O : ∀ n → O < n → ¬ (n == O)
-  <O¬=O n u idp = ¬<-self u
+  O<¬=O : ∀ n → O < n → ¬ (n == O)
+  O<¬=O n u idp = ¬<-self u
 
   ¬=O-O< : ∀ n → ¬ (n == O) → O < n
   ¬=O-O< O u = ⊥-rec (u idp)

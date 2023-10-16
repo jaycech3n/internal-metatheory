@@ -25,6 +25,13 @@ count-factors-eq : ∀ i h t {j} (f : hom i j) (u u' : shape i h t)
 count-factors-eq i h t f u u' =
   ap (λ v → count-factors i h t v f) (≤-has-all-paths _ _)
 
+count-factors-rec : ∀ i h t {j} (f : hom i j) (u : shape i h (1+ t))
+  → ∀ {v} → f divides #[ t ] i h v
+  → count-factors i h (1+ t) u f == 1+ (count-factors i h t (prev-shape u) f)
+count-factors-rec i h t f u div with f ∣ #[ t ] i h (S≤-< u)
+... | inl yes = ap 1+ (count-factors-eq i h t f _ _)
+... | inr no = ⊥-rec $ no (transp (f divides_) (#[]-eq t i h _ _) div)
+
 -- Lemma 6.7 (paper version as of 12.10.23)
 count-factors-top-level : ∀ i h t (s : shape i h t) (f : hom i h)
   → count-factors i h t s f == 0
@@ -34,25 +41,38 @@ count-factors-top-level i h (1+ t) s f with f ∣ #[ t ] i h (S≤-< s)
 ... | inr no = count-factors-top-level i h t _ f
 
 -- Lemma 6.10 (12.10.23)
+-- The proof here differs from the paper.
 module count-factors-properties (i h j : ℕ) (f : hom i j) where
-  count-factors-all-O :
+  count-factors-all-O-hom-size-O :
     (∀ t s → count-factors i h t s f == O) → hom-size j h == O
-  count-factors-all-O P =
-    ¬O<-=O (hom-size j h) (λ u →
-      <O¬=O (c {u}) (transp! (O <_) p (O<S _)) (P (1+ t) w))
+  count-factors-all-O-hom-size-O P =
+    ¬O<-=O (hom-size j h) (λ O<homjh →
+      O<¬=O (c {O<homjh}) (transp! (O <_) (p) (O<S _)) (P (1+ t₀) w))
     where module _ {u : O < hom-size j h} where
-      [O] = #[ O ] j h u
-      idx = idx-of ([O] ◦ f)
-      t = fst idx
-      v = snd idx
+      [0] = #[ O ] j h u
+      idx₀ = idx-of ([0] ◦ f)
+      t₀ = fst idx₀
+      v = snd idx₀
       w = <-S≤ v
-      c = count-factors i h (1+ t) w f
+      c = count-factors i h (1+ t₀) w f
 
-      -- This is key:
-      p : c == 1+ (count-factors i h t (inr v) f)
-      p with f ∣ #[ t ] i h (S≤-< w)
-      ... | inl yes = ap 1+ (count-factors-eq i h t _ _ _)
-      ... | inr no = ⊥-rec (no ([O] , (! $ hom#-idx _) ∙ #[]-eq t i h _ _))
+      f∣[t₀] : f divides #[ t₀ ] i h v
+      f∣[t₀] rewrite hom#-idx ([0] ◦ f) = [0] , idp
+
+      p : c == 1+ _
+      p = count-factors-rec i h t₀ f (<-S≤ v) f∣[t₀]
+
+  hom-size-O-no-divisors :
+    hom-size j h == O → ∀ t u → ¬ (f divides #[ t ] i h u)
+  hom-size-O-no-divisors p t u (g , q) =
+    ≮O _ $ transp (O <_) p $ hom[ j , h ]-inhab g
+
+  no-divisors-count-factors-all-O :
+    (∀ t u → ¬ (f divides #[ t ] i h u)) → ∀ t s → count-factors i h t s f == O
+  no-divisors-count-factors-all-O P O s = idp
+  no-divisors-count-factors-all-O P (1+ t) s with f ∣ #[ t ] i h (S≤-< s)
+  ... | inl yes = ⊥-rec $ P _ _ yes
+  ... | inr no = no-divisors-count-factors-all-O P t (S≤-≤ s)
 
 module _
   (I-strictly-oriented : ∀ {i j} (f : hom i j) → monotone-precomp f)
