@@ -4,19 +4,35 @@ module hott.Decidable where
 
 open import hott.Base public
 open import hott.Bool public
+open import hott.Sigma public
 
 private
   variable ℓ ℓ₁ ℓ₂ : ULevel
 
-×-dec : {A : Type ℓ₁} {B : Type ℓ₂} → Dec A → Dec B → Dec (A × B)
-×-dec (inl a) (inl b) = inl (a , b)
-×-dec (inl a) (inr ¬b) = inr (λ ab → ¬b (snd ab))
-×-dec (inr ¬a) _ = inr (λ ab → ¬a (fst ab))
+module _ {A : Type ℓ₁} {B : Type ℓ₂} where
+  ×-dec : Dec A → Dec B → Dec (A × B)
+  ×-dec (inl a) (inl b) = inl (a , b)
+  ×-dec (inl a) (inr ¬b) = inr (λ ab → ¬b (snd ab))
+  ×-dec (inr ¬a) _ = inr (λ ab → ¬a (fst ab))
 
-⊔-dec : {A : Type ℓ₁} {B : Type ℓ₂} → Dec A → Dec B → Dec (A ⊔ B)
-⊔-dec (inl a) _ = inl (inl a)
-⊔-dec (inr ¬a) (inl b) = inl (inr b)
-⊔-dec (inr ¬a) (inr ¬b) = inr (λ{(inl a) → ¬a a ; (inr b) → ¬b b})
+  ⊔-dec : Dec A → Dec B → Dec (A ⊔ B)
+  ⊔-dec (inl a) _ = inl (inl a)
+  ⊔-dec (inr ¬a) (inl b) = inl (inr b)
+  ⊔-dec (inr ¬a) (inr ¬b) = inr (λ{(inl a) → ¬a a ; (inr b) → ¬b b})
+
+  →-dec : Dec A → Dec B → Dec (A → B)
+  →-dec _ (inl b) = inl (λ _ → b)
+  →-dec (inl a) (inr ¬b) = inr (λ f → ¬b (f a))
+  →-dec (inr ¬a) (inr ¬b) = inl (λ a → ⊥-rec (¬a a))
+
+¬-dec : {A : Type ℓ} → Dec A → Dec (¬ A)
+¬-dec (inl a) = inr (λ ¬a → ¬a a)
+¬-dec (inr ¬a) = inl ¬a
+
+¬-dec-fiberwise : {A : Type ℓ₁} {B : A → Type ℓ₂}
+  → (∀ a → Dec (B a))
+  → ∀ a → Dec (¬ (B a))
+¬-dec-fiberwise dec = ¬-dec ∘ dec
 
 ap-to-Bool :
   ∀ {ℓ₁ ℓ₂} {P : Type ℓ₁} {Q : Type ℓ₂}
@@ -44,8 +60,14 @@ by : {A : Type ℓ} {D : Dec A} → A → True D
 by {D = inl a} a' = tt
 by {D = inr ¬a} a = ⊥-rec (¬a a)
 
--- Reasoning
+module Dec-reasoning {A : Type ℓ₁} where
+  contrapos' : {B : Type ℓ₂} → Dec B → (¬ B → ¬ A) → A → B
+  contrapos' (inl b) c a = b
+  contrapos' (inr ¬b) c a = ⊥-rec $ c ¬b a
 
-contrapos : {A : Type ℓ₁} {B : Type ℓ₂} → Dec A → Dec B → (¬ B → ¬ A) → A → B
-contrapos decA (inl b) c a = b
-contrapos decA (inr ¬b) c a = ⊥-rec $  c ¬b a
+  ¬imp : {B : Type ℓ₂} → Dec A → Dec B → ¬ (A → B) → A × ¬ B
+  ¬imp _ (inl b) ¬f = ⊥-rec $ ¬f (λ _ → b)
+  ¬imp (inl a) (inr ¬b) ¬f = a , ¬b
+  ¬imp (inr ¬a) (inr ¬b) ¬f = ⊥-rec (¬f (λ a → ⊥-rec (¬a a))) , ¬b
+
+open Dec-reasoning public

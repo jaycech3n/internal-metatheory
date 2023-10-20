@@ -30,5 +30,10 @@ private
     inv-equiv : {f : A → B} → is-equiv f → B → A
     inv-equiv {f} e = <– (f , e)
 
+  module reasoning where
+    contrapos : {A : Type ℓ₁} {B : Type ℓ₂} → (A → B) → ¬ B → ¬ A
+    contrapos f ¬b a = ¬b (f a)
+
 open equalities public
 open equivalences public
+open reasoning public

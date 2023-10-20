@@ -10,13 +10,6 @@ pattern 2+ n = S (S n)
 <= : ∀ {m n} (u u' : m < n) → u == u'
 <= = prop-path <-is-prop
 
-module Nat-instances {n : ℕ} where
-  -- All instance declarations here will be visible to any module that imports
-  -- hott.Nat (this is apparently intended behavior, see GitHub issue #1265)
-  instance
-    O<S-inst : O < 1+ n
-    O<S-inst = O<S n
-
 module Nat-trichotomy where
   ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
   ℕ-trichotomy' m n with ℕ-trichotomy m n
@@ -87,6 +80,11 @@ module Nat-ad-hoc-lemmas where
 
     <-witness' : m < n → Σ ℕ (λ k → k + m == n)
     <-witness' u = let w = <-witness u in 1+ (fst w) , snd w
+
+    ≰-to-> : ¬ (m ≤ n) → n < m
+    ≰-to-> ¬m≤n with ℕ-trichotomy' m n
+    ... | inl m≤n = ⊥-rec $ ¬m≤n m≤n
+    ... | inr n<m = n<m
 
   S≤-1≤ : ∀ {m n} → 1+ m ≤ n → 1 ≤ n
   S≤-1≤ {m} {O} u = ⊥-rec (S≰O m u)
@@ -215,3 +213,10 @@ module Nat-induction where
     -- definitionally equal to Pₛ "up to equality of <-witness"
 
 open Nat-induction public
+
+module Nat-instances {n : ℕ} where
+  -- All instance declarations here will be visible to any module that imports
+  -- hott.Nat (this is apparently intended behavior, see GitHub issue #1265)
+  instance
+    O<S-inst : O < 1+ n
+    O<S-inst = O<S n
