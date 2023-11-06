@@ -78,27 +78,31 @@ module Fin-predicates where
 
 open Fin-predicates public
 
-module Fin-< where
-  _<-Fin_ : ∀ {n} (i j : Fin n) → Type₀
+module Fin-< {n : ℕ} where
+  _<-Fin_ : (i j : Fin n) → Type₀
   i <-Fin j = to-ℕ i < to-ℕ j
 
-  _≤-Fin_ : ∀ {n} (i j : Fin n) → Type₀
+  _≤-Fin_ : (i j : Fin n) → Type₀
   i ≤-Fin j = to-ℕ i ≤ to-ℕ j
 
-  _<?-Fin_ : ∀ {n} → Decidable (_<-Fin_ {n})
+  _<?-Fin_ : Decidable (_<-Fin_)
   (i , _) <?-Fin (j , _) = i <? j
 
-  _≤?-Fin_ : ∀ {n} → Decidable (_≤-Fin_ {n})
+  _≤?-Fin_ : Decidable (_≤-Fin_)
   (i , _) ≤?-Fin (j , _) = i ≤? j
 
-  ≤-Fin-trans : ∀ {n} {i j k : Fin n} → i ≤-Fin j → j ≤-Fin k → i ≤-Fin k
+  ≤-Fin-trans : {i j k : Fin n} → i ≤-Fin j → j ≤-Fin k → i ≤-Fin k
   ≤-Fin-trans (inl idp) (inl idp) = inl idp
   ≤-Fin-trans (inr u) (inl idp) = inr u
   ≤-Fin-trans (inl idp) (inr v) = inr v
   ≤-Fin-trans (inr u) (inr v) = inr (<-trans u v)
 
-  ≰-to>-Fin : ∀ {n} (i j : Fin n) → ¬ (i ≤-Fin j) → j <-Fin i
+  ≰-to>-Fin : (i j : Fin n) → ¬ (i ≤-Fin j) → j <-Fin i
   ≰-to>-Fin i j = ≰-to-> {to-ℕ i} {to-ℕ j}
+
+  ¬≤> : (i j : Fin n) → (i ≤-Fin j) → (j <-Fin i) → ⊥
+  ¬≤> i j (inl idp) j<i = ¬<-self j<i
+  ¬≤> i j (inr i<j) j<i = ¬<-self (<-trans i<j j<i)
 
 open Fin-< public
 
@@ -119,6 +123,12 @@ abstract
     ... | inl m=n = inl (Fin= (ap S (Fin=-elim m=n)))
     ... | inr (inl m<n) = inr (inl (<-ap-S m<n))
     ... | inr (inr n<m) = inr (inr (<-ap-S n<m))
+
+Fin-trichotomy' : ∀ {k} (i j : Fin k) → (i ≤-Fin j) ⊔ (j <-Fin i)
+Fin-trichotomy' i j with Fin-trichotomy i j
+... | inl p = inl (inl (ap to-ℕ p))
+... | inr (inl u) = inl (inr u)
+... | inr (inr u) = inr u
 
 -- This is a bit inconvenient to use, but in some cases we use it to avoid
 -- having to lift universes.
@@ -225,11 +235,35 @@ module Fin-decidability where
   ... | inl yes = yes
   ... | inr no = ⊥-rec $ ¬all (¬ΣFin¬ n P dec no)
 
+  -- Deciding fibers of maps between finite types
+  Fin-hfiber-dec : ∀ {m n} (f : Fin m → Fin n) (j : Fin n) → Dec (hfiber f j)
+  Fin-hfiber-dec {O} {n} f j = inr ((≮O _) ∘ snd ∘ fst)
+  Fin-hfiber-dec {1+ m} {n} f j =
+    if Fin-hfiber-dec (f ∘ Fin-S) j
+    then (λ{ (x@(i , i<m) , fi=j) →
+      inl (Fin-S x , ap f (Fin= idp) ∙ fi=j) })
+    else λ h →
+    if f (m , ltS) ≟-Fin j
+    then (λ fm=j →
+      inl ((m , ltS) , fm=j))
+    else λ fm≠j →
+      inr λ{ ((i , i<Sm) , fi=j) →
+             ⊔-elim
+               (λ i=m → fm≠j (ap f (Fin= (! i=m)) ∙ fi=j))
+               (λ i<m → h ((i , i<m) , ap f (Fin= idp) ∙ fi=j))
+               (<S-≤ i<Sm) }
+
+open Fin-decidability public
+
+module Fin-minimization where
+  is-smallest-Fin : ∀ {ℓ} {n} → (Fin n → Type ℓ) → Fin n → Type ℓ
+  is-smallest-Fin {n = n} P i = P i × ((j : Fin n) → P j → i ≤-Fin j)
+
   Fin-smallest-witness :
     ∀ {ℓ} {n} {P : Fin n → Type ℓ}
     → ((i : Fin n) → Dec (P i))
     → (i : Fin n) → P i
-    → Σ[ i₀ ː Fin n ] (P i₀ × ((i : Fin n) → P i → i₀ ≤-Fin i))
+    → Σ (Fin n) (is-smallest-Fin P)
   Fin-smallest-witness {n = 1} dec i@(O , _) Pi = i , Pi , λ _ _ → O≤ _
   Fin-smallest-witness {n = 1} dec (1+ _ , ltSR ())
   Fin-smallest-witness {ℓ} {2+ n} {P} dec i Pi =
@@ -271,26 +305,7 @@ module Fin-decidability where
         Pj' : (P ∘ Fin-S) j'
         Pj' = transp P (Fin= idp) Pj
 
-  -- Deciding fibers of maps between finite types
-  Fin-hfiber-dec : ∀ {m n} (f : Fin m → Fin n) (j : Fin n) → Dec (hfiber f j)
-  Fin-hfiber-dec {O} {n} f j = inr ((≮O _) ∘ snd ∘ fst)
-  Fin-hfiber-dec {1+ m} {n} f j =
-    if Fin-hfiber-dec (f ∘ Fin-S) j
-    then (λ{ (x@(i , i<m) , fi=j) →
-      inl (Fin-S x , ap f (Fin= idp) ∙ fi=j) })
-    else λ h →
-    if f (m , ltS) ≟-Fin j
-    then (λ fm=j →
-      inl ((m , ltS) , fm=j))
-    else λ fm≠j →
-      inr λ{ ((i , i<Sm) , fi=j) →
-             ⊔-elim
-               (λ i=m → fm≠j (ap f (Fin= (! i=m)) ∙ fi=j))
-               (λ i<m → h ((i , i<m) , ap f (Fin= idp) ∙ fi=j))
-               (<S-≤ i<Sm) }
-
-open Fin-decidability public
-
+open Fin-minimization public
 
 {-
 module Fin-counting where

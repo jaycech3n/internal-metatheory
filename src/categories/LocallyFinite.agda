@@ -136,6 +136,9 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
       ≼-≺-≺ : {f g h : hom x y} → f ≼ g → g ≺ h → f ≺ h
       ≼-≺-≺ = ≤-<-<
 
+      ≼-≺-≼ : {f g h : hom x y} → f ≼ g → g ≺ h → f ≼ h
+      ≼-≺-≼ u v = inr (≼-≺-≺ u v)
+
       ≺S-≼ : (f : hom x y) (t : ℕ)
         {u : 1+ t < hom-size x y} {v : t < hom-size x y}
         → f ≺ #[ 1+ t ] x y u → f ≼ #[ t ] x y v

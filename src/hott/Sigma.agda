@@ -7,8 +7,16 @@ open import hott.Base public
 Σ-syntax = Σ
 syntax Σ-syntax A (λ x → B) = Σ[ x ː A ] B -- use \:3
 
-last-two : ∀ {ℓ₁ ℓ₂ ℓ₃} {A : Type ℓ₁} {B : Type ℓ₂} {C : Type ℓ₃} → A × B × C → B × C
+last-two : ∀ {ℓ₁ ℓ₂ ℓ₃} {A : Type ℓ₁} {B : Type ℓ₂} {C : Type ℓ₃}
+  → A × B × C → B × C
 last-two (_ , b , c) = b , c
+
+-- A bit of an ad-hoc place for this for now
+¬uncurry : ∀ {ℓ₁ ℓ₂ ℓ₃}
+  → {A : Type ℓ₁} {B : A → Type ℓ₂} {C : (a : A) → B a → Type ℓ₃}
+  → ¬ ((a : A) (b : B a) → C a b)
+  → ¬ ((p : Σ A B) → C (fst p) (snd p))
+¬uncurry ¬f g = ¬f $ curry g
 
 private
   module triples {ℓ₁ ℓ₂ ℓ₃}

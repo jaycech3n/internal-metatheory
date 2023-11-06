@@ -62,17 +62,35 @@ module count-factors-properties (i h j : ℕ) (f : hom i j) where
       p : c == 1+ _
       p = count-factors-rec i h t₀ f (<-S≤ v) f∣[t₀]
 
-  hom-size-O-no-divisors :
+  hom-size-O-no-divisible :
     hom-size j h == O → ∀ t u → ¬ (f divides #[ t ] i h u)
-  hom-size-O-no-divisors p t u (g , q) =
+  hom-size-O-no-divisible p t u (g , q) =
     ≮O _ $ transp (O <_) p $ hom[ j , h ]-inhab g
 
-  no-divisors-count-factors-all-O :
+  no-divisible-count-factors-all-O :
     (∀ t u → ¬ (f divides #[ t ] i h u)) → ∀ t s → count-factors i h t s f == O
-  no-divisors-count-factors-all-O P O s = idp
-  no-divisors-count-factors-all-O P (1+ t) s with f ∣ #[ t ] i h (S≤-< s)
+  no-divisible-count-factors-all-O P O s = idp
+  no-divisible-count-factors-all-O P (1+ t) s with f ∣ #[ t ] i h (S≤-< s)
   ... | inl yes = ⊥-rec $ P _ _ yes
-  ... | inr no = no-divisors-count-factors-all-O P t (S≤-≤ s)
+  ... | inr no = no-divisible-count-factors-all-O P t (S≤-≤ s)
+
+  no-divisible-hom-size-O :
+    (∀ t u → ¬ (f divides #[ t ] i h u)) → hom-size j h == O
+  no-divisible-hom-size-O =
+    count-factors-all-O-hom-size-O ∘ no-divisible-count-factors-all-O
+
+  -- Lots of annoying finagling to the right form in this... could probably do
+  -- all this more concisely. Maybe by formulating using ℕ instead of Fin (see
+  -- e.g.  Martín's TypeTopology).
+  hom-size>O-exists-divisible :
+    O < hom-size j h
+    → Σ (Fin (hom-size i h)) λ (t , u) → f divides #[ t ] i h u
+  hom-size>O-exists-divisible O<hom =
+    ¬∀Fin¬ _ _ (λ (t , u) → f ∣ #[ t ] i h u) $
+      ¬uncurry $ contra $ ≠-inv $ <-to-≠ O<hom
+    where
+    contra : hom-size j h ≠ O → ¬ (∀ t u → ¬ (f divides #[ t ] i h u))
+    contra = contrapos no-divisible-hom-size-O
 
 module _
   (I-strictly-oriented : ∀ {i j} (f : hom i j) → monotone-precomp f)
@@ -115,7 +133,7 @@ module _
   ...          | inl p = ⊥-rec $ no (g , hom= p)
   ...          | inr u = divby-lub t _ _ (≺S-≼ _ _ u)
 
-  -- Lemma 6.12 (12.10.23)
+  -- Lemma 6.12 (12.10.23), and extras
   module smallest-divisible
     (t₀ : ℕ)
     (u : t₀ < hom-size i h)
@@ -167,3 +185,41 @@ module _
       ind-case t v w ih with f ∣ #[ 1+ t ] i h v
       ... | inl (_ , p) = =-≼ p
       ... | inr no = inr (≼-≺-≺ ih (#[ t ]≺S (S<-< v) v))
+
+    <-smallest-divisible-divby :
+      ∀ t v → (t , v) <-Fin (t₀ , u) → divby t v == #[ O ] j h size-cond
+    <-smallest-divisible-divby O v w with f ∣ #[ 0 ] i h v
+    ... | inl yes = ⊥-rec $ ¬≤> (t₀ , u) (O , v) (smallest _ _ yes) w
+    ... | inr no = idp
+    <-smallest-divisible-divby (1+ t) v w with f ∣ #[ 1+ t ] i h v
+    ... | inl yes = ⊥-rec $ ¬≤> (t₀ , u) (1+ t , v) (smallest _ _ yes) w
+    ... | inr no = <-smallest-divisible-divby t (S<-< v) (S<-< w)
+
+  -- Lemma 6.13 (16.10.23)
+  divby-monotone : ∀ t t' u u' → t < t' → divby t u ≼ divby t' u'
+  divby-monotone t .(1+ t) u u' ltS =
+    case (Fin-trichotomy' t₀ (t , u)) case-t₀≤t case-t<t₀
+    where
+    open count-factors-properties i h j f
+
+    smallest-divisible =
+      let div = hom-size>O-exists-divisible size-cond
+      in Fin-smallest-witness (λ (t , u) → f ∣ #[ t ] i h u) (fst div) (snd div)
+
+    t₀ = fst smallest-divisible
+    Pt₀ = 2nd smallest-divisible
+    t₀-smallest = 3rd smallest-divisible
+
+    open smallest-divisible (fst t₀) (snd t₀) Pt₀ (curry t₀-smallest)
+
+    case-t₀≤t : t₀ ≤-Fin (t , u) → divby t u ≼ divby (1+ t) u'
+    case-t₀≤t v = divby-lub (1+ t) u' _ lem
+      where lem = ≼-≺-≼ (divby-◦-ub t u v) (#[ t ]≺S u u')
+
+    case-t<t₀ : (t , u) <-Fin t₀ → divby t u ≼ divby (1+ t) u'
+    case-t<t₀ v rewrite <-smallest-divisible-divby t u v = [O]-min size-cond _
+
+  divby-monotone t (1+ t') u u' (ltSR v) =
+    ≼-trans
+      (divby-monotone t t' u (S<-< u') v)
+      (divby-monotone t' (1+ t') (S<-< u') u' ltS)
