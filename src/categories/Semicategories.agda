@@ -12,7 +12,7 @@ record WildSemicategoryStructure ℓₒ ℓₘ (Ob : Type ℓₒ) : Type (lsuc (
     hom : Ob → Ob → Type ℓₘ
     _◦_ : ∀ {x y z} → hom y z → hom x y → hom x z
     ass : ∀ {x y z w} {f : hom z w} {g : hom y z} {h : hom x y}
-          → (f ◦ g) ◦ h == f ◦ (g ◦ h)
+          → (f ◦ g) ◦ h == f ◦ g ◦ h
 
   dom : ∀ {x y} → hom x y → Ob
   dom {x = x} _ = x
