@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
 
 open import reedy.SimpleSemicategories
 
@@ -11,6 +11,12 @@ shape i h t = t ≤ hom-size i h
 
 prev-shape : ∀ {i h t} → shape i h (1+ t) → shape i h t
 prev-shape = S≤-≤
+
+full-shape : ∀ i h → shape i h (hom-size i h)
+full-shape i h = lteE
+
+total-shape-1+ : ∀ i → shape (1+ i) i (hom-size (1+ i) i)
+total-shape-1+ i = full-shape (1+ i) i
 
 count-factors : ∀ i h t {j} → shape i h t → hom i j → ℕ
 count-factors i h O s f = O
@@ -92,134 +98,139 @@ module count-factors-properties (i h j : ℕ) (f : hom i j) where
     contra : hom-size j h ≠ O → ¬ (∀ t u → ¬ (f divides #[ t ] i h u))
     contra = contrapos no-divisible-hom-size-O
 
-module _
-  (I-strictly-oriented : ∀ {i j} (f : hom i j) → monotone-precomp f)
-  {i j h : ℕ} {size-cond : 0 < hom-size j h}
-  (f : hom i j)
+module Cosieves-IsStrictlyOriented
+  (I-strictly-oriented : is-strictly-oriented I)
   where
-  open IsStrictlyOriented I I-strictly-oriented
+  open SimpleSemicategories-IsStrictlyOriented I I-strictly-oriented
 
-  0<homih : 0 < hom-size i h
-  0<homih = hom[ i , h ]-inhab $ #[ 0 ] j h size-cond ◦ f
+  module _ {i j h : ℕ} {size-cond : 0 < hom-size j h} (f : hom i j) where
+    0<homih : 0 < hom-size i h
+    0<homih = hom[ i , h ]-inhab $ #[ 0 ] j h size-cond ◦ f
 
-  divby : (t : ℕ) → t < hom-size i h → hom j h
-  divby O u = if f ∣ #[ 0 ] i h u
-    then fst
-    else λ _ → #[ 0 ] j h size-cond
-  divby (1+ t) u = if f ∣ #[ 1+ t ] i h u
-    then fst
-    else λ _ → divby t (S<-< u)
+    divby : (t : ℕ) → t < hom-size i h → hom j h
+    divby O u = if f ∣ #[ 0 ] i h u
+      then fst
+      else λ _ → #[ 0 ] j h size-cond
+    divby (1+ t) u = if f ∣ #[ 1+ t ] i h u
+      then fst
+      else λ _ → divby t (S<-< u)
 
-  abstract
-    divby= : ∀ {t u g} → g ◦ f == #[ t ] i h u → divby t u == g
-    divby= {O} {u} {g} w with f ∣ #[ 0 ] i h u
-    ... | inl (g' , p) = hom-is-epi _ _ _ (p ∙ ! w)
-    ... | inr no = ⊥-rec $ no (g , w)
-    divby= {1+ t} {u} {g} w with f ∣ #[ 1+ t ] i h u
-    ... | inl (g' , p) = hom-is-epi _ _ _ (p ∙ ! w)
-    ... | inr no = ⊥-rec $ no (g , w)
+    abstract
+      divby= : ∀ {t u g} → g ◦ f == #[ t ] i h u → divby t u == g
+      divby= {O} {u} {g} w with f ∣ #[ 0 ] i h u
+      ... | inl (g' , p) = hom-is-epi _ _ _ (p ∙ ! w)
+      ... | inr no = ⊥-rec $ no (g , w)
+      divby= {1+ t} {u} {g} w with f ∣ #[ 1+ t ] i h u
+      ... | inl (g' , p) = hom-is-epi _ _ _ (p ∙ ! w)
+      ... | inr no = ⊥-rec $ no (g , w)
 
-    divby-◦ : ∀ t u → f divides #[ t ] i h u → divby t u ◦ f == #[ t ] i h u
-    divby-◦ t u (g , p) rewrite divby= p = p
+      divby-◦ : ∀ t u → f divides #[ t ] i h u → divby t u ◦ f == #[ t ] i h u
+      divby-◦ t u (g , p) rewrite divby= p = p
 
-  -- Lemma 6.11 (12.10.23)
-  divby-lub : (t : ℕ) (u : t < hom-size i h ) (g : hom j h)
-    → g ◦ f ≼ #[ t ] i h u
-    → g ≼ divby t u
-  divby-lub O u g w = =-≼ (! $ divby= (≼[O] _ _ w))
-  divby-lub (1+ t) u g w with f ∣ #[ 1+ t ] i h u
-  ... | inl (g' , p) = ≼-cancel-r _ _ _ (transp (_ ≼_) (! p) w)
-  ... | inr no with w
-  ...          | inl p = ⊥-rec $ no (g , hom= p)
-  ...          | inr u = divby-lub t _ _ (≺S-≼ _ _ u)
+    -- Lemma 6.11 (12.10.23)
+    divby-lub : (t : ℕ) (u : t < hom-size i h ) (g : hom j h)
+      → g ◦ f ≼ #[ t ] i h u
+      → g ≼ divby t u
+    divby-lub O u g w = =-≼ (! $ divby= (≼[O] _ _ w))
+    divby-lub (1+ t) u g w with f ∣ #[ 1+ t ] i h u
+    ... | inl (g' , p) = ≼-cancel-r _ _ _ (transp (_ ≼_) (! p) w)
+    ... | inr no with w
+    ...          | inl p = ⊥-rec $ no (g , hom= p)
+    ...          | inr u = divby-lub t _ _ (≺S-≼ _ _ u)
 
-  -- Lemma 6.12 (12.10.23), and extras
-  module smallest-divisible
-    (t₀ : ℕ)
-    (u : t₀ < hom-size i h)
-    (divisible : f divides #[ t₀ ] i h u)
-    (smallest : (t : ℕ) (v : t < hom-size i h)
-                → f divides #[ t ] i h v
-                → t₀ ≤ t)
-    where
-    smallest-divisible-divby : {v : O < hom-size j h}
-      → divby t₀ u == #[ O ] j h v
-    smallest-divisible-divby {v} = ≼[O] v _ lem'
+    -- Lemma 6.12 (12.10.23), and extras
+    module smallest-divisible
+      (t₀ : ℕ)
+      (u : t₀ < hom-size i h)
+      (divisible : f divides #[ t₀ ] i h u)
+      (smallest : (t : ℕ) (v : t < hom-size i h)
+                  → f divides #[ t ] i h v
+                  → t₀ ≤ t)
       where
-      p : (divby t₀ u) ◦ f == #[ t₀ ] i h u
-      p = divby-◦ t₀ u divisible
+      smallest-divisible-divby : {v : O < hom-size j h}
+        → divby t₀ u == #[ O ] j h v
+      smallest-divisible-divby {v} = ≼[O] v _ lem'
+        where
+        p : (divby t₀ u) ◦ f == #[ t₀ ] i h u
+        p = divby-◦ t₀ u divisible
 
-      [0] = #[ 0 ] j h v
-      [0]◦f = [0] ◦ f
-      i₀ = to-ℕ $ idx-of [0]◦f
-      w = snd $ idx-of [0]◦f
+        [0] = #[ 0 ] j h v
+        [0]◦f = [0] ◦ f
+        i₀ = to-ℕ $ idx-of [0]◦f
+        w = snd $ idx-of [0]◦f
 
-      f∣[i₀] : f divides #[ i₀ ] i h w
-      f∣[i₀] = [0] , ! (hom#-idx [0]◦f)
+        f∣[i₀] : f divides #[ i₀ ] i h w
+        f∣[i₀] = [0] , ! (hom#-idx [0]◦f)
 
-      q : #[ t₀ ] i h u ≼ [0]◦f
-      q = idx≤-≼ _ _ $
-        transp (_≤ i₀) (! $ ap to-ℕ (idx-hom# (t₀ , u))) $ smallest i₀ w f∣[i₀]
+        q : #[ t₀ ] i h u ≼ [0]◦f
+        q = idx≤-≼ _ _ $
+          transp (_≤ i₀) (! $ ap to-ℕ (idx-hom# (t₀ , u))) $
+          smallest i₀ w f∣[i₀]
 
-      lem : (divby t₀ u) ◦ f ≼ [0]◦f
-      lem rewrite p = q
+        lem : (divby t₀ u) ◦ f ≼ [0]◦f
+        lem rewrite p = q
 
-      lem' : divby t₀ u ≼ [0]
-      lem' = ≼-cancel-r _ _ _ lem
+        lem' : divby t₀ u ≼ [0]
+        lem' = ≼-cancel-r _ _ _ lem
 
-    divby-◦-ub : (t : ℕ) (v : t < hom-size i h)
-      → t₀ ≤ t → divby t v ◦ f ≼ #[ t ] i h v
-    divby-◦-ub t v =
-      Fin[ hom-size i h ]-ind-from (t₀ , u)
-        (λ (t , v) → divby t v ◦ f ≼ #[ t ] i h v)
-        (=-≼ (divby-◦ t₀ u divisible))
-        ind-case
-        (t , v)
+      divby-◦-ub : (t : ℕ) (v : t < hom-size i h)
+        → t₀ ≤ t → divby t v ◦ f ≼ #[ t ] i h v
+      divby-◦-ub t v =
+        Fin[ hom-size i h ]-ind-from (t₀ , u)
+          (λ (t , v) → divby t v ◦ f ≼ #[ t ] i h v)
+          (=-≼ (divby-◦ t₀ u divisible))
+          ind-case
+          (t , v)
+        where
+        ind-case :
+          (t : ℕ)
+          (v : 1+ t < hom-size i h)
+          (w : (t₀ , u) ≤-Fin (t , S<-< v))
+          (ih : (divby t (S<-< v) ◦ f) ≼ #[ t ] i h (S<-< v))
+          → divby (1+ t) v ◦ f ≼ #[ 1+ t ] i h v
+        ind-case t v w ih with f ∣ #[ 1+ t ] i h v
+        ... | inl (_ , p) = =-≼ p
+        ... | inr no = inr (≼-≺-≺ ih (#[ t ]≺S (S<-< v) v))
+
+      <-smallest-divisible-divby :
+        ∀ t v → (t , v) <-Fin (t₀ , u) → divby t v == #[ O ] j h size-cond
+      <-smallest-divisible-divby O v w with f ∣ #[ 0 ] i h v
+      ... | inl yes = ⊥-rec $ ¬≤> (t₀ , u) (O , v) (smallest _ _ yes) w
+      ... | inr no = idp
+      <-smallest-divisible-divby (1+ t) v w with f ∣ #[ 1+ t ] i h v
+      ... | inl yes = ⊥-rec $ ¬≤> (t₀ , u) (1+ t , v) (smallest _ _ yes) w
+      ... | inr no = <-smallest-divisible-divby t (S<-< v) (S<-< w)
+
+    -- Lemma 6.13 (16.10.23)
+    divby-monotone : ∀ t t' u u' → t < t' → divby t u ≼ divby t' u'
+    divby-monotone t .(1+ t) u u' ltS =
+      case (Fin-trichotomy' t₀ (t , u)) case-t₀≤t case-t<t₀
       where
-      ind-case :
-        (t : ℕ)
-        (v : 1+ t < hom-size i h)
-        (w : (t₀ , u) ≤-Fin (t , S<-< v))
-        (ih : (divby t (S<-< v) ◦ f) ≼ #[ t ] i h (S<-< v))
-        → divby (1+ t) v ◦ f ≼ #[ 1+ t ] i h v
-      ind-case t v w ih with f ∣ #[ 1+ t ] i h v
-      ... | inl (_ , p) = =-≼ p
-      ... | inr no = inr (≼-≺-≺ ih (#[ t ]≺S (S<-< v) v))
+      open count-factors-properties i h j f
 
-    <-smallest-divisible-divby :
-      ∀ t v → (t , v) <-Fin (t₀ , u) → divby t v == #[ O ] j h size-cond
-    <-smallest-divisible-divby O v w with f ∣ #[ 0 ] i h v
-    ... | inl yes = ⊥-rec $ ¬≤> (t₀ , u) (O , v) (smallest _ _ yes) w
-    ... | inr no = idp
-    <-smallest-divisible-divby (1+ t) v w with f ∣ #[ 1+ t ] i h v
-    ... | inl yes = ⊥-rec $ ¬≤> (t₀ , u) (1+ t , v) (smallest _ _ yes) w
-    ... | inr no = <-smallest-divisible-divby t (S<-< v) (S<-< w)
+      smallest-divisible =
+        let div = hom-size>O-exists-divisible size-cond
+        in Fin-smallest-witness (λ (t , u) → f ∣ #[ t ] i h u) (fst div) (snd div)
 
-  -- Lemma 6.13 (16.10.23)
-  divby-monotone : ∀ t t' u u' → t < t' → divby t u ≼ divby t' u'
-  divby-monotone t .(1+ t) u u' ltS =
-    case (Fin-trichotomy' t₀ (t , u)) case-t₀≤t case-t<t₀
-    where
-    open count-factors-properties i h j f
+      t₀ = fst smallest-divisible
+      Pt₀ = 2nd smallest-divisible
+      t₀-smallest = 3rd smallest-divisible
 
-    smallest-divisible =
-      let div = hom-size>O-exists-divisible size-cond
-      in Fin-smallest-witness (λ (t , u) → f ∣ #[ t ] i h u) (fst div) (snd div)
+      open smallest-divisible (fst t₀) (snd t₀) Pt₀ (curry t₀-smallest)
 
-    t₀ = fst smallest-divisible
-    Pt₀ = 2nd smallest-divisible
-    t₀-smallest = 3rd smallest-divisible
+      case-t₀≤t : t₀ ≤-Fin (t , u) → divby t u ≼ divby (1+ t) u'
+      case-t₀≤t v = divby-lub (1+ t) u' _ lem
+        where lem = ≼-≺-≼ (divby-◦-ub t u v) (#[ t ]≺S u u')
 
-    open smallest-divisible (fst t₀) (snd t₀) Pt₀ (curry t₀-smallest)
+      case-t<t₀ : (t , u) <-Fin t₀ → divby t u ≼ divby (1+ t) u'
+      case-t<t₀ v rewrite <-smallest-divisible-divby t u v = [O]-min size-cond _
 
-    case-t₀≤t : t₀ ≤-Fin (t , u) → divby t u ≼ divby (1+ t) u'
-    case-t₀≤t v = divby-lub (1+ t) u' _ lem
-      where lem = ≼-≺-≼ (divby-◦-ub t u v) (#[ t ]≺S u u')
+    divby-monotone t (1+ t') u u' (ltSR v) =
+      ≼-trans
+        (divby-monotone t t' u (S<-< u') v)
+        (divby-monotone t' (1+ t') (S<-< u') u' ltS)
 
-    case-t<t₀ : (t , u) <-Fin t₀ → divby t u ≼ divby (1+ t) u'
-    case-t<t₀ v rewrite <-smallest-divisible-divby t u v = [O]-min size-cond _
-
-  divby-monotone t (1+ t') u u' (ltSR v) =
-    ≼-trans
-      (divby-monotone t t' u (S<-< u') v)
-      (divby-monotone t' (1+ t') (S<-< u') u' ltS)
+  count-factors-gives-shape :
+    ∀ i h t s {j} (f : hom i j)
+    → count-factors i h t s f ≤ hom-size j h
+  count-factors-gives-shape = {!!}

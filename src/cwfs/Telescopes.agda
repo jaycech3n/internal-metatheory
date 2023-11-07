@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import cwfs.CwFs
 
@@ -117,6 +117,7 @@ wknₜ x byₜₑₗ Θ = x [ πₜₑₗ Θ ]ₜ
   p : X [ π X ] [ πₜₑₗ (wknₜₑₗ Θ by X) ] == X [ πₜₑₗ Θ ◦ (π X ++ₛ Θ) ]
   p = ![◦] ∙ [= ! (++ₛ-comm (π X) Θ)]
 
+{-
 -- Weaken a *substitution* between telescopes by a type
 wkn-sub-lemma : ∀ {Γ Δ} (Θ : Tel Γ) (X : Ty Δ) (σ₀ : Sub Γ Δ)
   (Θ' : Tel Δ)
@@ -206,6 +207,7 @@ wkn-sub : ∀ {Γ Δ} (Θ : Tel Γ) (X : Ty Δ) (σ₀ : Sub Γ Δ)
   → πₜₑₗ Θ' ◦ σ == σ₀ ◦ πₜₑₗ Θ
   → Sub (Γ ∷ X [ σ₀ ] ++ₜₑₗ wkₜₑₗ Θ) (Δ ∷ X ++ₜₑₗ wkₜₑₗ Θ')
 wkn-sub {Γ} {Δ} Θ X σ₀ Θ' σ p = fst (wkn-sub-lemma {Γ} {Δ} Θ X σ₀ Θ' σ p)
+-}
 
 
 -- Internal Π types from telescopes
@@ -239,5 +241,20 @@ module Πₜₑₗ (pistr : PiStructure cwfstr) where
   appₜₑₗλₜₑₗ • b = idp
   appₜₑₗλₜₑₗ (Θ ‣ A) b = ap app (appₜₑₗλₜₑₗ Θ _) ∙ βΠ′ b
 
-  Tm-Πₜₑₗ-equiv : ∀ {Γ} (Θ : Tel Γ) (B : Ty (Γ ++ₜₑₗ Θ)) → Tm B ≃ Tm (Πₜₑₗ Θ B)
-  Tm-Πₜₑₗ-equiv Θ B = equiv (λₜₑₗ Θ) (appₜₑₗ Θ) (λₜₑₗappₜₑₗ Θ) (appₜₑₗλₜₑₗ Θ)
+  Tm-Πₜₑₗ-equiv : ∀ {Γ} (Θ : Tel Γ) (B : Ty (Γ ++ₜₑₗ Θ)) → Tm (Πₜₑₗ Θ B) ≃ Tm B
+  Tm-Πₜₑₗ-equiv Θ B = equiv (appₜₑₗ Θ) (λₜₑₗ Θ) (appₜₑₗλₜₑₗ Θ) (λₜₑₗappₜₑₗ Θ)
+
+  open import cwfs.Universe
+  module TelIndexedTypes (univstr : UniverseStructure cwfstr) where
+    open UniverseStructure univstr
+
+    generic[_]type :
+      ∀ {Γ} (Θ : Tel Γ)
+      → let X = Πₜₑₗ Θ U in
+        Ty (Γ ∷ X ++ₜₑₗ Θ [ π X ]ₜₑₗ)
+    generic[ Θ ]type = el $ appₜₑₗ (Θ [ π X ]ₜₑₗ) $ transp Tm p (υ X)
+      where
+      X = Πₜₑₗ Θ U
+
+      p : X [ π X ] == Πₜₑₗ (Θ [ π X ]ₜₑₗ) U
+      p = Πₜₑₗ[] Θ U (π X) ∙ ap (Πₜₑₗ (Θ [ π X ]ₜₑₗ)) U[]

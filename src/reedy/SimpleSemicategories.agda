@@ -18,8 +18,8 @@ record SimpleSemicategory ℓₘ : Type (lsuc ℓₘ) where
 
   private
     module definitions where
-      monotone-precomp : ∀ {i j} (f : hom i j) → Type ℓₘ
-      monotone-precomp {j = j} f =
+      is-monotone-precomp : ∀ {i j} (f : hom i j) → Type ℓₘ
+      is-monotone-precomp {j = j} f =
         ∀ {k} (g h : hom j k)
         → g ≺ h
         → g ◦ f ≺ h ◦ f
@@ -35,10 +35,13 @@ record SimpleSemicategory ℓₘ : Type (lsuc ℓₘ) where
 
   open lemmas public
 
-module IsStrictlyOriented {ℓₘ}
+is-strictly-oriented : ∀ {ℓₘ} → SimpleSemicategory ℓₘ → Type ℓₘ
+is-strictly-oriented C = ∀ {m n} (f : hom m n) → is-monotone-precomp f
+  where open SimpleSemicategory C
+
+module SimpleSemicategories-IsStrictlyOriented {ℓₘ}
   (C : SimpleSemicategory ℓₘ)
-  (precomp-monotone : ∀ {m n} (f : SimpleSemicategory.hom C m n)
-    → SimpleSemicategory.monotone-precomp C f)
+  (strictly-oriented : is-strictly-oriented C)
   where
   open SimpleSemicategory C
 
@@ -49,9 +52,9 @@ module IsStrictlyOriented {ℓₘ}
     hom-is-epi f g h p = ⊔-rec
       (idf _)
       (λ{ (inl u) → ⊥-rec $
-            ¬≺-self _ (transp (_≺ h ◦ f) p (precomp-monotone f g h u))
+            ¬≺-self _ (transp (_≺ h ◦ f) p (strictly-oriented f g h u))
         ; (inr u) → ⊥-rec $
-            ¬≺-self _ (transp (h ◦ f ≺_) p (precomp-monotone f h g u)) })
+            ¬≺-self _ (transp (h ◦ f ≺_) p (strictly-oriented f h g u)) })
       $ ≺-trichotomy g h
 
     ≺-cancel-r : ∀ {l m n} (f : hom l m) (g h : hom m n)
@@ -60,7 +63,7 @@ module IsStrictlyOriented {ℓₘ}
     ≺-cancel-r f g h u with ≺-trichotomy g h
     ... | inl idp = ⊥-rec (¬≺-self _ u)
     ... | inr (inl v) = v
-    ... | inr (inr v) = ⊥-rec $ ¬≺-self _ $ <-trans (precomp-monotone f h g v) u
+    ... | inr (inr v) = ⊥-rec $ ¬≺-self _ $ <-trans (strictly-oriented f h g v) u
 
     ≼-cancel-r : ∀ {l m n} (f : hom l m) (g h : hom m n)
       → g ◦ f ≼ h ◦ f
