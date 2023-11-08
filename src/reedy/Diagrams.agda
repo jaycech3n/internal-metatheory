@@ -25,17 +25,19 @@ open import cwfs.Telescopes cwfstr
 open Πₜₑₗ pistr
 open TelIndexedTypes univstr
 
+test : (B : ℕ → Type₀) (b : B 0) (f : ∀ n → B n → B (1+ n)) → ∀ n → B n
+test B b f O = b
+test B b f (1+ n) = f n (test B b f n)
+
 𝔻 : ℕ → Con
 Mᵒ : (i h t : ℕ) → shape i h t → Tel (𝔻 (1+ h))
 
 M : (i h t : ℕ) → shape i h t → Con
 M i h t s = close (Mᵒ i h t s)
 
-M⃗ :
-  ∀ i h t s {j} (f : hom i j)
-  → let cf = count-factors i h t s f
-        sh = count-factors-gives-shape i h t s f
-    in Sub (M i h t s) (M j h cf sh)
+-- Experiment:
+pᴹ : (t : ℕ) {h : ℕ} {s : shape h h t} {s' : shape h h 0}
+  → Sub (M h h t s) (M h h 0 s')
 
 Mᵒₜₒₜ : (i : ℕ) → Tel (𝔻 i)
 Mᵒₜₒₜ 0 = •
@@ -50,7 +52,13 @@ A i = generic[ Mᵒₜₒₜ i ]type
 𝔻 0 = ◆
 𝔻 (1+ i) = 𝔻 i ∷ 𝔸 i
 
-Mᵒ i h (1+ t) s = Mᵒ i h t shp ‣ A h [ {!M⃗ i h t shp (#[ t ] i h u)!} ]
+M⃗ :
+  ∀ i h t s {j} (f : hom i j)
+  → let cf = count-factors i h t s f
+        sh = count-factors-gives-shape i h t s f
+    in Sub (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ i h t s) (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ j h cf sh)
+
+Mᵒ i h (1+ t) s = Mᵒ i h t shp ‣ A h [ {!!} ◦ˢᵘᵇ M⃗ i h t shp (#[ t ] i h u) ]
   where
   shp = prev-shape s
   u : t < hom-size i h
@@ -60,5 +68,10 @@ Mᵒ i (1+ h) O s = Mᵒ i h full shp [ π (𝔸 (1+ h)) ]ₜₑₗ
   full = hom-size i h
   shp = full-shape i h
 Mᵒ i O O s = •
+
+-- Experiment:
+pᴹ O {O} = id
+pᴹ O {1+ h} = id
+pᴹ (1+ t) = pᴹ t ◦ˢᵘᵇ π _
 
 M⃗ = {!!}

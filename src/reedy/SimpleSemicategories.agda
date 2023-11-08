@@ -33,6 +33,9 @@ record SimpleSemicategory ℓₘ : Type (lsuc ℓₘ) where
         → ¬ (f divides #[ t ] i j u)
       ¬divides-same-target i j t u f (g , _) = endo-hom-empty g
 
+      ¬O<hom-size-O : ∀ i t → ¬ (t < hom-size 0 i)
+      ¬O<hom-size-O i t u = ≮O i $ hom-inverse 0 i (#[ t ] 0 i u)
+
   open lemmas public
 
 is-strictly-oriented : ∀ {ℓₘ} → SimpleSemicategory ℓₘ → Type ℓₘ
