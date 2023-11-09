@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --termination-depth=4 #-}
+{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
 
 open import reedy.SimpleSemicategories
 
@@ -234,32 +234,3 @@ module Cosieves-IsStrictlyOriented
     ∀ i h t s {j} (f : hom i j)
     → count-factors i h t s f ≤ hom-size j h
   count-factors-gives-shape = {!!}
-
-shape-elim :
-  ∀ {ℓ} (C : (i h t : ℕ) → shape i h t → Type ℓ)
-  →
-    ( (i : ℕ)  (s : shape i 0 0)
-    → --------------------------
-             C i 0 0 s )
-  →
-    (       (i h : ℕ)      (s : shape i (1+ h) 0)
-      (f : ∀ j h' t' s' → j ≤ i → h' ≤ h → C j h' t' s')
-    → --------------------------------------------------
-                       C i (1+ h) 0 s )
-  →
-    (          (i h t : ℕ)        (s : shape i h (1+ t))
-      (f : ∀ j h' t' s' → j ≤ i → h' ≤ h → t' < t → C j h' t' s')
-    → -----------------------------------------------------------
-                          C i h (1+ t) s )
-
-  → (i h t : ℕ) (s : shape i h t) → C i h t s
-
-shape-elim C c0 ch ct i h (1+ t) s = {!!}
-shape-elim C c0 ch ct O O O s = c0 0 s
-shape-elim C c0 ch ct O (1+ h) O s = ch O h s f
-  where
-  f : (j h' t' : ℕ) (s' : shape j h' t') → j ≤ O → h' ≤ h → C j h' t' s'
-  f .O O t' s' (inl idp) v = shape-elim C c0 ch ct O O t' s'
-  f .O (1+ h') t' s' (inl idp) (inl idp) = shape-elim C c0 ch ct O h t' s'
-  f .O (1+ h') t' s' (inl idp) (inr v) = {!!}
-shape-elim C c0 ch ct (1+ i) h O s = {!!}

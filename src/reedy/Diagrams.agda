@@ -25,10 +25,6 @@ open import cwfs.Telescopes cwfstr
 open Πₜₑₗ pistr
 open TelIndexedTypes univstr
 
-test : (B : ℕ → Type₀) (b : B 0) (f : ∀ n → B n → B (1+ n)) → ∀ n → B n
-test B b f O = b
-test B b f (1+ n) = f n (test B b f n)
-
 𝔻 : ℕ → Con
 Mᵒ : (i h t : ℕ) → shape i h t → Tel (𝔻 (1+ h))
 
@@ -58,7 +54,7 @@ M⃗ :
         sh = count-factors-gives-shape i h t s f
     in Sub (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ i h t s) (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ j h cf sh)
 
-Mᵒ i h (1+ t) s = Mᵒ i h t shp ‣ A h [ {!!} ◦ˢᵘᵇ M⃗ i h t shp (#[ t ] i h u) ]
+Mᵒ i h (1+ t) s = Mᵒ i h t shp ‣ A h [ {!!} ◦ˢᵘᵇ {!M⃗ i h t shp (#[ t ] i h u)!} ]
   where
   shp = prev-shape s
   u : t < hom-size i h
