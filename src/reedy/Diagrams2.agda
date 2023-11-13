@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --termination-depth=4 #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import reedy.SimpleSemicategories
 open import cwfs.CwFs
@@ -25,49 +25,58 @@ open import cwfs.Telescopes cwfstr
 open Πₜₑₗ pistr
 open TelIndexedTypes univstr
 
-𝔻 : ℕ → Con
-Mᵒ : (n i h t : ℕ) → shape i h t → i ≤ n → Tel (𝔻 (1+ h))
+open import reedy.ShapeElimination I using (shape-elim)
 
-M : (i h t : ℕ) → shape i h t → Con
-M i h t s = close (Mᵒ i i h t s lteE)
+-- Refer to Diagrams.agda for the informal mutually inductive def.
 
--- Experiment:
--- pᴹ : (t : ℕ) {h : ℕ} {s : shape h h t} {s' : shape h h 0}
---   → Sub (M h h t s) (M h h 0 s')
+Diag : (i h t : ℕ) (s : shape i h t)
+  → Σ[ Comps ː Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) ] -- types of the diagram components
+    Comps -- actual diagram components
+𝔻 : ∀ i h t s → fst (Diag i h t s) → Con
 
-Mᵒₜₒₜ : (i : ℕ) → Tel (𝔻 i)
-Mᵒₜₒₜ 0 = •
-Mᵒₜₒₜ (1+ i) = Mᵒ (1+ i) i (hom-size (1+ i) i) (total-shape-1+ i)
+Diag O h t s =
+  ( Σ[ 𝔻' ː Con ]
+    Σ[ Mᵒ' ː Tel (𝔻' ∷ U) ]
+    ( ∀ {j} (f : hom O j) → Sub (𝔻' ∷ U ++ₜₑₗ Mᵒ') (𝔻' ∷ U) ) )
+  ,
+  ◆ , • , λ _ → id
+Diag (1+ i) h (1+ t) s = {!!}
+Diag (1+ i) (1+ h) O s = {!!}
+Diag (1+ i) O O s =
+  ( Σ[ 𝔻' ː Con ]
+    Σ[ Mᵒ' ː Tel (𝔻' ∷ U) ]
+    ( {!∀ {j} (f : hom i j)
+      → Sub (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ i h t s) (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ j h cf sh)!} ) )
+  ,
+  {!!}
 
-𝔸 : (i : ℕ) → Ty (𝔻 i)
-𝔸 i = Πₜₑₗ (Mᵒₜₒₜ i) U
+𝔻 i h t s = {!!}
 
-A : (i : ℕ) → Ty (𝔻 i ∷ 𝔸 i ++ₜₑₗ Mᵒₜₒₜ i [ π (𝔸 i) ]ₜₑₗ)
-A i = generic[ Mᵒₜₒₜ i ]type
 
-𝔻 0 = ◆
-𝔻 (1+ i) = 𝔻 i ∷ 𝔸 i
+{- OLD: ====
 
-M⃗ :
-  ∀ i h t s {j} (f : hom i j)
-  → let cf = count-factors i h t s f
-        sh = count-factors-gives-shape i h t s f
-    in Sub (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ i h t s) (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ j h cf sh) -- somehow indicate here that j < i?
+DiagramComps : (i h t : ℕ) (s : shape i h t) → Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ)
+diagram-comps : (i h t : ℕ) (s : shape i h t) → DiagramComps i h t s
+𝔻 : ∀ i h t s → DiagramComps i h t s → Con
+Mᵒ : ∀ i h t s → Tel (𝔻 i h t s $ diagram-comps i h t s)
 
-Mᵒ i h (1+ t) s = Mᵒ i h t shp ‣ A h [ {!!} ◦ˢᵘᵇ {!M⃗ i h t shp (#[ t ] i h u)!} ]
-  where
-  shp = prev-shape s
-  u : t < hom-size i h
-  u = S≤-< s
-Mᵒ i (1+ h) O s = Mᵒ i h full shp [ π (𝔸 (1+ h)) ]ₜₑₗ
-  where
-  full = hom-size i h
-  shp = full-shape i h
-Mᵒ i O O s = •
+DiagramComps O h t s =
+  Σ[ 𝔻  ː Con ]
+  Σ[ Mᵒ ː Tel (𝔻 ∷ U) ]
+  ( ∀ {j} (f : hom O j) → Sub (𝔻 ∷ U ++ₜₑₗ Mᵒ) (𝔻 ∷ U) )
+DiagramComps (1+ i) O t s =
+  Σ[ 𝔻'  ː Con ]
+  Σ[ Mᵒ' ː Tel (𝔻' ∷ U) ]
+  ( ∀ {j} (f : hom (1+ i) j)
+    → let cf = count-factors (1+ i) O t s f
+          sh = count-factors-gives-shape (1+ i) O t s f
+      in Sub (𝔻' ∷ U ++ₜₑₗ Mᵒ') (𝔻' ∷ U ++ₜₑₗ {!Mᵒ j O cf sh!}) )
+DiagramComps (1+ i) (1+ h) t s = {!!}
 
--- Experiment:
-pᴹ O {O} = id
-pᴹ O {1+ h} = id
-pᴹ (1+ t) = pᴹ t ◦ˢᵘᵇ π _
+diagram-comps = {!!}
 
-M⃗ = {!!}
+𝔻 = {!!}
+
+Mᵒ = {!!}
+
+-}

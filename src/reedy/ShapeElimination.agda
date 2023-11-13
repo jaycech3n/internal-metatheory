@@ -7,9 +7,6 @@ module reedy.ShapeElimination {ℓₘ} (I : SimpleSemicategory ℓₘ) where
 open SimpleSemicategory I
 open import reedy.Cosieves I public
 
-~ : ⊤
-~ = unit
-
 module _ {ℓ} (C : (i h t : ℕ) → shape i h t → Type ℓ) where
   record ShapeElimConds[i,h,t+1] {i h t} (s : shape i h (1+ t)) : Type ℓ where
     constructor •[h,h,0]_•[i,h,t]
@@ -28,8 +25,8 @@ module _ {ℓ} (C : (i h t : ℕ) → shape i h t → Type ℓ) where
     constructor •[i,h,t]
     field
       iht : (t : ℕ) (s' : shape i h t)
-         → --------------------------
-           C i h t s'
+          → --------------------------
+            C i h t s'
 
   open ShapeElimConds[i,h,t+1]
   open ShapeElimConds[i,h+1,0]
