@@ -1,4 +1,6 @@
-{-# OPTIONS --without-K --rewriting --termination-depth=4 #-}
+{-# OPTIONS --without-K --rewriting --termination-depth=2 #-}
+
+{--- IMPORTANT! This version switches off termination checking temporarily. ---}
 
 open import reedy.SimpleSemicategories
 open import cwfs.CwFs
@@ -28,13 +30,13 @@ open TelIndexedTypes univstr
 𝔻 : ℕ → Con
 Mᵒ : (i h t : ℕ) → shape i h t → Tel (𝔻 (1+ h))
 
--- Convenience definitions --
+-- Convenience definitions ====
 
 M : (i h t : ℕ) → shape i h t → Con
 M i h t s = close (Mᵒ i h t s)
 
 Mᵒₜₒₜ : (i : ℕ) → Tel (𝔻 i)
-Mᵒₜₒₜ 0 = •
+Mᵒₜₒₜ O = •
 Mᵒₜₒₜ (1+ i) = Mᵒ (1+ i) i (hom-size (1+ i) i) (total-shape-1+ i)
 
 𝔸 : (i : ℕ) → Ty (𝔻 i)
@@ -43,9 +45,9 @@ Mᵒₜₒₜ (1+ i) = Mᵒ (1+ i) i (hom-size (1+ i) i) (total-shape-1+ i)
 A : (i : ℕ) → Ty (𝔻 i ∷ 𝔸 i ++ₜₑₗ Mᵒₜₒₜ i [ π (𝔸 i) ]ₜₑₗ)
 A i = generic[ Mᵒₜₒₜ i ]type
 
--- End convenience definitions --
+-- End convenience definitions ====
 
-𝔻 0 = ◆
+𝔻 O = ◆
 𝔻 (1+ i) = 𝔻 i ∷ 𝔸 i
 
 M⃗ :
@@ -54,7 +56,9 @@ M⃗ :
         sh = count-factors-gives-shape i h t s f
     in Sub (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ i h t s) (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ j h cf sh)
 
-Mᵒ i h (1+ t) s = Mᵒ i h t shp ‣ A h [ {!!} ◦ˢᵘᵇ {!M⃗ i h t shp (#[ t ] i h u)!} ]
+{-# TERMINATING #-}
+Mᵒ i h (1+ t) s =
+  Mᵒ i h t shp ‣ A h [ {!!} ◦ˢᵘᵇ M⃗ i h t shp (#[ t ] i h u) ]
   where
   shp = prev-shape s
   u : t < hom-size i h
@@ -65,4 +69,9 @@ Mᵒ i (1+ h) O s = Mᵒ i h full shp [ π (𝔸 (1+ h)) ]ₜₑₗ
   shp = full-shape i h
 Mᵒ i O O s = •
 
-M⃗ = {!!}
+M⃗ i h (1+ t) s f = {!!}
+M⃗ i (1+ h) O s f = {!M⃗ i h full shp !}
+  where
+  full = hom-size i h
+  shp = full-shape i h
+M⃗ i O O s f = id
