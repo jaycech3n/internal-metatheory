@@ -27,6 +27,30 @@ open import cwfs.Telescopes cwfstr
 open Πₜₑₗ pistr
 open TelIndexedTypes univstr
 
+
+Shape = Σ[ (i , h , t) ː ℕ × ℕ × ℕ ] shape i h t
+
+
+_<ₛ_ : Shape → Shape → Type₀
+_<ₛ_ = {!!}
+
+-- iswf<ₛ : is
+
+record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
+  field
+    SCT : Con
+    Mᵒ  : ∀ {s' : Shape} → ((s' <ₛ s) ⊔ (s' == s)) → Tel SCT
+    M⃗  : ∀ {s' : Shape} → ((s' <ₛ s) ⊔ (s' == s))
+            → {k : ℕ} → (f : hom (fst (fst s')) k) → Sub (close $ Mᵒ (inr idp)) (close $ Mᵒ {s' = {!s' · f!}} {!inl $ lemma : s' · f <ₛ s!})
+    α   : ∀ {s' : Shape} → (p : ((s' <ₛ s) ⊔ (s' == s)))
+            → {k : ℕ} → (f : hom (fst (fst s')) k)
+            → {l : ℕ} → (g : hom k l)
+            → (M⃗ {s' = {!s' ◦ f!}} {!lemma!} g) ◦ˢᵘᵇ (M⃗ {s' = s'} p f) == (M⃗ {s' = s'} p (g ◦ f))
+    γ   : {!!}
+
+
+
+{-
 𝔻ₜ : ℕ → Con
 Mᵒₜ = (i h t : ℕ) → (𝔻 : 𝔻ₜ) → shape i h t → Tel (𝔻 (1+ h))
 
@@ -84,4 +108,5 @@ M⃗ i (1+ h) O s f = {!M⃗ i h full shp !}
   full = hom-size i h
   shp = full-shape i h
 M⃗ i O O s f = id
+-}
 -}
