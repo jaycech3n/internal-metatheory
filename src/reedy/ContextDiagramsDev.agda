@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --termination-depth=4 #-}
+{-# OPTIONS --without-K --rewriting --termination-depth=4 --allow-unsolved-metas #-}
 
 open import reedy.IndexSemicategories
 open import cwfs.CwFs

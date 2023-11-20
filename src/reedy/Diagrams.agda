@@ -27,13 +27,13 @@ open import cwfs.Telescopes cwfstr
 open Πₜₑₗ pistr
 open TelIndexedTypes univstr
 
-𝔻 : ℕ → Con
-Mᵒ : (i h t : ℕ) → shape i h t → Tel (𝔻 (1+ h))
+𝔻ₜ : ℕ → Con
+Mᵒₜ = (i h t : ℕ) → (𝔻 : 𝔻ₜ) → shape i h t → Tel (𝔻 (1+ h))
 
 -- Convenience definitions ====
 
-M : (i h t : ℕ) → shape i h t → Con
-M i h t s = close (Mᵒ i h t s)
+-- Mₜ = (i h t : ℕ) → shape i h t → Con
+-- M i h t s = close (Mᵒ i h t s)
 
 Mᵒₜₒₜ : (i : ℕ) → Tel (𝔻 i)
 Mᵒₜₒₜ O = •
@@ -47,6 +47,10 @@ A i = generic[ Mᵒₜₒₜ i ]type
 
 -- End convenience definitions ====
 
+test : _
+test = {!Σ[ x ∶ ℕ ] ?!}
+
+
 𝔻 O = ◆
 𝔻 (1+ i) = 𝔻 i ∷ 𝔸 i
 
@@ -56,6 +60,11 @@ M⃗ :
         sh = count-factors-gives-shape i h t s f
     in Sub (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ i h t s) (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ j h cf sh)
 
+
+
+M⃗ = {!!}
+
+{-
 {-# TERMINATING #-}
 Mᵒ i h (1+ t) s =
   Mᵒ i h t shp ‣ A h [ {!!} ◦ˢᵘᵇ M⃗ i h t shp (#[ t ] i h u) ]
@@ -75,3 +84,4 @@ M⃗ i (1+ h) O s f = {!M⃗ i h full shp !}
   full = hom-size i h
   shp = full-shape i h
 M⃗ i O O s f = id
+-}
