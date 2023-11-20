@@ -1,13 +1,11 @@
 {-# OPTIONS --without-K --rewriting --termination-depth=2 #-}
 
-{--- IMPORTANT! This version switches off termination checking temporarily. ---}
-
 open import reedy.SimpleSemicategories
 open import cwfs.CwFs
 open import cwfs.Pi
 open import cwfs.Universe
 
-module reedy.Diagrams {ℓₘᴵ ℓₒ ℓₘ}
+module reedy.Diagrams3 {ℓₘᴵ ℓₒ ℓₘ}
   (I : SimpleSemicategory ℓₘᴵ)
   (I-strictly-oriented : is-strictly-oriented I)
   {C : WildCategory ℓₒ ℓₘ}
@@ -28,9 +26,12 @@ open Πₜₑₗ pistr
 open TelIndexedTypes univstr
 
 𝔻 : ℕ → Con
-Mᵒ : (i h t : ℕ) → shape i h t → Tel (𝔻 (1+ h))
+Mᵒ[_] : (i₀ i h t : ℕ) → i ≤ i₀ → shape i h t → Tel (𝔻 (1+ h))
 
 -- Convenience definitions ====
+
+Mᵒ : (i h t : ℕ) → shape i h t → Tel (𝔻 (1+ h))
+Mᵒ i h t s = Mᵒ[ i ] i h t lteE s
 
 M : (i h t : ℕ) → shape i h t → Con
 M i h t s = close (Mᵒ i h t s)
@@ -50,13 +51,30 @@ A i = generic[ Mᵒₜₒₜ i ]type
 𝔻 O = ◆
 𝔻 (1+ i) = 𝔻 i ∷ 𝔸 i
 
+-- Change this
 M⃗ :
-  ∀ i h t s {j} (f : hom i j)
+  ∀ i₀ i h t (u : i ≤ i₀) (s : shape i h t) {j} (f : hom i j)
   → let cf = count-factors i h t s f
         sh = count-factors-gives-shape i h t s f
-    in Sub (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ i h t s) (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ j h cf sh)
+    in Sub (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ[ i₀ ] i h t s)
+           (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ[ i₀ ] j h cf sh)
 
-{-# TERMINATING #-}
+Mᵒ[ O ] i h (1+ t) u s =
+  Mᵒ[ O ] i h t u shp ‣ A h [ {!!} ◦ˢᵘᵇ {!M⃗ !} ]
+  where
+  shp = prev-shape s
+Mᵒ[ O ] i (1+ h) O u s = Mᵒ[ O ] i h full u shp [ π (𝔸 (1+ h)) ]ₜₑₗ
+  where
+  full = hom-size i h
+  shp = full-shape i h
+Mᵒ[ O ] i O O u s = •
+
+Mᵒ[ 1+ i₀ ] i h t u s = {!!}
+
+M⃗ = {!!}
+
+
+{-
 Mᵒ i h (1+ t) s =
   Mᵒ i h t shp ‣ A h [ {!!} ◦ˢᵘᵇ M⃗ i h t shp (#[ t ] i h u) ]
   where
@@ -75,3 +93,4 @@ M⃗ i (1+ h) O s f = {!M⃗ i h full shp f!}
   full = hom-size i h
   shp = full-shape i h
 M⃗ i O O s f = id
+-}
