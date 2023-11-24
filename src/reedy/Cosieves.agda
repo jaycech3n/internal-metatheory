@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import reedy.SimpleSemicategories
 
@@ -234,3 +234,27 @@ module Cosieves-IsStrictlyOriented
     ∀ i h t s {j} (f : hom i j)
     → count-factors i h t s f ≤ hom-size j h
   count-factors-gives-shape = {!!}
+
+
+{- Shape induction -}
+
+Shape = Σ[ (i , h , t) ː ℕ × ℕ × ℕ ] shape i h t
+𝑣 : Shape → ℕ
+𝑣 = fst ∘ fst
+
+ℎ : Shape → ℕ
+ℎ = 2nd ∘ fst
+
+𝑡 : Shape → ℕ
+𝑡 = 3rd ∘ fst
+
+is-shape : (((i , h , t) , s) : Shape) → shape i h t
+is-shape = snd
+
+_<ₛ_ : Shape → Shape → Type₀
+s <ₛ s' = (𝑣 s < 𝑣 s')
+        ⊔ ((𝑣 s == 𝑣 s') × (ℎ s < ℎ s'))
+        ⊔ ((𝑣 s == 𝑣 s') × (ℎ s == ℎ s') × (𝑡 s < 𝑡 s'))
+
+Shape-accessible : (s : Shape) → is-accessible Shape _<ₛ_ s
+Shape-accessible ((i , h , t) , w) = {!!}

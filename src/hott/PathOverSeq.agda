@@ -7,7 +7,7 @@ module hott.PathOverSeq where
 open import hott.PathOver
 
 data PathOverSeq {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂}
-  : (x y : A) (u : B x) (v : B y) → Type (lsuc (ℓ₁ l⊔ ℓ₂)) where
+  : (x y : A) (u : B x) (v : B y) → Type (lsuc (ℓ₁ ∪ ℓ₂)) where
   _◾  : {x y : A} {p : x == y} {u : B x} {v : B y}
         → (u == v [ B ↓ p ]) → PathOverSeq x y u v
   _▸_ : {x y z : A} {p : x == y} {u : B x} {v : B y} {w : B z}
@@ -34,7 +34,7 @@ private
   module notation where
     PathOverSeq-syntax :
       ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂}
-      (x y : A) (u : B x) (v : B y) → ⊤ → Type (lsuc (ℓ₁ l⊔ ℓ₂))
+      (x y : A) (u : B x) (v : B y) → ⊤ → Type (lsuc (ℓ₁ ∪ ℓ₂))
     PathOverSeq-syntax x y u v _ = PathOverSeq x y u v
     syntax PathOverSeq-syntax x y u v t = u === v ↓ t ↓ x === y
 

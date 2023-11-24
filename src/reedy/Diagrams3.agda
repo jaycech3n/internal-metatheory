@@ -56,8 +56,8 @@ M⃗ :
   ∀ i₀ i h t (u : i ≤ i₀) (s : shape i h t) {j} (f : hom i j)
   → let cf = count-factors i h t s f
         sh = count-factors-gives-shape i h t s f
-    in Sub (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ[ i₀ ] i h t s)
-           (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ[ i₀ ] j h cf sh)
+    in Sub (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ[ i₀ ] i h t u s)
+           (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ[ i₀ ] j h cf {!!} sh)
 
 Mᵒ[ O ] i h (1+ t) u s =
   Mᵒ[ O ] i h t u shp ‣ A h [ {!!} ◦ˢᵘᵇ {!M⃗ !} ]

@@ -10,10 +10,13 @@ open import hott.Bool
 open import hott.Conditionals
 open import hott.Decidable
 open import hott.Fin
+open import hott.Induction
 open import hott.Inspect
 open import hott.Nat
 open import hott.Paths
 open import hott.PathOver
 open import hott.PathOverSeq
+open import hott.Paths
 open import hott.Pi
+open import hott.Prop
 open import hott.Sigma
