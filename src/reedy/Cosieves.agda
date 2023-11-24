@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
 
 open import reedy.SimpleSemicategories
 
@@ -239,8 +239,8 @@ module Cosieves-IsStrictlyOriented
 {- Shape induction -}
 
 Shape = Σ[ (i , h , t) ː ℕ × ℕ × ℕ ] shape i h t
-𝑣 : Shape → ℕ
-𝑣 = fst ∘ fst
+𝑖 : Shape → ℕ
+𝑖 = fst ∘ fst
 
 ℎ : Shape → ℕ
 ℎ = 2nd ∘ fst
@@ -252,9 +252,15 @@ is-shape : (((i , h , t) , s) : Shape) → shape i h t
 is-shape = snd
 
 _<ₛ_ : Shape → Shape → Type₀
-s <ₛ s' = (𝑣 s < 𝑣 s')
-        ⊔ ((𝑣 s == 𝑣 s') × (ℎ s < ℎ s'))
-        ⊔ ((𝑣 s == 𝑣 s') × (ℎ s == ℎ s') × (𝑡 s < 𝑡 s'))
+s <ₛ s' = (𝑖 s < 𝑖 s')
+        ⊔ ((𝑖 s == 𝑖 s') × (ℎ s < ℎ s'))
+        ⊔ ((𝑖 s == 𝑖 s') × (ℎ s == ℎ s') × (𝑡 s < 𝑡 s'))
 
-Shape-accessible : (s : Shape) → is-accessible Shape _<ₛ_ s
+_≤ₛ_ : Shape → Shape → Type₀
+s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
+
+Shape-accessible : all-accessible Shape _<ₛ_
 Shape-accessible ((i , h , t) , w) = {!!}
+
+open WellFoundedInduction Shape _<ₛ_ Shape-accessible public
+  renaming (wf-ind to shape-ind)

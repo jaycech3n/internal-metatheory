@@ -28,17 +28,19 @@ open Πₜₑₗ pistr
 open TelIndexedTypes univstr
 
 
-record diagram-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
+record DiagramData (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
   field
     𝔻  : Con
     Mᵒ : (s' : Shape) → (s' ≤ₛ s) → Tel 𝔻
-    M⃗ : (s' : Shape) → (s' ≤ₛ s)
-       → {j : ℕ} (f : hom (𝑣 s') j)
-       → Sub (close $ Mᵒ s (inl idp))
+    M⃗ : (s' : Shape) (u : s' ≤ₛ s)
+       → {j : ℕ} (f : hom (𝑖 s') j)
+       → Sub (close $ Mᵒ s (inl idp)) -- why is this not (Mᵒ s' u) again?
              (close $ Mᵒ {!s' · f!}  {!inr $ lemma : s' · f <ₛ s!})
     α  : {s' : Shape} (p : (s' ≤ₛ s))
-       → {j : ℕ} (f : hom (𝑣 s') j)
+       → {j : ℕ} (f : hom (𝑖 s') j)
        → {k : ℕ} (g : hom j k)
        → (M⃗ {!s' ◦ f!} {!lemma!} g) ◦ˢᵘᵇ (M⃗ s' p f) == M⃗ s' p (g ◦ f)
 
 
+Diagram : (s : Shape) → DiagramData s
+Diagram s = shape-ind DiagramData {!!} s
