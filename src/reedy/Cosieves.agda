@@ -18,6 +18,58 @@ full-shape i h = lteE
 total-shape-1+ : ∀ i → shape (1+ i) i (hom-size (1+ i) i)
 total-shape-1+ i = full-shape (1+ i) i
 
+Shape = Σ[ i ﹕ ℕ ] Σ[ h ﹕ ℕ ] Σ[ t ﹕ ℕ ] shape i h t
+
+𝑖 : Shape → ℕ
+𝑖 = fst
+
+ℎ : Shape → ℕ
+ℎ = fst ∘ snd
+
+𝑡 : Shape → ℕ
+𝑡 = 2nd ∘ snd
+
+is-shape : ((i , h , t , _) : Shape) → shape i h t
+is-shape = 3rd ∘ snd
+
+
+{- Shape order -}
+
+data _>ₛ_ (s : Shape) : Shape → Type₀ where
+  on-𝑖 : ∀ {s'} → 𝑖 s > 𝑖 s' → s >ₛ s'
+  on-ℎ : ∀ {h' t' s'} → ℎ s > h' → s >ₛ 𝑖 s , h' , t' , s'
+  on-𝑡 : ∀ {t' s'} → 𝑡 s > t' → s >ₛ 𝑖 s , ℎ s , t' , s'
+
+_<ₛ_ : Shape → Shape → Type₀
+s <ₛ s' = s' >ₛ s
+
+_≤ₛ_ : Shape → Shape → Type₀
+s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
+
+<ₛ-trans : ∀ {s s' s''} → s <ₛ s' → s' <ₛ s'' → s <ₛ s''
+<ₛ-trans (on-𝑖 u) (on-𝑖 v) = on-𝑖 (<-trans u v)
+<ₛ-trans (on-𝑖 u) (on-ℎ v) = on-𝑖 u
+<ₛ-trans (on-𝑖 u) (on-𝑡 v) = on-𝑖 u
+<ₛ-trans (on-ℎ u) (on-𝑖 v) = on-𝑖 v
+<ₛ-trans (on-ℎ u) (on-ℎ v) = on-ℎ (<-trans u v)
+<ₛ-trans (on-ℎ u) (on-𝑡 v) = on-ℎ u
+<ₛ-trans (on-𝑡 u) (on-𝑖 v) = on-𝑖 v
+<ₛ-trans (on-𝑡 u) (on-ℎ v) = on-ℎ v
+<ₛ-trans (on-𝑡 u) (on-𝑡 v) = on-𝑡 (<-trans u v)
+
+<ₛ-≤ₛ-<ₛ : ∀ {s s' s''} → s <ₛ s' → s' ≤ₛ s'' → s <ₛ s''
+<ₛ-≤ₛ-<ₛ u (inl idp) = u
+<ₛ-≤ₛ-<ₛ u (inr v) = <ₛ-trans u v
+
+Shape-accessible : all-accessible Shape _<ₛ_
+Shape-accessible (i , h , t , s) = {!!}
+
+open WellFoundedInduction Shape _<ₛ_ Shape-accessible public
+  renaming (wf-ind to shape-ind)
+
+
+{- Counting factors -}
+
 count-factors : ∀ i h t {j} → shape i h t → hom i j → ℕ
 count-factors i h O s f = O
 count-factors i h (1+ t) s f =
@@ -235,32 +287,15 @@ module Cosieves-IsStrictlyOriented
     → count-factors i h t s f ≤ hom-size j h
   count-factors-gives-shape = {!!}
 
+  -- Shape restriction
+  -- \cdot; different from \.
+  _·_ : (s : Shape) {j : ℕ} (f : hom (𝑖 s) j) → Shape
+  _·_ (i , h , t , s) {j} f = j , h , cf , sh
+    where
+    cf = count-factors i h t s f
+    sh = count-factors-gives-shape i h t s f
 
-{- Shape induction -}
+  infixl 80 _·_
 
-Shape = Σ[ (i , h , t) ː ℕ × ℕ × ℕ ] shape i h t
-𝑖 : Shape → ℕ
-𝑖 = fst ∘ fst
-
-ℎ : Shape → ℕ
-ℎ = 2nd ∘ fst
-
-𝑡 : Shape → ℕ
-𝑡 = 3rd ∘ fst
-
-is-shape : (((i , h , t) , s) : Shape) → shape i h t
-is-shape = snd
-
-_<ₛ_ : Shape → Shape → Type₀
-s <ₛ s' = (𝑖 s < 𝑖 s')
-        ⊔ ((𝑖 s == 𝑖 s') × (ℎ s < ℎ s'))
-        ⊔ ((𝑖 s == 𝑖 s') × (ℎ s == ℎ s') × (𝑡 s < 𝑡 s'))
-
-_≤ₛ_ : Shape → Shape → Type₀
-s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
-
-Shape-accessible : all-accessible Shape _<ₛ_
-Shape-accessible ((i , h , t) , w) = {!!}
-
-open WellFoundedInduction Shape _<ₛ_ Shape-accessible public
-  renaming (wf-ind to shape-ind)
+  ·<ₛ : (s : Shape) {j : ℕ} (f : hom (𝑖 s) j) → s · f <ₛ s
+  ·<ₛ s f = on-𝑖 (hom-inverse _ _ f)

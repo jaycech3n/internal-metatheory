@@ -10,6 +10,9 @@ pattern 2+ n = S (S n)
 <= : ∀ {m n} (u u' : m < n) → u == u'
 <= = prop-path <-is-prop
 
+_>_ : ℕ → ℕ → Type₀
+m > n = n < m
+
 module Nat-trichotomy where
   ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
   ℕ-trichotomy' m n with ℕ-trichotomy m n

@@ -39,7 +39,7 @@ record DiagramData (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
     α  : {s' : Shape} (p : (s' ≤ₛ s))
        → {j : ℕ} (f : hom (𝑖 s') j)
        → {k : ℕ} (g : hom j k)
-       → (M⃗ {!s' ◦ f!} {!lemma!} g) ◦ˢᵘᵇ (M⃗ s' p f) == M⃗ s' p (g ◦ f)
+       → (M⃗ {!s' · f!} {!lemma!} g) ◦ˢᵘᵇ (M⃗ s' p f) == M⃗ s' p (g ◦ f)
 
 
 Diagram : (s : Shape) → DiagramData s

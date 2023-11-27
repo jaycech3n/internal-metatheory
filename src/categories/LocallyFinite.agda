@@ -11,7 +11,7 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
   open WildSemicategoryStructure C
 
   field
-    hom-finite : ∀ x y → Σ[ n ː ℕ ] (hom x y ≃ Fin n)
+    hom-finite : ∀ x y → Σ[ n ﹕ ℕ ] (hom x y ≃ Fin n)
 
   private
     module basic-definitions where
@@ -92,7 +92,7 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
 
       Σ-hom? : ∀ {ℓ} {x y} (P : hom x y → Type ℓ)
                → ((f : hom x y) → Dec (P f))
-               → Dec (Σ[ f ː hom x y ] (P f))
+               → Dec (Σ[ f ﹕ hom x y ] (P f))
       Σ-hom? {ℓ} {x} {y} P u =
         transp (Dec ∘ Σ (hom x y)) (λ= (ap P ∘ <–-inv-l e)) dec-hom
           where
@@ -102,10 +102,10 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
           u' : (i : Fin n) → Dec (P (<– e i))
           u' = bwd-transp-Π-dom e u
 
-          dec-Fin : Dec (Σ[ i ː Fin n ] P (<– e i))
+          dec-Fin : Dec (Σ[ i ﹕ Fin n ] P (<– e i))
           dec-Fin = Σ-Fin? (P ∘ (<– e)) u'
 
-          dec-hom : Dec (Σ[ f ː hom x y ] P (<– e (–> e f)))
+          dec-hom : Dec (Σ[ f ﹕ hom x y ] P (<– e (–> e f)))
           dec-hom = if dec-Fin
                       (λ  u → inl (fwd-transp-Σ-dom e u))
                       (λ ¬u → inr (λ (f , p) → ¬u (–> e f , p)))
@@ -202,7 +202,7 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
                              e' = (lift-equiv ∘e e)⁻¹
 
       _divides_ : ∀ {x y z} (f : hom x y) (h : hom x z) → Type ℓₘ
-      _divides_ {y = y} {z} f h = Σ[ g ː hom y z ] g ◦ f == h
+      _divides_ {y = y} {z} f h = Σ[ g ﹕ hom y z ] g ◦ f == h
 
       _∣_ : ∀ {x y z} (f : hom x y) (h : hom x z) → Dec (f divides h)
       f ∣ h = Σ-hom? (λ g → g ◦ f == h) (λ g → g ◦ f ≟-hom h)
@@ -237,7 +237,7 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
       #-factors :
         ∀ {i h m} (t : Fin (hom-size i h)) (f : hom i m)
         → O < hom-size m h
-        → Σ[ n ː ℕ ] n ≤ hom-size m h
+        → Σ[ n ﹕ ℕ ] n ≤ hom-size m h
       #-factors{i} {h} {m} t f u =
         #-hom[ m , h ]-from [O] st (λ α → α ◦ f ≼ [t]) (λ α → α ◦ f ≼? [t]) ,
         #-hom-ub m h [O] (λ α → α ◦ f ≼ [t]) (λ α → α ◦ f ≼? [t])
