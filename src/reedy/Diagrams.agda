@@ -6,6 +6,7 @@ open import reedy.SimpleSemicategories
 open import cwfs.CwFs
 open import cwfs.Pi
 open import cwfs.Universe
+open import hott.WellFounded
 
 module reedy.Diagrams {ℓₘᴵ ℓₒ ℓₘ}
   (I : SimpleSemicategory ℓₘᴵ)
@@ -32,9 +33,10 @@ Shape = Σ[ (i , h , t) ː ℕ × ℕ × ℕ ] shape i h t
 
 
 _<ₛ_ : Shape → Shape → Type₀
-_<ₛ_ = {!!}
+((i₁ , h₁ , t₁) , shape₁) <ₛ ((i₂ , h₂ , t₂) , shape₂) = {!(i₁ < i₂) OR ... (lexicographic order)!}
 
--- iswf<ₛ : is
+iswf<ₛ : is-wf _<ₛ_
+iswf<ₛ = {!!}
 
 record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
   field
