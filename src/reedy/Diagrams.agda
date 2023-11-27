@@ -45,7 +45,7 @@ record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
     α   : ∀ {s' : Shape} → (p : ((s' <ₛ s) ⊔ (s' == s)))
             → {k : ℕ} → (f : hom (fst (fst s')) k)
             → {l : ℕ} → (g : hom k l)
-            → (M⃗ {s' = {!!}} {!lemma!} g) ◦ˢᵘᵇ (M⃗ {s' = s'} p f) == (M⃗ {s' = s'} p (g ◦ f))
+            → (M⃗ {s' = {!s' ◦ f!}} {!lemma!} g) ◦ˢᵘᵇ (M⃗ {s' = s'} p f) == (M⃗ {s' = s'} p (g ◦ f))
     γ   : {!!}
 
 
