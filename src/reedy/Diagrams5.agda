@@ -36,12 +36,12 @@ record DiagramData (s₀ : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
 
   field
     M⃗ : (s : Shape) (u : s ≤ₛ s₀)
-         → {j : ℕ} (f : hom (𝑖 s) j)
-         → Sub (M s u) (M (s · f) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s f) u)))
+         → {j : ℕ} (f : hom (𝑖 s) j) (v : s · f ≤ₛ s₀)
+         → Sub (M s u) (M (s · f) v)
     α  : (s : Shape) (u : s ≤ₛ s₀)
          → {j : ℕ} (f : hom (𝑖 s) j)
          → {k : ℕ} (g : hom j k)
-         → (M⃗ {!s' ◦ f!} {!lemma!} g) ◦ˢᵘᵇ (M⃗ s u f) == {!M⃗ s u (g ◦ f)!}
+         → (M⃗ {!s · f!} {!lemma!} g {!!}) ◦ˢᵘᵇ (M⃗ s u f {!!}) == {!M⃗ s u (g ◦ f) ?!}
 
 
 Diagram : (s : Shape) → DiagramData s

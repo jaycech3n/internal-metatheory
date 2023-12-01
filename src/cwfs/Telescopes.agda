@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
 
 open import cwfs.CwFs
 
@@ -116,6 +116,21 @@ wknₜ x byₜₑₗ Θ = x [ πₜₑₗ Θ ]ₜ
   where
   p : X [ π X ] [ πₜₑₗ (wknₜₑₗ Θ by X) ] == X [ πₜₑₗ Θ ◦ (π X ++ₛ Θ) ]
   p = ![◦] ∙ [= ! (++ₛ-comm (π X) Θ)]
+
+wkn-sub-lemma :
+  ∀ {Γ} (Θ Θ' : Tel Γ) (X : Ty Γ)
+  → (σ : Sub (Γ ++ₜₑₗ Θ) (Γ ++ₜₑₗ Θ'))
+  → πₜₑₗ Θ' ◦ σ == πₜₑₗ Θ
+  → Σ (Sub (Γ ∷ X ++ₜₑₗ wkₜₑₗ Θ) (Γ ∷ X ++ₜₑₗ wkₜₑₗ Θ'))
+    λ σ↑X → (π X ++ₛ Θ') ◦ σ↑X == σ ◦ (π X ++ₛ Θ)
+wkn-sub-lemma = {!!}
+
+wkn-sub :
+  ∀ {Γ} (Θ Θ' : Tel Γ) (σ : Sub (Γ ++ₜₑₗ Θ) (Γ ++ₜₑₗ Θ'))
+  → πₜₑₗ Θ' ◦ σ == πₜₑₗ Θ
+  → (X : Ty Γ)
+  → Sub (Γ ∷ X ++ₜₑₗ wkₜₑₗ Θ) (Γ ∷ X ++ₜₑₗ wkₜₑₗ Θ')
+wkn-sub Θ Θ' σ p X = fst (wkn-sub-lemma Θ Θ' X σ p)
 
 {-
 -- Weaken a *substitution* between telescopes by a type
