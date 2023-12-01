@@ -296,6 +296,12 @@ module Cosieves-IsStrictlyOriented
     → count-factors i h t s f ≤ hom-size j h
   count-factors-gives-shape = {!!}
 
+  -- Lemma 6.8 in paper
+  count-factors-full :
+    ∀ i h s {j} (f : hom i j)
+    → count-factors i h (hom-size i h) s f == hom-size j h
+  count-factors-full = {!!}
+
   -- Shape restriction
   -- \cdot; different from \.
   _·_ : (s : Shape) {j : ℕ} (f : hom (𝑖 s) j) → Shape

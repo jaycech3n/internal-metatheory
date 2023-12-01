@@ -120,7 +120,9 @@ M=₁ i O t s =
   p = count-factors-top-level i O t prev [t]
 
 M=₁ i (1+ h) t s =
-  M (1+ h) (1+ h) cf sh =⟨ ap (uncurry $ M (1+ h) (1+ h)) (pair= p {b' = O≤ _} (from-transp _ _ shape-path)) ⟩
+  M (1+ h) (1+ h) cf sh
+    =⟨ ap (uncurry $ M (1+ h) (1+ h))
+          (pair= p {b' = O≤ _} (from-transp _ _ shape-path)) ⟩
   M (1+ h) (1+ h) O (O≤ _) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ (1+ h) [ π (𝔸 (1+ h)) ]ₜₑₗ) =∎
   where
@@ -139,8 +141,11 @@ M⃗ i h (1+ t) s {j} f
     | count-factors i h (1+ t) s f
     | inspect (count-factors i h (1+ t) s) f
     | count-factors-gives-shape i h (1+ t) s f
-    | Mᵒ j h (count-factors i h (1+ t) s f) (count-factors-gives-shape i h (1+ t) s f)
-    | inspect (uncurry $ Mᵒ j h) (count-factors i h (1+ t) s f , count-factors-gives-shape i h (1+ t) s f)
+    | Mᵒ j h (count-factors i h (1+ t) s f)
+        (count-factors-gives-shape i h (1+ t) s f)
+    | inspect (uncurry $ Mᵒ j h)
+        (count-factors i h (1+ t) s f
+        , count-factors-gives-shape i h (1+ t) s f)
 
 ... | inl x | eq | c | eq' | cs | Mᵒjh | eqq = {!!}
 
@@ -171,6 +176,7 @@ M⃗ i (1+ h) O s {j} f =
   shpⱼ = full-shape j h
 
   eq : M j h cf sh == M j h fullⱼ shpⱼ
-  eq = {!!}
+  eq = ap (uncurry $ M j h)
+          (pair= (count-factors-full i h shpᵢ f) (from-transp _ _ shape-path))
 
 M⃗ i O O s f = id
