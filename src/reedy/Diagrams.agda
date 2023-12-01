@@ -78,11 +78,22 @@ M⃗ :
 
 {-# TERMINATING #-}
 Mᵒ i h (1+ t) s =
-  Mᵒ i h t shp ‣ A h [ {!coercion between equals!} ◦ˢᵘᵇ M⃗ i h t shp (#[ t ] i h u) ]
+  Mᵒ i h t shp ‣ A h [ coercion-between-equals ◦ˢᵘᵇ M⃗ i h t shp (#[ t ] i h u) ]
   where
   shp = prev-shape s
   u : t < hom-size i h
   u = S≤-< s
+  ----
+  c = count-factors i h t shp (#[ t ] i h u)
+  cs = count-factors-gives-shape i h t shp (#[ t ] i h u)
+
+  coercion-between-equals : Sub (M h h c cs) (𝔻 (1+ h) ++ₜₑₗ Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
+  coercion-between-equals = {!!}
+  {- IDEA: Want to define, for generic wild categories Con, a function
+    idd : Γ == Δ → Sub Γ Δ
+  that satisfies idd p ◦ˢᵘᵇ σ = σ and σ ◦ˢᵘᵇ idd p = σ for all σ.
+  -}
+
 Mᵒ i (1+ h) O s = Mᵒᶠᵘˡˡ i h [ π (𝔸 (1+ h)) ]ₜₑₗ
 Mᵒ i O O s = •
 
@@ -95,37 +106,27 @@ M⃗ i h (1+ t) s {j} f
     | Mᵒ j h (count-factors i h (1+ t) s f) (count-factors-gives-shape i h (1+ t) s f)
     | inspect (uncurry $ Mᵒ j h) (count-factors i h (1+ t) s f , count-factors-gives-shape i h (1+ t) s f)
 ... | inl x | eq | c | eq' | cs | Mᵒjh | eqq = {!!}
-... | inr no | have p | c | have q | cs | Mᵒjh | have idp = {!
-  -- ! q ∙ p
-  M⃗ i h t prev f!}
-    ◦ˢᵘᵇ π (A h [ _ ])
+... | inr no | have p | c | have q | cs | Mᵒjh | have idp =
+  {!!} ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
   where
   prev = prev-shape s
 
 
---   with
---     count-factors i h (1+ t) s f
---   | inspect (count-factors i h (1+ t) s) f
---   | f ∣ #[ t ] i h (S≤-< s)
---   | inspect (f ∣_) (#[ t ] i h (S≤-< s))
---   | count-factors-gives-shape i h (1+ t) s f
---   | Mᵒ j h (count-factors i h (1+ t) s f) (count-factors-gives-shape i h (1+ t) s f)
---   | inspect (uncurry $ Mᵒ j h) (count-factors i h (1+ t) s f , count-factors-gives-shape i h (1+ t) s f)
--- ... | cf | eqcf | inl (g , p) | eq | cs | Mᵒjhc | eqM = {!!}
--- ... | cf | have q | inr no | have p | cs | Mᵒjhc | eqM = {!q :> (count-factors i h (1+ t) s f == cf)!}
---   -- {!--M⃗ i h t prev f
---   -- p :> (count-factors i h (1+ t) s f == c)
---   -- -- Want : c == count-factors i h t s f!} ◦ˢᵘᵇ π (A h [ _ ])
---   where
---   prev = prev-shape s
---   P = λ ◻ → Sub
---       (𝔻 h ∷ Πₜₑₗ (Mᵒᵗᵒᵗ h) U ++ₜₑₗ Mᵒ i h t (≤-trans (inr ltS) s))
---       (𝔻 h ∷ Πₜₑₗ (Mᵒᵗᵒᵗ h) U ++ₜₑₗ uncurry (Mᵒ j h) ◻)
-
-
 M⃗ i (1+ h) O s {j} f =
-  wkn-sub (Mᵒᶠᵘˡˡ i h) (Mᵒᶠᵘˡˡ j h) ({!coercion between equals!} ◦ˢᵘᵇ M⃗ i h full shp f) {!commutation lemma; another component of the definition!} (𝔸 (1+ h))
+  wkn-sub (Mᵒᶠᵘˡˡ i h) (Mᵒᶠᵘˡˡ j h)
+    (coercion-between-equals ◦ˢᵘᵇ M⃗ i h full shp f)
+    {!commutation lemma; another component of the definition!}
+    (𝔸 (1+ h))
   where
   full = hom-size i h
   shp = full-shape i h
+  ----
+  c = count-factors i h full shp f
+  cs = count-factors-gives-shape i h full shp f
+  jh = hom-size j h
+  jhs = full-shape j h
+
+  coercion-between-equals : Sub (M j h c cs) (M j h jh jhs)
+  coercion-between-equals = {!!}
+
 M⃗ i O O s f = id
