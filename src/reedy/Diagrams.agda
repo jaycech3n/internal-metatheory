@@ -76,26 +76,62 @@ M⃗ :
         sh = count-factors-gives-shape i h t s f
     in Sub (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ i h t s) (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ j h cf sh)
 
+
+-- Also use this equation
+M=₁ : ∀ i h t (s : shape i h (1+ t))
+      → let prev = prev-shape s
+            u = S≤-< s
+            [t] = #[ t ] i h u
+            cf = count-factors i h t prev [t]
+            sh = count-factors-gives-shape i h t prev [t]
+        in M h h cf sh == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
+
+
 {-# TERMINATING #-}
 Mᵒ i h (1+ t) s =
-  Mᵒ i h t shp ‣ A h [ coercion-between-equals ◦ˢᵘᵇ M⃗ i h t shp (#[ t ] i h u) ]
+  Mᵒ i h t shp ‣ A h [ idd eq ◦ˢᵘᵇ M⃗ i h t shp (#[ t ] i h u) ]
   where
   shp = prev-shape s
   u : t < hom-size i h
   u = S≤-< s
-  ----
+
   c = count-factors i h t shp (#[ t ] i h u)
   cs = count-factors-gives-shape i h t shp (#[ t ] i h u)
 
-  coercion-between-equals : Sub (M h h c cs) (𝔻 (1+ h) ++ₜₑₗ Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
-  coercion-between-equals = {!!}
-  {- IDEA: Want to define, for generic wild categories Con, a function
-    idd : Γ == Δ → Sub Γ Δ
-  that satisfies idd p ◦ˢᵘᵇ σ = σ and σ ◦ˢᵘᵇ idd p = σ for all σ.
-  -}
+  eq : M h h c cs == (𝔻 (1+ h) ++ₜₑₗ Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
+  eq = M=₁ i h t s
 
 Mᵒ i (1+ h) O s = Mᵒᶠᵘˡˡ i h [ π (𝔸 (1+ h)) ]ₜₑₗ
 Mᵒ i O O s = •
+
+
+M=₁ i O t s =
+  M O O cf sh =⟨ ap (uncurry $ M O O) (pair= p {b' = O≤ _} (from-transp _ _ shape-path)) ⟩
+  M O O O (O≤ (hom-size O O)) =⟨ idp ⟩
+  close (Mᵒᵗᵒᵗ O [ π (𝔸 O) ]ₜₑₗ) =∎
+  where
+  prev = prev-shape s
+  u = S≤-< s
+  [t] = #[ t ] i O u
+  cf = count-factors i O t prev [t]
+  sh = count-factors-gives-shape i O t prev [t]
+
+  p : cf == O
+  p = count-factors-top-level i O t prev [t]
+
+M=₁ i (1+ h) t s =
+  M (1+ h) (1+ h) cf sh =⟨ ap (uncurry $ M (1+ h) (1+ h)) (pair= p {b' = O≤ _} (from-transp _ _ shape-path)) ⟩
+  M (1+ h) (1+ h) O (O≤ _) =⟨ idp ⟩
+  close (Mᵒᵗᵒᵗ (1+ h) [ π (𝔸 (1+ h)) ]ₜₑₗ) =∎
+  where
+  prev = prev-shape s
+  u = S≤-< s
+  [t] = #[ t ] i (1+ h) u
+  cf = count-factors i (1+ h) t prev [t]
+  sh = count-factors-gives-shape i (1+ h) t prev [t]
+
+  p : cf == O
+  p = count-factors-top-level i (1+ h) t prev [t]
 
 M⃗ i h (1+ t) s {j} f
  with f ∣ #[ t ] i h (S≤-< s)
@@ -105,28 +141,36 @@ M⃗ i h (1+ t) s {j} f
     | count-factors-gives-shape i h (1+ t) s f
     | Mᵒ j h (count-factors i h (1+ t) s f) (count-factors-gives-shape i h (1+ t) s f)
     | inspect (uncurry $ Mᵒ j h) (count-factors i h (1+ t) s f , count-factors-gives-shape i h (1+ t) s f)
+
 ... | inl x | eq | c | eq' | cs | Mᵒjh | eqq = {!!}
+
 ... | inr no | have p | c | have q | cs | Mᵒjh | have idp =
-  {!!} ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
+  idd eq ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
   where
   prev = prev-shape s
 
+  cf = count-factors i h t prev f
+  cfs = count-factors-gives-shape i h t prev f
+
+  eq : M j h cf cfs == M j h c cs
+  eq = ap (uncurry $ M j h) (pair= (! p ∙ q) (from-transp _ _ shape-path))
 
 M⃗ i (1+ h) O s {j} f =
   wkn-sub (Mᵒᶠᵘˡˡ i h) (Mᵒᶠᵘˡˡ j h)
-    (coercion-between-equals ◦ˢᵘᵇ M⃗ i h full shp f)
+    (idd eq ◦ˢᵘᵇ M⃗ i h fullᵢ shpᵢ f)
     {!commutation lemma; another component of the definition!}
     (𝔸 (1+ h))
   where
-  full = hom-size i h
-  shp = full-shape i h
-  ----
-  c = count-factors i h full shp f
-  cs = count-factors-gives-shape i h full shp f
-  jh = hom-size j h
-  jhs = full-shape j h
+  fullᵢ = hom-size i h
+  shpᵢ = full-shape i h
 
-  coercion-between-equals : Sub (M j h c cs) (M j h jh jhs)
-  coercion-between-equals = {!!}
+  cf = count-factors i h fullᵢ shpᵢ f
+  sh = count-factors-gives-shape i h fullᵢ shpᵢ f
+
+  fullⱼ = hom-size j h
+  shpⱼ = full-shape j h
+
+  eq : M j h cf sh == M j h fullⱼ shpⱼ
+  eq = {!!}
 
 M⃗ i O O s f = id

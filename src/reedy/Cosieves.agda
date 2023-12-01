@@ -33,6 +33,15 @@ is-shape : ((i , h , t , _) : Shape) → shape i h t
 is-shape = 3rd ∘ snd
 
 
+{- Shape equality -}
+
+shape-is-prop : ∀ {i h t} → is-prop (shape i h t)
+shape-is-prop = ≤-is-prop
+
+shape-path : ∀ {i h t} {s s' : shape i h t} → s == s'
+shape-path = prop-has-all-paths _ _
+
+
 {- Shape order -}
 
 data _>ₛ_ (s : Shape) : Shape → Type₀ where
