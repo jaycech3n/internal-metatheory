@@ -149,7 +149,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
               → ϕ == (π A ◦ ϕ ,, coe!ᵀᵐ [◦] (υ A [ ϕ ]ₜ))
       η-sub {A = A} ϕ =
         ϕ
-          =⟨ ! idl ⟩
+          =⟨ ! (idl ϕ) ⟩
         id ◦ ϕ
           =⟨ ! η,, |in-ctx (_◦ ϕ) ⟩
         (π A ,, υ A) ◦ ϕ
@@ -193,7 +193,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
                 → ϕ == (f ,, t)
       ,,-uniq {f = f} {A} {t} ϕ πϕ υϕ =
         ϕ
-          =⟨ ! idl ⟩
+          =⟨ ! (idl ϕ) ⟩
         id ◦ ϕ
           =⟨ ! η,, |in-ctx (_◦ ϕ) ⟩
         (π A ,, υ A) ◦ ϕ
@@ -248,7 +248,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       ,,₊-◦ f a =
         (Δ ,,₊ a) ◦ f
           =⟨ ,,-◦ ⟩        (id ◦ f ,, coe!ᵀᵐ [◦] (a [ id ]ₜ [ f ]ₜ))
-          =⟨ ⟨= idl ,, from-over-∙ (!ᵈ [◦]ₜ ∙ᵈ [= idl ]ₜ) =⟩ ⟩
+          =⟨ ⟨= (idl f) ,, from-over-∙ (!ᵈ [◦]ₜ ∙ᵈ [= idl f ]ₜ) =⟩ ⟩
         (f ,, a [ f ]ₜ)
           =∎
 
@@ -264,7 +264,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
                     ∙ (∷ₛ-comm |in-ctx (_◦ (Γ ,,₊ a [ f ]ₜ)))
                     ∙ ass
                     ∙ (βπ |in-ctx (f ◦_))
-                    ∙ idr
+                    ∙ idr f
 
       ∷ₛ-,,₊ : {A : Ty Δ} (f : Sub Γ Δ) (a : Tm A)
               → (f ∷ₛ A) ◦ (Γ ,,₊ a [ f ]ₜ) == (f ,, a [ f ]ₜ)

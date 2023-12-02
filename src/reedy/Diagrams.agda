@@ -78,13 +78,21 @@ M⃗ :
 
 
 -- Also use this equation
-M=₁ : ∀ i h t (s : shape i h (1+ t))
-      → let prev = prev-shape s
-            u = S≤-< s
-            [t] = #[ t ] i h u
-            cf = count-factors i h t prev [t]
-            sh = count-factors-gives-shape i h t prev [t]
-        in M h h cf sh == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
+M=₁ :
+  ∀ i h t (s : shape i h (1+ t))
+  → let prev = prev-shape s
+        u = S≤-< s
+        [t] = #[ t ] i h u
+        cf = count-factors i h t prev [t]
+        sh = count-factors-gives-shape i h t prev [t]
+    in M h h cf sh == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
+
+
+M⃗◦ :
+  ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
+  → let cf = count-factors i h t s f
+        sh = count-factors-gives-shape i h t s f -- or abstract over this too?
+    in M⃗ j h cf sh g ◦ˢᵘᵇ M⃗ i h t s f == idd {!!} ◦ˢᵘᵇ M⃗ i h t s (g ◦ f)
 
 
 {-# TERMINATING #-}
@@ -147,7 +155,7 @@ M⃗ i h (1+ t) s {j} f
         (count-factors i h (1+ t) s f
         , count-factors-gives-shape i h (1+ t) s f)
 
-... | inl x | eq | c | eq' | cs | Mᵒjh | eqq = {!!}
+... | inl (g , e) | eq | c | eq' | cs | Mᵒjh | eqq = {!eq!}
 
 ... | inr no | have p | c | have q | cs | Mᵒjh | have idp =
   idd eq ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
@@ -180,3 +188,6 @@ M⃗ i (1+ h) O s {j} f =
           (pair= (count-factors-full i h shpᵢ f) (from-transp _ _ shape-path))
 
 M⃗ i O O s f = id
+
+
+M⃗◦ = {!!}

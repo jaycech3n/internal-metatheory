@@ -302,6 +302,13 @@ module Cosieves-IsStrictlyOriented
     → count-factors i h (hom-size i h) s f == hom-size j h
   count-factors-full = {!!}
 
+  -- Need this too; prove it on paper:
+  count-factors-comp :
+    ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
+    → ∀ {s'}
+    → count-factors i h t s (g ◦ f) == count-factors j h (count-factors i h t s f) s' g
+  count-factors-comp = {!!}
+
   -- Shape restriction
   -- \cdot; different from \.
   _·_ : (s : Shape) {j : ℕ} (f : hom (𝑖 s) j) → Shape
