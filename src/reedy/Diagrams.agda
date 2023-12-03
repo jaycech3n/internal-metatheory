@@ -33,10 +33,12 @@ Shape = Σ[ (i , h , t) ː ℕ × ℕ × ℕ ] shape i h t
 
 
 _<ₛ_ : Shape → Shape → Type₀
-((i₁ , h₁ , t₁) , shape₁) <ₛ ((i₂ , h₂ , t₂) , shape₂) = {!(i₁ < i₂) OR ... (lexicographic order)!}
+((i₁ , h₁ , t₁) , shape₁) <ₛ ((i₂ , h₂ , t₂) , shape₂) = (i₁ < i₂) ⊔ ((i₁ == i₂) × (h₂ < h₁)) ⊔ (i₁ == i₂) × (h₁ == h₂) × (t₂ < t₂)
 
+-- ad-hoc definition, could be made an instance of something more general
 iswf<ₛ : is-wf _<ₛ_
-iswf<ₛ = {!!}
+iswf<ₛ ((i₁ , h₁ , O) , shape₁) = {!!}
+iswf<ₛ ((i₁ , h₁ , 1+ t₁) , shape₁) = acc {!!}
 
 record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
   field
