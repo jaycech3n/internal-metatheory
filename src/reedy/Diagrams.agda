@@ -116,7 +116,6 @@ Mᵒ i h (1+ t) s =
 Mᵒ i (1+ h) O s = Mᵒᶠᵘˡˡ i h [ π (𝔸 (1+ h)) ]ₜₑₗ
 Mᵒ i O O s = •
 
-
 M=₁ i O t s =
   M O O cf sh =⟨ M= O O {s' = O≤ _} p ⟩
   M O O O (O≤ (hom-size O O)) =⟨ idp ⟩
@@ -149,9 +148,9 @@ M=₁ i (1+ h) t s =
 M⃗ i h (1+ t) s {j} f
  with f ∣ #[ t ] i h (S≤-< s)
     | inspect (count-factors i h (1+ t) s) f
-    | count-factors i h (1+ t) s f
+    | count-factors i h (1+ t) s f               -- c
     | inspect (count-factors i h (1+ t) s) f
-    | count-factors-gives-shape i h (1+ t) s f
+    | count-factors-gives-shape i h (1+ t) s f   -- cs
     | Mᵒ j h (count-factors i h (1+ t) s f)
         (count-factors-gives-shape i h (1+ t) s f)
     | inspect (uncurry $ Mᵒ j h)
@@ -159,26 +158,35 @@ M⃗ i h (1+ t) s {j} f
         , count-factors-gives-shape i h (1+ t) s f)
 
 ... | inl (g , e)
-    | have p | c | have q | cs | .(Mᵒ j h c cs) | have idp
+    | have p -- : count-factors i h (1+ t) s f ==
+             --   1+ (count-factors i h t (prev-shape s) f)
+    | .(count-factors i h (1+ t) s f) | have idp
+    | cs
+    | .(Mᵒ j h (count-factors i h (1+ t) s f) cs) | have idp
+      -- Would we be able to pattern match on p if we paired up c and its
+      -- inspected equality? More principled: worth manually writing auxiliary
+      -- defs to do a proper hand-tailored with-abstraction.
     =
-    {!!}
-
-... | inr no
-    | have p | c | have q | cs | .(Mᵒ j h c cs) | have idp
-    =
-    idd eq ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
-      -- Note (also record this on paper): on paper, don't have this coercion by
-      -- (idd eq), but in TT we need this because we don't have that
-      -- count-factors (i, h, t+1) f reduces to count-factors (i, h, t) f
-      -- definitionally.
+    {!p :> (count-factors i h (1+ t) s f == 1+ (count-factors i h t (prev-shape s) f))!}
     where
     prev = prev-shape s
 
     cf = count-factors i h t prev f
-    cfs = count-factors-gives-shape i h t prev f
+    sh = count-factors-gives-shape i h t prev f
 
-    eq : M j h cf cfs == M j h c cs
-    eq = M= j h (! p ∙ q)
+... | inr no
+    | have p -- : count-factors i h (1+ t) s f ==
+             --   count-factors i h t (prev-shape s) f
+    | .(count-factors i h (1+ t) s f) | have idp
+    | cs
+    | .(Mᵒ j h (count-factors i h (1+ t) s f) cs) | have idp
+    =
+    idd (M= j h (! p)) ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
+      -- Note (also record this on paper): on paper, don't have this coercion by
+      -- (idd _), but in TT we need this because we don't have that
+      -- count-factors (i, h, t+1) f reduces to count-factors (i, h, t) f
+      -- definitionally. But maybe it can be made so, with more effort?
+    where prev = prev-shape s
 
 M⃗ i (1+ h) O s {j} f =
   wkn-sub (Mᵒᶠᵘˡˡ i h) (Mᵒᶠᵘˡˡ j h)
