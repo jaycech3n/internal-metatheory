@@ -65,6 +65,9 @@ Mᵒᶠᵘˡˡ i h = Mᵒ i h full shp
 A : (i : ℕ) → Ty (𝔻 i ∷ 𝔸 i ++ₜₑₗ Mᵒᵗᵒᵗ i [ π (𝔸 i) ]ₜₑₗ)
 A i = generic[ Mᵒᵗᵒᵗ i ]type
 
+M= : ∀ i h {t} {s} {t'} {s'} → t == t' → M i h t s == M i h t' s'
+M= i h {t} {s} {.t} {s'} idp = ap (M i h t) shape-path
+
 -- End convenience definitions ====
 
 𝔻 O = ◆
@@ -74,7 +77,7 @@ M⃗ :
   ∀ i h t s {j} (f : hom i j)
   → let cf = count-factors i h t s f
         sh = count-factors-gives-shape i h t s f
-    in Sub (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ i h t s) (𝔻 h ∷ 𝔸 h ++ₜₑₗ Mᵒ j h cf sh)
+    in Sub (M i h t s) (M j h cf sh)
 
 
 -- Also use this equation
@@ -92,7 +95,8 @@ M⃗◦ :
   ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
   → let cf = count-factors i h t s f
         sh = count-factors-gives-shape i h t s f -- or abstract over this too?
-    in M⃗ j h cf sh g ◦ˢᵘᵇ M⃗ i h t s f == idd {!!} ◦ˢᵘᵇ M⃗ i h t s (g ◦ f)
+        p  = count-factors-comp i h t s f g -- and this too?
+    in M⃗ j h cf sh g ◦ˢᵘᵇ M⃗ i h t s f == idd (M= k h p) ◦ˢᵘᵇ M⃗ i h t s (g ◦ f)
 
 
 {-# TERMINATING #-}
@@ -114,7 +118,7 @@ Mᵒ i O O s = •
 
 
 M=₁ i O t s =
-  M O O cf sh =⟨ ap (uncurry $ M O O) (pair= p {b' = O≤ _} (from-transp _ _ shape-path)) ⟩
+  M O O cf sh =⟨ M= O O {s' = O≤ _} p ⟩
   M O O O (O≤ (hom-size O O)) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ O [ π (𝔸 O) ]ₜₑₗ) =∎
   where
@@ -128,9 +132,7 @@ M=₁ i O t s =
   p = count-factors-top-level i O t prev [t]
 
 M=₁ i (1+ h) t s =
-  M (1+ h) (1+ h) cf sh
-    =⟨ ap (uncurry $ M (1+ h) (1+ h))
-          (pair= p {b' = O≤ _} (from-transp _ _ shape-path)) ⟩
+  M (1+ h) (1+ h) cf sh =⟨ M= (1+ h) (1+ h) {s' = O≤ _} p ⟩
   M (1+ h) (1+ h) O (O≤ _) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ (1+ h) [ π (𝔸 (1+ h)) ]ₜₑₗ) =∎
   where
@@ -142,6 +144,7 @@ M=₁ i (1+ h) t s =
 
   p : cf == O
   p = count-factors-top-level i (1+ h) t prev [t]
+
 
 M⃗ i h (1+ t) s {j} f
  with f ∣ #[ t ] i h (S≤-< s)
@@ -155,18 +158,27 @@ M⃗ i h (1+ t) s {j} f
         (count-factors i h (1+ t) s f
         , count-factors-gives-shape i h (1+ t) s f)
 
-... | inl (g , e) | eq | c | eq' | cs | Mᵒjh | eqq = {!eq!}
+... | inl (g , e)
+    | have p | c | have q | cs | .(Mᵒ j h c cs) | have idp
+    =
+    {!!}
 
-... | inr no | have p | c | have q | cs | Mᵒjh | have idp =
-  idd eq ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
-  where
-  prev = prev-shape s
+... | inr no
+    | have p | c | have q | cs | .(Mᵒ j h c cs) | have idp
+    =
+    idd eq ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
+      -- Note (also record this on paper): on paper, don't have this coercion by
+      -- (idd eq), but in TT we need this because we don't have that
+      -- count-factors (i, h, t+1) f reduces to count-factors (i, h, t) f
+      -- definitionally.
+    where
+    prev = prev-shape s
 
-  cf = count-factors i h t prev f
-  cfs = count-factors-gives-shape i h t prev f
+    cf = count-factors i h t prev f
+    cfs = count-factors-gives-shape i h t prev f
 
-  eq : M j h cf cfs == M j h c cs
-  eq = ap (uncurry $ M j h) (pair= (! p ∙ q) (from-transp _ _ shape-path))
+    eq : M j h cf cfs == M j h c cs
+    eq = M= j h (! p ∙ q)
 
 M⃗ i (1+ h) O s {j} f =
   wkn-sub (Mᵒᶠᵘˡˡ i h) (Mᵒᶠᵘˡˡ j h)
@@ -184,8 +196,7 @@ M⃗ i (1+ h) O s {j} f =
   shpⱼ = full-shape j h
 
   eq : M j h cf sh == M j h fullⱼ shpⱼ
-  eq = ap (uncurry $ M j h)
-          (pair= (count-factors-full i h shpᵢ f) (from-transp _ _ shape-path))
+  eq = M= j h (count-factors-full i h shpᵢ f)
 
 M⃗ i O O s f = id
 
