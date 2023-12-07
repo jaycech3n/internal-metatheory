@@ -15,8 +15,10 @@ record WildCategoryStructure ℓₒ ℓₘ (Ob : Type ℓₒ) : Type (lsuc (ℓ�
 
   private
     module IdArrows where
+      -- idtoiso for wild cats
       idd : ∀ {x y} → x == y → hom x y
       idd idp = id
+      -- idd {x} {y} p = transp (hom x) p id
 
       iddl : ∀ {x y z} (p : y == z) (σ : hom x y)
              → idd p ◦ σ == transp (hom x) p σ

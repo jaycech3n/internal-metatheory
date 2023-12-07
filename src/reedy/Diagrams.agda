@@ -160,33 +160,52 @@ M⃗ i h (1+ t) s {j} f
 ... | inl (g , e)
     | have p -- : count-factors i h (1+ t) s f ==
              --   1+ (count-factors i h t (prev-shape s) f)
-    | .(count-factors i h (1+ t) s f) | have idp
+    | c @ .(count-factors i h (1+ t) s f) | have idp
     | cs
     | .(Mᵒ j h (count-factors i h (1+ t) s f) cs) | have idp
       -- Would we be able to pattern match on p if we paired up c and its
       -- inspected equality? More principled: worth manually writing auxiliary
       -- defs to do a proper hand-tailored with-abstraction.
     =
-    {!p :> (count-factors i h (1+ t) s f == 1+ (count-factors i h t (prev-shape s) f))!}
+    (idd eq ◦ˢᵘᵇ
+      (idd {!!} ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, {!!})
+    ) :> (Sub (M i h t prev ∷ A h [ idd (M=₁ i h t s) ◦ˢᵘᵇ M⃗iht[t] ]) (M j h c cs))
     where
     prev = prev-shape s
-
     cf = count-factors i h t prev f
-    sh = count-factors-gives-shape i h t prev f
+
+    sh : shape j h (1+ cf)
+    sh = transp (shape j h) p cs
+
+    eq : M j h (1+ cf) sh == M j h c cs
+    eq = M= j h (! p)
+
+    -- debugging
+    u = S≤-< s
+    M⃗iht[t] = M⃗ i h t prev (#[ t ] i h u)
+    ----
+
+    M⃗ihtf = M⃗ i h t prev f
 
 ... | inr no
     | have p -- : count-factors i h (1+ t) s f ==
              --   count-factors i h t (prev-shape s) f
-    | .(count-factors i h (1+ t) s f) | have idp
+    | c @ .(count-factors i h (1+ t) s f) | have idp
     | cs
     | .(Mᵒ j h (count-factors i h (1+ t) s f) cs) | have idp
     =
-    idd (M= j h (! p)) ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
+    idd eq ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
       -- Note (also record this on paper): on paper, don't have this coercion by
       -- (idd _), but in TT we need this because we don't have that
       -- count-factors (i, h, t+1) f reduces to count-factors (i, h, t) f
       -- definitionally. But maybe it can be made so, with more effort?
-    where prev = prev-shape s
+    where
+    prev = prev-shape s
+    cf = count-factors i h t prev f
+    sh = count-factors-gives-shape i h t prev f
+
+    eq : M j h cf sh == M j h c cs
+    eq = M= j h (! p)
 
 M⃗ i (1+ h) O s {j} f =
   wkn-sub (Mᵒᶠᵘˡˡ i h) (Mᵒᶠᵘˡˡ j h)
