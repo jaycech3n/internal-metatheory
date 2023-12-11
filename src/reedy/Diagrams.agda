@@ -55,12 +55,6 @@ A i = generic[ Mᵒᵗᵒᵗ i ]type
 M= : ∀ i h {t} {s} {t'} {s'} → t == t' → M i h t s == M i h t' s'
 M= i h {t} {s} {.t} {s'} idp = ap (M i h t) shape-path
 
-M=' :
-  ∀ i h t t' {s} {s'}
-  → t == t'
-  → M i h t s == M i h t' s'
-M=' i h t t' {s} {s'} p = M= i h {s = s} {s' = s'} p
-
 -- End convenience definitions ====
 
 𝔻 O = ◆
