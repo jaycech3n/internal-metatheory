@@ -28,19 +28,6 @@ open Πₜₑₗ pistr
 open TelIndexedTypes univstr
 
 
--- Need this to define the (i, h, t+1) case of the construction.
--- Does this need to be simultaneous with the diagram?
--- case-on-∣ : ∀ {ℓ}
---   → (P : (i h t : ℕ) (s : shape i h t) → Type ℓ)
---   → (i h t : ℕ) (s : shape i h t)
---   → ∀ {j} (f : hom i j)
---   → {u : t < hom-size i h} (d : f ∣ #[ t ] i h u)
---   → (c : f ∣ #[ t ] i h u → ℕ)
---   → (w : ∀ j h → shape j h (c d))
---   → Sub (P i h t s) (P j h (c d) (w (c d)))
--- case-on-∣ = ?
-
-
 𝔻 : ℕ → Con
 Mᵒ : (i h t : ℕ) → shape i h t → Tel (𝔻 (1+ h))
 
@@ -76,7 +63,7 @@ M= i h {t} {s} {.t} {s'} idp = ap (M i h t) shape-path
 M⃗ :
   ∀ i h t s {j} (f : hom i j)
   → let cf = count-factors i h t s f
-        sh = count-factors-gives-shape i h t s f
+        sh = count-factors-shape i h t s f
     in Sub (M i h t s) (M j h cf sh)
 
 
@@ -87,14 +74,14 @@ M=₁ :
         u = S≤-< s
         [t] = #[ t ] i h u
         cf = count-factors i h t prev [t]
-        sh = count-factors-gives-shape i h t prev [t]
+        sh = count-factors-shape i h t prev [t]
     in M h h cf sh == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
 
 
 M⃗◦ :
   ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
   → let cf = count-factors i h t s f
-        sh = count-factors-gives-shape i h t s f -- or abstract over this too?
+        sh = count-factors-shape i h t s f -- or abstract over this too?
         p  = count-factors-comp i h t s f g -- and this too?
     in M⃗ j h cf sh g ◦ˢᵘᵇ M⃗ i h t s f == idd (M= k h p) ◦ˢᵘᵇ M⃗ i h t s (g ◦ f)
 
@@ -108,7 +95,7 @@ Mᵒ i h (1+ t) s =
   u = S≤-< s
 
   c = count-factors i h t shp (#[ t ] i h u)
-  cs = count-factors-gives-shape i h t shp (#[ t ] i h u)
+  cs = count-factors-shape i h t shp (#[ t ] i h u)
 
   eq : M h h c cs == (𝔻 (1+ h) ++ₜₑₗ Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
   eq = M=₁ i h t s
@@ -125,7 +112,7 @@ M=₁ i O t s =
   u = S≤-< s
   [t] = #[ t ] i O u
   cf = count-factors i O t prev [t]
-  sh = count-factors-gives-shape i O t prev [t]
+  sh = count-factors-shape i O t prev [t]
 
   p : cf == O
   p = count-factors-top-level i O t prev [t]
@@ -139,23 +126,67 @@ M=₁ i (1+ h) t s =
   u = S≤-< s
   [t] = #[ t ] i (1+ h) u
   cf = count-factors i (1+ h) t prev [t]
-  sh = count-factors-gives-shape i (1+ h) t prev [t]
+  sh = count-factors-shape i (1+ h) t prev [t]
 
   p : cf == O
   p = count-factors-top-level i (1+ h) t prev [t]
 
 
-M⃗ i h (1+ t) s {j} f
+M⃗ i h (1+ O) s {j} f =
+  show Sub (M i h (1+ O) s) (M j h c cs) by
+  depcase
+    (λ d →
+      Sub (M i h (1+ O) s)
+          (M j h (count-factors[ i , h ,1+ O ] u f d)
+                 (count-factors-shape-aux i h O u f d)))
+    (f ∣? #[ O ] i h u)
+    (λ (g , e) → {!!})
+    λ no → M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
+  where
+  c = count-factors i h (1+ O) s f
+  cs = count-factors-shape i h (1+ O) s f
+  u = S≤-< s
+  prev = prev-shape s
+
+M⃗ i h (2+ t) s {j} f = show Sub (M i h (2+ t) s) (M j h c cs) by
+  depcase
+    (λ d →
+      Sub (M i h (2+ t) s)
+          (M j h (count-factors[ i , h ,1+ 1+ t ] u f d)
+                 (count-factors-shape-aux i h (1+ t) u f d)))
+    (f ∣? #[ 1+ t ] i h u)
+    (λ (g , e) → {!!})
+    λ no → {!!}
+  where
+  c = count-factors i h (2+ t) s f
+  cs = count-factors-shape i h (2+ t) s f
+  u = S≤-< s
+  prev = prev-shape s
+
+{- new attempts
+--  with f ∣ #[ t ] i h (S≤-< s)
+--     -- | count-factors i h (1+ t) s f in eq
+--     -- | count-factors-shape i h (1+ t) s f
+--     | Mᵒ j h (count-factors i h (1+ t) s f)
+--         (count-factors-shape i h (1+ t) s f)
+--     -- | inspect (uncurry $ Mᵒ j h)
+--     --           ( count-factors i h (1+ t) s f
+--     --           , count-factors-shape i h (1+ t) s f )
+-- ... | inl x | Mᵒjh = {!!}
+-- ... | inr x | Mᵒjh = {!!}
+-}
+
+{- old def
  with f ∣ #[ t ] i h (S≤-< s)
     | inspect (count-factors i h (1+ t) s) f
     | count-factors i h (1+ t) s f               -- c
     | inspect (count-factors i h (1+ t) s) f
-    | count-factors-gives-shape i h (1+ t) s f   -- cs
+    | count-factors-shape i h (1+ t) s f   -- cs
     | Mᵒ j h (count-factors i h (1+ t) s f)
-        (count-factors-gives-shape i h (1+ t) s f)
+        (count-factors-shape i h (1+ t) s f)
     | inspect (uncurry $ Mᵒ j h)
         (count-factors i h (1+ t) s f
-        , count-factors-gives-shape i h (1+ t) s f)
+        , count-factors-shape i h (1+ t) s f)
 
 ... | inl (g , e)
     | have p -- : count-factors i h (1+ t) s f ==
@@ -202,10 +233,11 @@ M⃗ i h (1+ t) s {j} f
     where
     prev = prev-shape s
     cf = count-factors i h t prev f
-    sh = count-factors-gives-shape i h t prev f
+    sh = count-factors-shape i h t prev f
 
     eq : M j h cf sh == M j h c cs
     eq = M= j h (! p)
+-}
 
 M⃗ i (1+ h) O s {j} f =
   wkn-sub (Mᵒᶠᵘˡˡ i h) (Mᵒᶠᵘˡˡ j h)
@@ -217,7 +249,7 @@ M⃗ i (1+ h) O s {j} f =
   shpᵢ = full-shape i h
 
   cf = count-factors i h fullᵢ shpᵢ f
-  sh = count-factors-gives-shape i h fullᵢ shpᵢ f
+  sh = count-factors-shape i h fullᵢ shpᵢ f
 
   fullⱼ = hom-size j h
   shpⱼ = full-shape j h

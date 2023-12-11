@@ -22,3 +22,9 @@ a ◂$ f = f a
 
 ✶ : ∀ {ℓ} → Lift {j = ℓ} ⊤
 ✶ = lift unit
+
+-- Notation for development/debugging
+show_by_ : ∀ {ℓ} (A : Type ℓ) → A → A
+show A by a = a
+
+infixr 1 show_by_

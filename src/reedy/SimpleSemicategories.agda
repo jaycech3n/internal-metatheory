@@ -30,7 +30,7 @@ record SimpleSemicategory ℓₘ : Type (lsuc ℓₘ) where
     module lemmas where
       ¬divides-same-target :
         ∀ i j t (u : t < hom-size i j) (f : hom i j)
-        → ¬ (f divides #[ t ] i j u)
+        → ¬ (f ∣ #[ t ] i j u)
       ¬divides-same-target i j t u f (g , _) = endo-hom-empty g
 
       ¬O<hom-size-O : ∀ i t → ¬ (t < hom-size 0 i)

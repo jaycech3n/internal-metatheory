@@ -201,11 +201,11 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
                              e' : Lift {j = ℓₘ} (Fin n) ≃ hom x y
                              e' = (lift-equiv ∘e e)⁻¹
 
-      _divides_ : ∀ {x y z} (f : hom x y) (h : hom x z) → Type ℓₘ
-      _divides_ {y = y} {z} f h = Σ[ g ﹕ hom y z ] g ◦ f == h
+      _∣_ : ∀ {x y z} (f : hom x y) (h : hom x z) → Type ℓₘ
+      _∣_ {y = y} {z} f h = Σ[ g ﹕ hom y z ] g ◦ f == h
 
-      _∣_ : ∀ {x y z} (f : hom x y) (h : hom x z) → Dec (f divides h)
-      f ∣ h = Σ-hom? (λ g → g ◦ f == h) (λ g → g ◦ f ≟-hom h)
+      _∣?_ : ∀ {x y z} (f : hom x y) (h : hom x z) → Dec (f ∣ h)
+      f ∣? h = Σ-hom? (λ g → g ◦ f == h) (λ g → g ◦ f ≟-hom h)
 
   open hom-lemmas public
 
