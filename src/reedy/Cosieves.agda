@@ -340,7 +340,7 @@ module Cosieves-IsStrictlyOriented
   count-factors-shape-aux i h O u f (inr no) = O≤ _
   count-factors-shape-aux i h (1+ t) u f (inr no) =
     count-factors-shape-aux i h t v f (f ∣? #[ t ] i h v)
-    where v = S<-< u
+    where v = S<-< u -- S≤-< (inr u)
 
   count-factors-shape :
     ∀ i h t s {j} (f : hom i j)
