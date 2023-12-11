@@ -55,6 +55,12 @@ A i = generic[ Mᵒᵗᵒᵗ i ]type
 M= : ∀ i h {t} {s} {t'} {s'} → t == t' → M i h t s == M i h t' s'
 M= i h {t} {s} {.t} {s'} idp = ap (M i h t) shape-path
 
+M=' :
+  ∀ i h t t' {s} {s'}
+  → t == t'
+  → M i h t s == M i h t' s'
+M=' i h t t' {s} {s'} p = M= i h {s = s} {s' = s'} p
+
 -- End convenience definitions ====
 
 𝔻 O = ◆
@@ -66,7 +72,6 @@ M⃗ :
         sh = count-factors-shape i h t s f
     in Sub (M i h t s) (M j h cf sh)
 
-
 -- Also use this equation
 M=₁ :
   ∀ i h t (s : shape i h (1+ t))
@@ -76,7 +81,6 @@ M=₁ :
         cf = count-factors i h t prev [t]
         sh = count-factors-shape i h t prev [t]
     in M h h cf sh == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
-
 
 M⃗◦ :
   ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
@@ -88,14 +92,14 @@ M⃗◦ :
 
 {-# TERMINATING #-}
 Mᵒ i h (1+ t) s =
-  Mᵒ i h t shp ‣ A h [ idd eq ◦ˢᵘᵇ M⃗ i h t shp (#[ t ] i h u) ]
+  Mᵒ i h t prev ‣ A h [ idd eq ◦ˢᵘᵇ M⃗ i h t prev (#[ t ] i h u) ]
   where
-  shp = prev-shape s
+  prev = prev-shape s
   u : t < hom-size i h
   u = S≤-< s
 
-  c = count-factors i h t shp (#[ t ] i h u)
-  cs = count-factors-shape i h t shp (#[ t ] i h u)
+  c = count-factors i h t prev (#[ t ] i h u)
+  cs = count-factors-shape i h t prev (#[ t ] i h u)
 
   eq : M h h c cs == (𝔻 (1+ h) ++ₜₑₗ Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
   eq = M=₁ i h t s
@@ -133,35 +137,88 @@ M=₁ i (1+ h) t s =
 
 
 M⃗ i h (1+ O) s {j} f =
-  show Sub (M i h (1+ O) s) (M j h c cs) by
-  depcase
-    (λ d →
-      Sub (M i h (1+ O) s)
-          (M j h (count-factors[ i , h ,1+ O ] u f d)
-                 (count-factors-shape-aux i h O u f d)))
+  depcase P
     (f ∣? #[ O ] i h u)
-    (λ (g , e) → {!!})
-    λ no → M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
+    yes.sub
+    no.sub
+  :>
+  Sub (M i h 1 s)
+      (M j h (count-factors i h 1 s f)
+        (count-factors-shape i h 1 s f))
   where
-  c = count-factors i h (1+ O) s f
-  cs = count-factors-shape i h (1+ O) s f
+  u : O < hom-size i h
   u = S≤-< s
+
+  f∣[O] : Type _
+  f∣[O] = f ∣ #[ O ] i h u
+
+  P : (d : Dec f∣[O]) → Type _
+  P d = Sub (M i h 1 s)
+            (M j h (count-factors[ i , h ,1+ O ] u f d)
+              (count-factors-shape-aux i h O u f d))
+
+  module yes (w : f∣[O]) where
+    prev = prev-shape s
+
+    p : count-factors i h O prev f == O
+    p = idp
+
+    sub : Sub (M i h 1 s) (M j h O _ ∷ A h [ _ ])
+    sub =
+      idd (M= j h p) ◦ˢᵘᵇ M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
+      ,, {!!}
+
+  module no (w : ¬ f∣[O]) where
+    prev = prev-shape s
+
+    sub : Sub (M i h 1 s) (M j h O _)
+    sub = M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
+
   prev = prev-shape s
 
-M⃗ i h (2+ t) s {j} f = show Sub (M i h (2+ t) s) (M j h c cs) by
-  depcase
-    (λ d →
-      Sub (M i h (2+ t) s)
-          (M j h (count-factors[ i , h ,1+ 1+ t ] u f d)
-                 (count-factors-shape-aux i h (1+ t) u f d)))
+M⃗ i h (2+ t) s {j} f =
+  depcase P
     (f ∣? #[ 1+ t ] i h u)
-    (λ (g , e) → {!!})
-    λ no → M⃗ i h (1+ t) {!!} f ◦ˢᵘᵇ π (A h [ _ ])
+    yes.sub
+    no.sub
+  :>
+  Sub (M i h (2+ t) s)
+      (M j h (count-factors i h (2+ t) s f)
+        (count-factors-shape i h (2+ t) s f))
   where
-  c = count-factors i h (2+ t) s f
-  cs = count-factors-shape i h (2+ t) s f
+  u : 1+ t < hom-size i h
   u = S≤-< s
-  prev = prev-shape s
+
+  f∣[t+1] : Type _
+  f∣[t+1] = f ∣ #[ 1+ t ] i h u
+
+  P : (d : Dec f∣[t+1]) → Type _
+  P d = Sub (M i h (2+ t) s)
+            (M j h (count-factors[ i , h ,1+ 1+ t ] u f d)
+              (count-factors-shape-aux i h (1+ t) u f d))
+
+  module yes (w : f∣[t+1]) where
+    prev = prev-shape s
+
+    v : t < hom-size i h
+    v = S<-< u
+
+    p : count-factors i h (1+ t) prev f ==
+        count-factors[ i , h ,1+ t ] v f (f ∣? #[ t ] i h v)
+    p = idp
+
+    sub : Sub (M i h (2+ t) s)
+              (M j h (count-factors i h (1+ t) prev f) _ ∷ A h [ _ ])
+    sub =
+      idd (M= j h p) ◦ˢᵘᵇ M⃗ i h (1+ t) prev f ◦ˢᵘᵇ π (A h [ _ ])
+      ,, {!!}
+
+  module no (w : ¬ f∣[t+1]) where
+    prev = prev-shape s
+
+    sub : Sub (M i h (2+ t) s)
+              (M j h (count-factors i h (1+ t) prev f) _)
+    sub = M⃗ i h (1+ t) prev f ◦ˢᵘᵇ π (A h [ _ ])
 
 {- new attempts
 --  with f ∣ #[ t ] i h (S≤-< s)
