@@ -336,7 +336,8 @@ module Cosieves-IsStrictlyOriented
     ∀ i h t u {j} (f : hom i j)
     → (d : Dec (f ∣ #[ t ] i h u))
     → count-factors[ i , h ,1+ t ] u f d ≤ hom-size j h
-  count-factors-shape-aux i h t u f (inl yes) = {!!}
+  count-factors-shape-aux i h O u f (inl yes) = {!!}
+  count-factors-shape-aux i h (1+ t) u f (inl yes) = {!!}
   count-factors-shape-aux i h O u f (inr no) = O≤ _
   count-factors-shape-aux i h (1+ t) u f (inr no) =
     count-factors-shape-aux i h t v f (f ∣? #[ t ] i h v)

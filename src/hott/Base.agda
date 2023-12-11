@@ -23,8 +23,10 @@ a ◂$ f = f a
 ✶ : ∀ {ℓ} → Lift {j = ℓ} ⊤
 ✶ = lift unit
 
--- Notation for development/debugging
+-- Notation for readability
 show_by_ : ∀ {ℓ} (A : Type ℓ) → A → A
 show A by a = a
 
-infixr 1 show_by_
+:⟨_⟩_ = show_by_
+
+infixr 1 show_by_ :⟨_⟩_
