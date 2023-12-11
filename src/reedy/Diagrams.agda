@@ -156,7 +156,9 @@ M⃗ i h (2+ t) s {j} f = show Sub (M i h (2+ t) s) (M j h c cs) by
                  (count-factors-shape-aux i h (1+ t) u f d)))
     (f ∣? #[ 1+ t ] i h u)
     (λ (g , e) → {!!})
-    λ no → {!!}
+    λ no → {!M⃗ i h (1+ t) ? f ◦ˢᵘᵇ π (A h [ _ ])
+      -- Definitional mismatch blocks the above from going through:
+      -- need that S≤-< (S≤-≤ s) ≡ S<-< (S≤-< s).!}
   where
   c = count-factors i h (2+ t) s f
   cs = count-factors-shape i h (2+ t) s f
