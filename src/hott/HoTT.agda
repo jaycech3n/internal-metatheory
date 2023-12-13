@@ -10,6 +10,7 @@ open import hott.Fin public
 open import hott.Induction public
 open import hott.Inspect public
 open import hott.Nat public
+open import hott.NType public
 open import hott.Paths public
 open import hott.PathOver public
 open import hott.Pi public

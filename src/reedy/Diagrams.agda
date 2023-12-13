@@ -53,7 +53,10 @@ A : (i : ℕ) → Ty (𝔻 i ∷ 𝔸 i ++ₜₑₗ Mᵒᵗᵒᵗ i [ π (𝔸 i
 A i = generic[ Mᵒᵗᵒᵗ i ]type
 
 M= : ∀ i h {t} {s} {t'} {s'} → t == t' → M i h t s == M i h t' s'
-M= i h {t} {s} {.t} {s'} idp = ap (M i h t) shape-path
+M= i h {t} {s} {.t} {s'} idp = ap (M i h t) (shape-path s s')
+
+M=shape : ∀ {i h t} s s' → M i h t s == M i h t s'
+M=shape {i} {h} {t} s s' = ap (M i h t) (shape-path s s')
 
 -- End convenience definitions ====
 
@@ -153,13 +156,12 @@ M⃗ i h (1+ O) s {j} f =
 
   module yes (w : f∣[O]) where
     prev = prev-shape s
+    c = count-factors i h O prev f
+    cs = count-factors-shape i h O prev f
 
-    p : count-factors i h O prev f == O
-    p = idp
-
-    sub : Sub (M i h 1 s) (M j h O _ ∷ A h [ _ ])
+    sub : Sub (M i h 1 s) (M j h c _ ∷ A h [ _ ])
     sub =
-      idd (M= j h p) ◦ˢᵘᵇ M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
+      idd (M=shape cs _) ◦ˢᵘᵇ M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
       ,, {!!}
 
   module no (w : ¬ f∣[O]) where
@@ -193,18 +195,15 @@ M⃗ i h (2+ t) s {j} f =
 
   module yes (w : f∣[t+1]) where
     prev = prev-shape s
+    c = count-factors i h (1+ t) prev f
+    cs = count-factors-shape i h (1+ t) prev f
 
     v : t < hom-size i h
     v = S<-< u
 
-    p : count-factors i h (1+ t) prev f ==
-        count-factors[ i , h ,1+ t ] v f (f ∣? #[ t ] i h v)
-    p = idp
-
-    sub : Sub (M i h (2+ t) s)
-              (M j h (count-factors i h (1+ t) prev f) _ ∷ A h [ _ ])
+    sub : Sub (M i h (2+ t) s) (M j h c _ ∷ A h [ _ ])
     sub =
-      idd (M= j h p) ◦ˢᵘᵇ M⃗ i h (1+ t) prev f ◦ˢᵘᵇ π (A h [ _ ])
+      idd (M=shape cs _) ◦ˢᵘᵇ M⃗ i h (1+ t) prev f ◦ˢᵘᵇ π (A h [ _ ])
       ,, {!!}
 
   module no (w : ¬ f∣[t+1]) where
@@ -309,6 +308,7 @@ M⃗ i (1+ h) O s {j} f =
   eq = M= j h (count-factors-full i h shpᵢ f)
 
 M⃗ i O O s f = id
-
-
-M⃗◦ = {!!}
+M⃗◦ i h (1+ t) s f g = {!!}
+M⃗◦ i (1+ h) O s f g = {!!}
+M⃗◦ i O O s f {k} g =
+  ap (_◦ˢᵘᵇ id) (ap (idd ∘ ap (M k O O)) (! $ prop-has-all-paths-idp _))

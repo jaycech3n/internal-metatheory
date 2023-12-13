@@ -41,9 +41,8 @@ is-shape = 3rd ∘ snd
 shape-is-prop : ∀ {i h t} → is-prop (shape i h t)
 shape-is-prop = ≤-is-prop
 
-shape-path : ∀ {i h t} {s s' : shape i h t} → s == s'
-shape-path = prop-has-all-paths _ _
-
+shape-path : ∀ {i h t} (s s' : shape i h t) → s == s'
+shape-path = prop-has-all-paths
 
 {- Shape order -}
 
@@ -361,8 +360,10 @@ module Cosieves-IsStrictlyOriented
   count-factors-comp :
     ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
     → ∀ {s'}
-    → count-factors i h t s (g ◦ f) == count-factors j h (count-factors i h t s f) s' g
-  count-factors-comp = {!!}
+    → count-factors i h t s (g ◦ f)
+      == count-factors j h (count-factors i h t s f) s' g
+  count-factors-comp i h O s f g = idp
+  count-factors-comp i h (1+ t) s f g = {!!}
 
   -- Shape restriction
   -- \cdot; different from \.
