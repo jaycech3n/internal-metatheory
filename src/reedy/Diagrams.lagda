@@ -1,5 +1,6 @@
-# A HoTT construction of Reedy fibrant diagrams in contexts of a wild category
-with families.
+A HoTT construction of Reedy fibrant diagrams
+in contexts of a wild category with families
+=============================================
 
 **IMPORTANT! This version switches off termination checking.**
 
@@ -33,6 +34,9 @@ open Πₜₑₗ pistr
 open TelIndexedTypes univstr
 
 \end{code}
+
+Preliminaries, Overview, and 𝔻 (context of diagram fillers)
+-----------------------------------------------------------
 
 The construction is a large mutually inductive definition with a large number of
 components. The first two core ones are 𝔻 and Mᵒ:
@@ -135,6 +139,9 @@ M⁼= :
 
 \end{code}
 
+Partial matching objects: Mᵒ (object part)
+------------------------------------------
+
 Now we define the partial matching object functor. This will be done with a well
 founded induction on shapes. For now, to more clearly present the intuitive
 ideas and focus on the coherences before worrying about the fully correct
@@ -154,10 +161,10 @@ Mᵒ i h (1+ t) s =
   u : t < hom-size i h
   u = S≤-< s
 
-  c = count-factors i h t prev (#[ t ] i h u)
-  cs = count-factors-shape i h t prev (#[ t ] i h u)
+  cfp = count-factors i h t prev (#[ t ] i h u)
+  shp = count-factors-shape i h t prev (#[ t ] i h u)
 
-  eq : M h h c cs == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
+  eq : M h h cfp shp == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
   eq = M⁼= i h t s
 
 Mᵒ i (1+ h) O s = Mᵒᶠᵘˡˡ i h [ π (𝔸 (1+ h)) ]ₜₑₗ
@@ -172,7 +179,7 @@ With the definition of Mᵒ in place we can prove M⁼=, by pattern matching on 
 
 M⁼= i O t s =
   M O O cf sh =⟨ M= O O {s' = O≤ _} p ⟩
-  M O O O _ =⟨ idp ⟩
+  M O O O (O≤ _) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ O [ π (𝔸 O) ]ₜₑₗ) =∎
   where
   prev = prev-shape s
@@ -186,7 +193,7 @@ M⁼= i O t s =
 
 M⁼= i (1+ h) t s =
   M (1+ h) (1+ h) cf sh =⟨ M= (1+ h) (1+ h) {s' = O≤ _} p ⟩
-  M (1+ h) (1+ h) O _ =⟨ idp ⟩
+  M (1+ h) (1+ h) O (O≤ _) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ (1+ h) [ π (𝔸 (1+ h)) ]ₜₑₗ) =∎
   where
   prev = prev-shape s
@@ -200,49 +207,116 @@ M⁼= i (1+ h) t s =
 
 \end{code}
 
-Now, the action of the partial matching object on morphisms f. The recursion in
-this part of the construction relies on certain types computing to the
-appropriate things, depending on whether or not f divides [t]ⁱₕ.
+Partial matching objects: M⃗ (morphism part)
+--------------------------------------------
 
-To actually allow this computation to occur, the types of the definitions need
-to expose an argument of type (Dec (f ∣ #[ t ] i h u)).
+Now, the action of the partial matching object on morphisms f.
+
+In the (i, h, t+1) case, we have a further case distinction on t = 0 or t = t'+1
+(as count-factors, and thus the type of M⃗, takes different values based on this
+distinction).
 
 \begin{code}
 
 module M⃗[i,h,1]-Cases where
 
-P[_,_,1] :
-  ∀ i h (s : shape i h 1) {j} (f : hom i j)
-  → let u = S≤-< s in Dec (f ∣ #[ O ] i h u)
-  → Type _
-P[ i , h ,1] s {j} f d =
-  Sub
-    (M i h 1 s)
-    (M j h (count-factors[ i , h ,1+ O ] u f d)
-      (count-factors-shape-aux i h O u f d))
-  where u = S≤-< s
+\end{code}
 
-M⃗[_,_,1]-yes :
-  ∀ i h (s : shape i h 1) {j} (f : hom i j)
-  → let u = S≤-< s in (w : f ∣ #[ O ] i h u)
-  → let prev = prev-shape s
-        cf = count-factors i h O prev f
-        sh = S≤-≤ (count-factors-shape-aux i h O u f (inl w))
-    in Sub (M i h 1 s) (M j h cf sh ∷ A h [ _ ])
-M⃗[ i , h ,1]-yes s {j} f w =
-  idd (M=shape cs _) ◦ˢᵘᵇ M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
-  ,, {!!}
-  where
-  prev = prev-shape s
-  cs = count-factors-shape i h O prev f
+The recursion in this part of the construction relies on certain types computing
+to the appropriate things, depending on whether or not f divides [t]ⁱₕ. To
+actually allow this computation to occur, the types of the definitions need to
+expose an argument of type (Dec (f ∣ #[ t ] i h u)).
 
-M⃗[_,_,1]-no :
-  ∀ i h (s : shape i h 1) {j} (f : hom i j)
-  → let u = S≤-< s in (w : ¬ (f ∣ #[ O ] i h u))
-  → let prev = prev-shape s
-    in Sub (M i h 1 s) (M j h O _)
-M⃗[ i , h ,1]-no s {j} f w = M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
-  where prev = prev-shape s
+\begin{code}
+
+  P[_,_,1] :
+    ∀ i h (s : shape i h 1) {j} (f : hom i j)
+    → let u = S≤-< s in Dec (f ∣ #[ O ] i h u)
+    → Type _
+  P[ i , h ,1] s {j} f d =
+    Sub (M i h 1 s)
+        (M j h (count-factors[ i , h ,1+ O ] u f d)
+          (count-factors[ i , h ,1+ O ]-shape u f d))
+    where u = S≤-< s
+
+\end{code}
+
+In general, M⃗ (i, h, t+1) f is defined by case analysis on (f ∣? [t]). We prove
+the two cases separately, with explicit dependence on witnesses w.
+
+\begin{code}
+
+  M⃗[_,_,1]-yes :
+    ∀ i h (s : shape i h 1) {j} (f : hom i j)
+    → let u = S≤-< s in (w : f ∣ #[ O ] i h u)
+    → let prev = prev-shape s
+          cfp = count-factors i h O prev f
+          shp = S≤-≤ (count-factors[ i , h ,1+ O ]-shape u f (inl w))
+      in Sub (M i h 1 s) (M j h cfp shp ∷ A h [ _ ])
+  M⃗[ i , h ,1]-yes s {j} f w =
+    idd (M=shape cfp _) ◦ˢᵘᵇ M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
+    ,, {!!}
+    where
+    prev = prev-shape s
+    cfp = count-factors-shape i h O prev f
+
+  M⃗[_,_,1]-no :
+    ∀ i h (s : shape i h 1) {j} (f : hom i j)
+    → let u = S≤-< s in (w : ¬ (f ∣ #[ O ] i h u))
+    → let prev = prev-shape s
+      in Sub (M i h 1 s) (M j h O _)
+  M⃗[ i , h ,1]-no s {j} f w = M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
+    where prev = prev-shape s
+
+open M⃗[i,h,1]-Cases
+
+\end{code}
+
+Repeat the above for M⃗ (i, h, t+2) f.
+
+\begin{code}
+
+module M⃗[i,h,t+2]-Cases where
+
+  P[_,_,2+_] :
+    ∀ i h t (s : shape i h (2+ t)) {j} (f : hom i j)
+    → let u = S≤-< s in Dec (f ∣ #[ 1+ t ] i h u)
+    → Type _
+  P[ i , h ,2+ t ] s {j} f d =
+    Sub (M i h (2+ t) s)
+        (M j h (count-factors[ i , h ,1+ 1+ t ] u f d)
+          (count-factors[ i , h ,1+ 1+ t ]-shape u f d))
+    where u = S≤-< s
+
+  M⃗[_,_,2+_]-yes :
+    ∀ i h t (s : shape i h (2+ t)) {j} (f : hom i j)
+    → let u = S≤-< s in (w : f ∣ #[ 1+ t ] i h u)
+    → let prev = prev-shape s
+          cfp = count-factors i h (1+ t) prev f
+          shp = S≤-≤ (count-factors[ i , h ,1+ 1+ t ]-shape u f (inl w))
+      in Sub (M i h (2+ t) s) (M j h cfp shp ∷ A h [ _ ])
+  M⃗[ i , h ,2+ t ]-yes s f w =
+    idd (M=shape shp _) ◦ˢᵘᵇ M⃗ i h (1+ t) prev f ◦ˢᵘᵇ π (A h [ _ ])
+    ,, {!!}
+    where
+    prev = prev-shape s
+    shp = count-factors-shape i h (1+ t) prev f
+
+  M⃗[_,_,2+_]-no :
+    ∀ i h t (s : shape i h (2+ t)) {j} (f : hom i j)
+    → let u = S≤-< s in (w : ¬ (f ∣ #[ 1+ t ] i h u))
+    → let prev = prev-shape s
+      in Sub (M i h (2+ t) s) (M j h (count-factors i h (1+ t) prev f) _)
+  M⃗[ i , h ,2+ t ]-no s f w = M⃗ i h (1+ t) prev f ◦ˢᵘᵇ π (A h [ _ ])
+    where prev = prev-shape s
+
+open M⃗[i,h,t+2]-Cases
+
+\end{code}
+
+Now we can package everything up to define M⃗ (i, h, t+1) f.
+
+\begin{code}
 
 M⃗[_,_,1] :
   ∀ i h (s : shape i h 1) {j} (f : hom i j)
@@ -254,59 +328,27 @@ M⃗[ i , h ,1] s f =
     (M⃗[ i , h ,1]-no s f)
   where u = S≤-< s
 
-open M⃗[i,h,1]-Cases
-
-M⃗ i h (1+ O) s {j} f =
-  M⃗[ i , h ,1] s f (f ∣? #[ O ] i h u)
+M⃗[_,_,2+_] :
+  ∀ i h t (s : shape i h (2+ t)) {j} (f : hom i j)
+  → let u = S≤-< s in (d : Dec (f ∣ #[ 1+ t ] i h u))
+  → P[ i , h ,2+ t ] s f d
+M⃗[ i , h ,2+ t ] s f =
+  ⊔-elim {C = P[ i , h ,2+ t ] s f}
+    (M⃗[ i , h ,2+ t ]-yes s f)
+    (M⃗[ i , h ,2+ t ]-no s f)
   where u = S≤-< s
-  -- depcase (P[ i , h ,1] s f)
-  --   (f ∣? #[ O ] i h u)
-  --   (λ yes → M⃗[ i , h ,1]-yes s f yes)
-  --   (λ no  → M⃗[ i , h ,1]-no s f no)
-  -- :> Sub (M i h 1 s)
-  --        (M j h (count-factors i h 1 s f)
-  --          (count-factors-shape i h 1 s f))
-  -- where u = S≤-< s
 
-M⃗ i h (2+ t) s {j} f =
-  depcase P
-    (f ∣? #[ 1+ t ] i h u)
-    yes.sub
-    no.sub
-  :> Sub (M i h (2+ t) s)
-         (M j h (count-factors i h (2+ t) s f)
-           (count-factors-shape i h (2+ t) s f))
-  where
-  u : 1+ t < hom-size i h
-  u = S≤-< s
+M⃗ i h (1+ O) s {j} f = M⃗[ i , h ,1] s f (f ∣? #[ O ] i h u)
+  where u = S≤-< s
 
-  f∣[t+1] : Type _
-  f∣[t+1] = f ∣ #[ 1+ t ] i h u
+M⃗ i h (2+ t) s {j} f = M⃗[ i , h ,2+ t ] s f (f ∣? #[ 1+ t ] i h u)
+  where u = S≤-< s
 
-  P : Dec f∣[t+1] → Type _
-  P d = Sub (M i h (2+ t) s)
-            (M j h (count-factors[ i , h ,1+ 1+ t ] u f d)
-              (count-factors-shape-aux i h (1+ t) u f d))
+\end{code}
 
-  module yes (w : f∣[t+1]) where
-    prev = prev-shape s
-    c = count-factors i h (1+ t) prev f
-    cs = count-factors-shape i h (1+ t) prev f
+The other cases for M⃗ ─ (i, h+1, 0) and (i, 0, 0).
 
-    v : t < hom-size i h
-    v = S<-< u
-
-    sub : Sub (M i h (2+ t) s) (M j h c _ ∷ A h [ _ ])
-    sub =
-      idd (M=shape cs _) ◦ˢᵘᵇ M⃗ i h (1+ t) prev f ◦ˢᵘᵇ π (A h [ _ ])
-      ,, {!!}
-
-  module no (w : ¬ f∣[t+1]) where
-    prev = prev-shape s
-
-    sub : Sub (M i h (2+ t) s)
-              (M j h (count-factors i h (1+ t) prev f) _)
-    sub = M⃗ i h (1+ t) prev f ◦ˢᵘᵇ π (A h [ _ ])
+\begin{code}
 
 M⃗ i (1+ h) O s {j} f =
   wkn-sub (Mᵒᶠᵘˡˡ i h) (Mᵒᶠᵘˡˡ j h)
@@ -328,62 +370,34 @@ M⃗ i (1+ h) O s {j} f =
 
 M⃗ i O O s f = id
 
+\end{code}
 
--- Case analysis definition ====
+Partial matching objects: M⃗∘ (functoriality)
+---------------------------------------------
 
-M⃗[_,_,1+_] :
-  ∀ i h t (s : shape i h (1+ t)) {j} (f : hom i j)
-  → let u = S≤-< s in
-    (d : Dec (f ∣ #[ t ] i h u))
-  → Sub (M i h (1+ t) s)
-        (M j h (count-factors[ i , h ,1+ t ] u f d)
-          (count-factors-shape-aux i h t u f d))
-M⃗[ i , h ,1+ O ] s f (inl yes) = {!!}
-M⃗[ i , h ,1+ O ] s f (inr no) = M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
-  where prev = prev-shape s
-M⃗[ i , h ,1+ 1+ t ] s f (inl yes) = {!!}
-M⃗[ i , h ,1+ 1+ t ] s f (inr no) = {!!}
+As before, for the (i, h, t+1) case we need to compute on whether or not
+(f ∣ [t]ⁱₕ).
 
--- ====
-
+\begin{code}
 
 M⃗◦ i h (1+ O) s {j} f {k} g =
-  depcase P
-    (f ∣? #[ O ] i h u)
-    (λ yes → {!f ∣? #[ O ] i h u!})
+  depcase P (f ∣? #[ O ] i h u)
+    {!!}
     {!!}
   where
-  u : O < hom-size i h
   u = S≤-< s
-
-  f∣[O] : Type _
-  f∣[O] = f ∣ #[ O ] i h u
-
-  P : Dec f∣[O] → Type _ -- If we use depcase, then can't split on arg of P
+  P : Dec (f ∣ #[ O ] i h u) → Type _
   P d =
     M⃗ j h (count-factors[ i , h ,1+ O ] u f d)
-      (count-factors-shape-aux i h O u f d) g
+      (count-factors[ i , h ,1+ O ]-shape u f d) g
     ◦ˢᵘᵇ M⃗[ i , h ,1] s f d
-      -- (M⃗[ i , h ,1+ O ] s f d) doesn't work; needs to be depcase
-    ==
-    idd (M= k h {!count-factors-comp i h (1+ O) s f g!})
-    ◦ˢᵘᵇ M⃗ i h 1 s (g ◦ f)
-    {-
-    M⃗ j h (count-factors i h (1+ O) s f)
-        (count-factors-shape i h (1+ O) s f) g
-        ◦ˢᵘᵇ
-        M⃗ i h (1+ O) s f  -- Problem is: here we need to compute on the value of f∣[O]
-        ==
-        idd (M= k h (count-factors-comp i h (1+ O) s f g))
-        ◦ˢᵘᵇ
-        M⃗ i h (1+ O) s (g ◦ f)  -- And here too!
-    -}
-
-  module yes (w : f∣[O]) where
-    coh : {!!}
-    coh = {!!}
+    == idd {!!} ◦ˢᵘᵇ M⃗[ i , h ,1] s (g ◦ f) {!!}
 
 M⃗◦ i h (2+ t) s {j} f {k} g = {!!}
+
+\end{code}
+
+\begin{code}
 
 M⃗◦ i (1+ h) O s f g = {!!}
 
