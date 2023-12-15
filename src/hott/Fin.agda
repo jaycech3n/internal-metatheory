@@ -180,7 +180,7 @@ module Fin-decidability where
   Σ-Fin? :
     ∀ {ℓ} {n} (P : Fin n → Type ℓ)
     → ((i : Fin n) → Dec (P i))
-    → Dec (Σ[ i ː Fin n ] P i)
+    → Dec (Σ[ i ﹕ Fin n ] P i)
   Σ-Fin? {n = 0} _ _ = inr (λ ())
   Σ-Fin? {n = 1} P ∀Fin-Sn-Dec-P =
     if (∀Fin-Sn-Dec-P 0)
@@ -289,7 +289,7 @@ module Fin-minimization where
         imp : ∀ j → ¬ (P j → i ≤-Fin j) → P j × (j <-Fin i)
         imp j = ×-fmap-r (P j) (≰-to>-Fin i j) ∘ ¬imp (dec j) (i ≤?-Fin j)
 
-        smaller-witness : Σ[ j ː Fin (2+ n) ] (P j × (j <-Fin i))
+        smaller-witness : Σ[ j ﹕ Fin (2+ n) ] (P j × (j <-Fin i))
         smaller-witness = Σ-fmap-r imp $
           ¬∀Fin (2+ n) (λ j → P j → i ≤-Fin j)
             (λ j → →-dec (dec j) (i ≤?-Fin j)) no

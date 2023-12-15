@@ -10,6 +10,9 @@ pattern 2+ n = S (S n)
 <= : ∀ {m n} (u u' : m < n) → u == u'
 <= = prop-path <-is-prop
 
+_>_ : ℕ → ℕ → Type₀
+m > n = n < m
+
 module Nat-trichotomy where
   ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
   ℕ-trichotomy' m n with ℕ-trichotomy m n
@@ -51,9 +54,6 @@ module Nat-ad-hoc-lemmas where
     =-cancel-S : 1+ m == 1+ n :> ℕ → m == n
     =-cancel-S idp = idp
 
-    S<-< : 1+ m < n → m < n
-    S<-< u = <-trans ltS u
-
     <-O< : m < n → O < n
     <-O< ltS = O<S m
     <-O< (ltSR u) = O<S _
@@ -70,8 +70,11 @@ module Nat-ad-hoc-lemmas where
     S≤-< (inl idp) = ltS
     S≤-< (inr u) = <-trans ltS u
 
+    S<-< : 1+ m < n → m < n
+    S<-< = S≤-< ∘ inr -- <-trans ltS u
+
     S≤-≤ : 1+ m ≤ n → m ≤ n
-    S≤-≤ = ≤-trans lteS
+    S≤-≤ = inr ∘ S≤-< -- ≤-trans lteS
 
     no-between : m < n → n < 1+ m → ⊥
     no-between u v with <-S≤ u
