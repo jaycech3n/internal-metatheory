@@ -59,14 +59,17 @@ record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
 𝔻ₜ : ℕ → Con
 Mᵒₜ = (i h t : ℕ) → (𝔻 : 𝔻ₜ) → shape i h t → Tel (𝔻 (1+ h))
 -}
+
+
+
+
 𝔻 : ℕ → Con
 Mᵒ : (i h t : ℕ) → shape i h t → Tel (𝔻 (1+ h))
 
-
 -- Convenience definitions ====
 
--- Mₜ = (i h t : ℕ) → shape i h t → Con
--- M i h t s = close (Mᵒ i h t s)
+M : (i h t : ℕ) → shape i h t → Con
+M i h t s = close (Mᵒ i h t s)
 
 Mᵒᵗᵒᵗ : (i : ℕ) → Tel (𝔻 i)
 Mᵒᵗᵒᵗ O = •
@@ -95,10 +98,6 @@ M=' i h t t' {s} {s'} p = M= i h {s = s} {s' = s'} p
 
 -- End convenience definitions ====
 
-test : _
-test = {!Σ[ x ∶ ℕ ] ?!}
-
-
 𝔻 O = ◆
 𝔻 (1+ i) = 𝔻 i ∷ 𝔸 i
 
@@ -125,10 +124,6 @@ M⃗◦ :
         p  = count-factors-comp i h t s f g -- and this too?
     in M⃗ j h cf sh g ◦ˢᵘᵇ M⃗ i h t s f == idd (M= k h p) ◦ˢᵘᵇ M⃗ i h t s (g ◦ f)
 
-
-
-
-M⃗ = {!!}
 
 {-# TERMINATING #-}
 Mᵒ i h (1+ t) s =
@@ -355,5 +350,6 @@ M⃗ i (1+ h) O s {j} f =
   eq = M= j h (count-factors-full i h shpᵢ f)
 
 M⃗ i O O s f = id
+
 
 M⃗◦ = {!!}
