@@ -48,11 +48,11 @@ record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
     Mᵒ  : ∀ {s' : Shape} → ((s' <ₛ s) ⊔ (s' == s)) → Tel SCT
     M⃗  : ∀ {s' : Shape} → ((s' <ₛ s) ⊔ (s' == s))
             → {k : ℕ} → (f : hom (fst (fst s')) k) → Sub (close $ Mᵒ (inr idp)) (close $ Mᵒ {s' = {!s' · f!}} {!inl $ lemma : s' · f <ₛ s!})
-    α   : ∀ {s' : Shape} → (p : ((s' <ₛ s) ⊔ (s' == s)))
-            → {k : ℕ} → (f : hom (fst (fst s')) k)
-            → {l : ℕ} → (g : hom k l)
-            → (M⃗ {s' = {!s' ◦ f!}} {!lemma!} g) ◦ˢᵘᵇ (M⃗ {s' = s'} p f) == (M⃗ {s' = s'} p (g ◦ f))
-    γ   : {!!}
+    M⃗∘ : ∀ {s' : Shape} → (p : ((s' <ₛ s) ⊔ (s' == s)))
+             → {k : ℕ} → (f : hom (fst (fst s')) k)
+             → {l : ℕ} → (g : hom k l)
+             → (M⃗ {s' = {!s' ◦ f!}} {!lemma!} g) ◦ˢᵘᵇ (M⃗ {s' = s'} p f) == (M⃗ {s' = s'} p (g ◦ f))
+    -- γ   : {!!}
 
 
 
