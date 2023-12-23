@@ -74,6 +74,11 @@ s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
 <ₛ-≤ₛ-<ₛ u (inl idp) = u
 <ₛ-≤ₛ-<ₛ u (inr v) = <ₛ-trans u v
 
+≤ₛ-<ₛ-<ₛ : ∀ {s s' s''} → s ≤ₛ s' → s' <ₛ s'' → s <ₛ s''
+≤ₛ-<ₛ-<ₛ (inl idp) u = u 
+≤ₛ-<ₛ-<ₛ (inr v) u = <ₛ-trans v u
+
+
 -- TODO. Decidability of the relation. We might also need it for <ₛ and ==.
 ≤ₛ-dec : ∀ s s' → Dec (s ≤ₛ s')
 ≤ₛ-dec = {!!}
@@ -109,17 +114,17 @@ shape-ind P ih₁ ih₂ ih₃ = wf-ind P ih where
   ih (i , 1+ h , O , is-s) = λ gen-ih → transp (λ p → P (i , 1+ h , 0 , p))
                                             {x = O≤ _} {y = is-s}
                                             shape-path
-                                            (ih₂ i h λ s q → gen-ih s
+                                            (ih₂ i h λ (i' , h' , t' , is-s') q → gen-ih (i' , h' , t' , is-s')
                                               (Coprod-rec
                                                 on-𝑖
                                                 (λ (i=i , h<h) →
-                                                  {!!}
+                                                  {!!} -- ≤ₛ-<ₛ-<ₛ (inl {!should be ok. I need to organise this better.!}) (on-ℎ {s = (i , 1+ h , O , is-s)} h<h)
                                                   )
                                                   {- transp (λ (i' , r) → (i , 1+ h , O , is-s) >ₛ (i' , ℎ s , 𝑡 s , r))
                                                   (pair×= (! i=i) shape-path) -- (! i=i)
                                                   {!!} -}   --  (on-ℎ {s = (i , 1+ h , O , is-s)} h<h))
                                                 q))
-  ih (i , h , 1+ t , is-s) = {!!}
+  ih (i , h , 1+ t , is-s) = {!should be the same again!}
 
 
 
