@@ -213,7 +213,7 @@ module count-factors-properties (i h j : ℕ) (f : hom i j) where
       f∣?[t₀] : f ∣ #[ t₀ ] i h v
       f∣?[t₀] rewrite hom#-idx ([0] ◦ f) = [0] , idp
 
-      p : c == 1+ _
+      p : c == 1+ ?
       p = {!count-factors-rec i h t₀ f (<-S≤ v) f∣?[t₀]!}
 
   hom-size-O-no-divisible :
