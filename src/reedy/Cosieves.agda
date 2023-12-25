@@ -12,6 +12,7 @@ open SimpleSemicategory I
 
 shape : ℕ → ℕ → ℕ → Type₀
 shape i h t = t ≤ hom-size i h
+-- shape i h t = (t ≤ hom-size i h) × (h ≤ i)
 
 prev-shape : ∀ {i h t} → shape i h (1+ t) → shape i h t
 prev-shape = S≤-≤
