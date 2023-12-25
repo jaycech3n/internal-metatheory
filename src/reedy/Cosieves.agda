@@ -213,7 +213,7 @@ module count-factors-properties (i h j : ℕ) (f : hom i j) where
       f∣?[t₀] : f ∣ #[ t₀ ] i h v
       f∣?[t₀] rewrite hom#-idx ([0] ◦ f) = [0] , idp
 
-      p : c == 1+ ?
+      p : c == 1+ {!!}
       p = {!count-factors-rec i h t₀ f (<-S≤ v) f∣?[t₀]!}
 
   hom-size-O-no-divisible :
@@ -424,3 +424,9 @@ module Cosieves-IsStrictlyOriented
 
   ·<ₛ : (s : Shape) {j : ℕ} (f : hom (𝑖 s) j) → s · f <ₛ s
   ·<ₛ s f = on-𝑖 (hom-inverse _ _ f)
+
+  -- use `count-factors-comp`
+  ∙comp : (s : Shape) {k l : ℕ} (f : hom (𝑖 s) k) (g : hom k l)
+             → s · (g ◦ f) == (s · f) · g  
+  ∙comp (i , h , t , s) {k} {l} f g  = {!!}
+  

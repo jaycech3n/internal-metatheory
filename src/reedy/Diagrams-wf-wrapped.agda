@@ -8,7 +8,7 @@ open import cwfs.Pi
 open import cwfs.Universe
 open import hott.WellFounded
 
-module reedy.Diagrams {ℓₘᴵ ℓₒ ℓₘ}
+module reedy.Diagrams-wf-wrapped {ℓₘᴵ ℓₒ ℓₘ}
   (I : SimpleSemicategory ℓₘᴵ)
   (I-strictly-oriented : is-strictly-oriented I)
   {C : WildCategory ℓₒ ℓₘ}
@@ -27,6 +27,44 @@ open UniverseStructure univstr
 open import cwfs.Telescopes cwfstr
 open Πₜₑₗ pistr
 open TelIndexedTypes univstr
+
+
+
+record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
+  field
+    𝔻  : Con
+    Mᵒ  : ∀ {s' : Shape} → (s' ≤ₛ s) → Tel 𝔻
+    M⃗  : ∀ {s' : Shape} → (p : s' ≤ₛ s)
+            → {k : ℕ} → (f : hom (𝑖 s') k)
+            → Sub (close $ Mᵒ p)
+                  (close $ Mᵒ {s' = s' · f}
+                              (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) p)))
+
+
+  id-iso : ∀ (s' : Shape) → (p : s' ≤ₛ s)
+             → {k : ℕ} → (f : hom (𝑖 s') k)
+             → {l : ℕ} → (g : hom k l)
+             → Sub (close $ Mᵒ (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' (g ◦ f)) p)))
+                   (close $ Mᵒ (inr (<ₛ-≤ₛ-<ₛ (·<ₛ (s' · f) g) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) p)))))
+  id-iso = {!transp {A = Σ[!}
+  -- !! or use Josh's strategy (maybe better?); cf Diagrams.agda
+
+
+  field
+    M⃗∘ : ∀ {s' : Shape} → (p : s' ≤ₛ s)
+             → {k : ℕ} → (f : hom (𝑖 s') k)
+             → {l : ℕ} → (g : hom k l)
+             → (M⃗ {s' = s' · f} (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) p)) g)
+                   ◦ˢᵘᵇ (M⃗ {s' = s'} p f)
+               ==
+               (id-iso s' p f g) ◦ˢᵘᵇ (M⃗ {s' = s'} p (g ◦ f))
+
+    -- γ   : {!!}
+
+
+
+
+{-
 
 
 𝔻 : ℕ → Con
@@ -319,3 +357,6 @@ M⃗ i O O s f = id
 
 
 M⃗◦ = {!!}
+
+
+-}
