@@ -36,6 +36,11 @@ Shape = Σ[ i ﹕ ℕ ] Σ[ h ﹕ ℕ ] Σ[ t ﹕ ℕ ] shape i h t
 is-shape : ((i , h , t , _) : Shape) → shape i h t
 is-shape = 3rd ∘ snd
 
+-- boundary cosieve
+boundary-shape : ℕ → Shape
+boundary-shape O = (O , O , O , O≤ _)
+boundary-shape (1+ i) = (1+ i , i , hom-size (1+ i) i , total-shape-1+ i)
+
 
 {- Shape equality -}
 
@@ -429,4 +434,6 @@ module Cosieves-IsStrictlyOriented
   ∙comp : (s : Shape) {k l : ℕ} (f : hom (𝑖 s) k) (g : hom k l)
              → s · (g ◦ f) == (s · f) · g  
   ∙comp (i , h , t , s) {k} {l} f g  = {!!}
-  
+
+
+
