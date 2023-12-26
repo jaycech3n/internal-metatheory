@@ -76,6 +76,7 @@ s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
 <ₛ-trans (on-𝑡 u) (on-ℎ v) = on-ℎ v
 <ₛ-trans (on-𝑡 u) (on-𝑡 v) = on-𝑡 (<-trans u v)
 
+-- these work for all transitive orders and could/should be library functions
 <ₛ-≤ₛ-<ₛ : ∀ {s s' s''} → s <ₛ s' → s' ≤ₛ s'' → s <ₛ s''
 <ₛ-≤ₛ-<ₛ u (inl idp) = u
 <ₛ-≤ₛ-<ₛ u (inr v) = <ₛ-trans u v
@@ -91,7 +92,7 @@ s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
 
 -- TODO. Wellfounded induction.
 Shape-accessible : all-accessible Shape _<ₛ_
-Shape-accessible (i , h , t , s) = {!!}
+Shape-accessible (i , h , t , s) = acc _ {!!}
 
 open WellFoundedInduction Shape _<ₛ_ Shape-accessible public
   -- renaming (wf-ind to shape-ind)
