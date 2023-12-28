@@ -100,7 +100,22 @@ data _<<_ (s : Shape) : Shape → Type₀ where
   on-𝑡 : ∀ {q} → s << (𝑖 s , ℎ s , 1+ (𝑡 s) , q)
 
 
-<<-is-wf : all-accessible Shape _<<_
+{- termination checking fails (don't know why)
+
+<<-is-wf : ∀ i h t q → is-accessible Shape _<<_ (i , h , t , q)
+<<-is-wf O          O      O  q = acc λ _ ()
+<<-is-wf O          O  (1+ t) q = acc λ { (.O , .O , .t , q₁) on-𝑡 → <<-is-wf O O t q₁ }
+<<-is-wf O      (1+ h) (1+ t) q = acc λ { (.O , .h , t₁ , q₁) on-ℎ → <<-is-wf O h t₁ q₁ ;
+                                          (.O , .(1+ h) , .t , q₁) on-𝑡 → <<-is-wf O (1+ h) t q₁}
+<<-is-wf O      (1+ h)     O  q = {!acc λ {s p → {!!}}!}
+<<-is-wf (1+ i)     O      O  q = {!acc λ {s p → {!!}}!}
+<<-is-wf (1+ i)     O  (1+ t) q = {!acc λ {s p → {!!}}!}
+<<-is-wf (1+ i) (1+ h) (1+ t) q = {!acc λ {s p → {!!}}!}
+<<-is-wf (1+ i) (1+ h)     O  q = {!acc λ {s p → {!!}}!}
+-}
+
+{-
+all-accessible Shape _<<_
 <<-is-wf (O     , O     , O     , q₀) = acc λ _ ()
 <<-is-wf (O     , O     , 1+ t₀ , q₀) = {!!} -- acc λ { (.O , .O , t , q) on-𝑡 → <<-is-wf (O , O , t₀ , q)} -- This doesn't termination-check, it's probably the record termination problem again.
 <<-is-wf (O     , 1+ h₀ , O     , q₀) = {!!}
@@ -109,47 +124,65 @@ data _<<_ (s : Shape) : Shape → Type₀ where
 <<-is-wf (1+ i₀ , O     , 1+ t₀ , q₀) = {!!}
 <<-is-wf (1+ i₀ , 1+ h₀ , O     , q₀) = {!!}
 <<-is-wf (1+ i₀ , 1+ h₀ , 1+ t₀ , q₀) = {!!}
+-}
 
+{-
 -- BEGIN TEST
 
-SS = ℕ × ℕ × ℕ
+ℕ2 = ℕ × ℕ 
 
-𝑖' ℎ' 𝑡' : SS → ℕ
-𝑖' (i , h , t) = i
-ℎ' (i , h , t) = h
-𝑡' (i , h , t) = t
+data _<'_ : ℕ2 → ℕ2 → Type₀ where
+  lex₁ : ∀ {a b b'} → (a , b) <' (1+ a , b')
+  lex₂ : ∀ {a b}    → (a , b) <' (a , 1+ b)
 
-data _<'_ (s : SS) : SS → Type₀ where
-  on-𝑖 : ∀ {h t} → s <' (1+ (𝑖' s) , h , t)
-  on-ℎ : ∀ {t} → s <' (𝑖' s , 1+ (ℎ' s) , t)
-  on-𝑡 : s <' (𝑖' s , ℎ' s , 1+ (𝑡' s))
+<'-is-wf : (a : ℕ) → (b : ℕ) → is-accessible ℕ2 _<'_ (a , b)
+<'-is-wf O          O  = acc λ _ ()
+<'-is-wf O      (1+ b) = acc λ { (.O , .b) lex₂ → <'-is-wf O b}
+<'-is-wf (1+ a)     O  = {!!} -- acc λ {(.a , b') lex₁ → <'-is-wf a b'}
+<'-is-wf (1+ a) (1+ b) = acc λ { (.a , b') lex₁ → {!<'-is-wf a b'!} ;
+                                 (.(1+ a) , .b) lex₂ → <'-is-wf (1+ a) b}
 
-<'-is-wf : all-accessible SS _<'_
-<'-is-wf (O     , O     , O    ) = acc λ _ ()
-<'-is-wf (O     , O     , 1+ t₀) = acc λ {(.O , .O , .t₀) on-𝑡 → <'-is-wf (O , O , t₀)}
-<'-is-wf (O     , 1+ h₀ , O    ) = acc {!!} -- λ {(.O , .h₀ , t) on-ℎ → <'-is-wf (O , h₀ , t)} -- Yes, it's the record termination issue.
-<'-is-wf (O     , 1+ h₀ , 1+ t₀) = {!!}
-<'-is-wf (1+ i₀ , O     , O    ) = {!!}
-<'-is-wf (1+ i₀ , O     , 1+ t₀) = {!!}
-<'-is-wf (1+ i₀ , 1+ h₀ , O    ) = {!!}
-<'-is-wf (1+ i₀ , 1+ h₀ , 1+ t₀) = {!!}
-
+The termination checker is unhappy with this. After naming the anonymous functions, it's still unhappy.
 
 -- END TEST
+-}
+
+-- For some reason that I don't know, this *is* ok. The important step for Agda's termination checker is to copy the arguments ihtq. Pattern matching on the outside doesn't work. Ugly, and no idea why I need to do it, but it works.
+<<-is-wf : ∀ i h t q → is-accessible Shape _<<_ (i , h , t , q)
+<<-is-wf i h t q = acc (aux i h t q) where
+  aux : ∀ i h t q s → (s << (i , h , t , q)) → is-accessible Shape _<<_ s
+  aux .(1+ (𝑖 (i' , h' , t' , q'))) h t q (i' , h' , t' , q') on-𝑖 = <<-is-wf i' h' t' q'
+  aux i .(1+ (ℎ (i , h' , t' , q'))) t q (.i , h' , t' , q') on-ℎ = <<-is-wf i h' t' q'
+  aux i h .(1+ (𝑡 (i , h , t' , q'))) q (.i , .h , t' , q') on-𝑡 = <<-is-wf i h t' q'
+
+
+
+-- Now I try the above trick with the original <ₛ, just in case it works...
+<ₛ-is-wf : ∀ i h t q → is-accessible Shape _<ₛ_ (i , h , t , q)
+<ₛ-is-wf i h t q = acc (aux i h t q) where
+  aux : ∀ i h t q s → (s <ₛ (i , h , t , q)) → is-accessible Shape _<ₛ_ s
+  aux .(1+ i) h t q (i , h' , t' , q') (on-𝑖 ltS) = <ₛ-is-wf i h' t' q'
+  aux .(1+ i₀) h t q (i' , h' , t' , q') (on-𝑖 (ltSR {i'} {i₀} p)) = aux i₀ h t {!!} (i' , h' , t' , q') (on-𝑖 p) -- <ₛ-is-wf i' h' t' q'
+  aux i .(1+ h') t q (.i , h' , t' , q') (on-ℎ ltS) = <ₛ-is-wf i h' t' q'
+  aux i .(1+ h₀) t q (.i , h' , t' , q') (on-ℎ (ltSR {h'} {h₀} p)) = aux i h₀ t {!q!} (i , h' , t' , q') (on-ℎ p) -- !!! (see below)
+  aux i h t q .(𝑖 (i , h , t , q) , ℎ (i , h , t , q) , _ , _) (on-𝑡 x) = {!!}
+
+{- Problem in line !!! above:
+   (i , h₀ , t) may indeed not be a valid shape!
+   Thus, I suggest to really use that <ₛ is the transitive closure of <<.
+-}
+
 
 Shape-accessible : all-accessible Shape _<ₛ_
-Shape-accessible (i , h , t , s) = acc
-  (λ { b (on-𝑖 ltS) → Shape-accessible b ;
-       (i' , h' , t' , s') (on-𝑖 (ltSR x)) → {!Shape-accessible (.n , h , t , s)!} ;
-       .(𝑖 (i , h , t , s) , _ , _ , _) (on-ℎ x) → {!!} ;
-       .(𝑖 (i , h , t , s) , ℎ (i , h , t , s) , _ , _) (on-𝑡 x) → {!!}}
-  )
+Shape-accessible (i , h , t , s) = {!!}
+
+
 
 
 open WellFoundedInduction Shape _<ₛ_ Shape-accessible public
   -- renaming (wf-ind to shape-ind)
 
--- shape induction.
+-- TODO. shape induction.
 shape-ind : ∀ {ℓ} (P : Shape → Type ℓ)
             -- case (i,0,0)
             → (∀ i
