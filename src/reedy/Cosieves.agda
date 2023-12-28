@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
+{-# OPTIONS --without-K --rewriting --termination-depth=99 --allow-unsolved-metas #-}
 
 open import reedy.SimpleSemicategories
 open import hott.WellFounded
@@ -85,19 +85,71 @@ s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
 ≤ₛ-<ₛ-<ₛ (inl idp) u = u 
 ≤ₛ-<ₛ-<ₛ (inr v) u = <ₛ-trans v u
 
-
 -- TODO. Decidability of the relation. We might also need it for <ₛ and ==.
+-- (maybe we don't actually need it?)
 ≤ₛ-dec : ∀ s s' → Dec (s ≤ₛ s')
-≤ₛ-dec = {!!}
+≤ₛ-dec s s' = {!!}
 
 -- TODO. Wellfounded induction.
+-- Maybe we should define the order differently. It's a bit non-uniform atm.
+
+-- _<ₛ_ is the transitive closure of this:
+data _<<_ (s : Shape) : Shape → Type₀ where
+  on-𝑖 : ∀ {h t q} → s << (1+ (𝑖 s) , h , t , q)
+  on-ℎ : ∀ {t q} → s << (𝑖 s , 1+ (ℎ s) , t , q)
+  on-𝑡 : ∀ {q} → s << (𝑖 s , ℎ s , 1+ (𝑡 s) , q)
+
+
+<<-is-wf : all-accessible Shape _<<_
+<<-is-wf (O     , O     , O     , q₀) = acc λ _ ()
+<<-is-wf (O     , O     , 1+ t₀ , q₀) = {!!} -- acc λ { (.O , .O , t , q) on-𝑡 → <<-is-wf (O , O , t₀ , q)} -- This doesn't termination-check, it's probably the record termination problem again.
+<<-is-wf (O     , 1+ h₀ , O     , q₀) = {!!}
+<<-is-wf (O     , 1+ h₀ , 1+ t₀ , q₀) = {!!}
+<<-is-wf (1+ i₀ , O     , O     , q₀) = {!!}
+<<-is-wf (1+ i₀ , O     , 1+ t₀ , q₀) = {!!}
+<<-is-wf (1+ i₀ , 1+ h₀ , O     , q₀) = {!!}
+<<-is-wf (1+ i₀ , 1+ h₀ , 1+ t₀ , q₀) = {!!}
+
+-- BEGIN TEST
+
+SS = ℕ × ℕ × ℕ
+
+𝑖' ℎ' 𝑡' : SS → ℕ
+𝑖' (i , h , t) = i
+ℎ' (i , h , t) = h
+𝑡' (i , h , t) = t
+
+data _<'_ (s : SS) : SS → Type₀ where
+  on-𝑖 : ∀ {h t} → s <' (1+ (𝑖' s) , h , t)
+  on-ℎ : ∀ {t} → s <' (𝑖' s , 1+ (ℎ' s) , t)
+  on-𝑡 : s <' (𝑖' s , ℎ' s , 1+ (𝑡' s))
+
+<'-is-wf : all-accessible SS _<'_
+<'-is-wf (O     , O     , O    ) = acc λ _ ()
+<'-is-wf (O     , O     , 1+ t₀) = acc λ {(.O , .O , .t₀) on-𝑡 → <'-is-wf (O , O , t₀)}
+<'-is-wf (O     , 1+ h₀ , O    ) = acc {!!} -- λ {(.O , .h₀ , t) on-ℎ → <'-is-wf (O , h₀ , t)} -- Yes, it's the record termination issue.
+<'-is-wf (O     , 1+ h₀ , 1+ t₀) = {!!}
+<'-is-wf (1+ i₀ , O     , O    ) = {!!}
+<'-is-wf (1+ i₀ , O     , 1+ t₀) = {!!}
+<'-is-wf (1+ i₀ , 1+ h₀ , O    ) = {!!}
+<'-is-wf (1+ i₀ , 1+ h₀ , 1+ t₀) = {!!}
+
+
+-- END TEST
+
 Shape-accessible : all-accessible Shape _<ₛ_
-Shape-accessible (i , h , t , s) = acc _ {!!}
+Shape-accessible (i , h , t , s) = acc
+  (λ { b (on-𝑖 ltS) → Shape-accessible b ;
+       (i' , h' , t' , s') (on-𝑖 (ltSR x)) → {!Shape-accessible (.n , h , t , s)!} ;
+       .(𝑖 (i , h , t , s) , _ , _ , _) (on-ℎ x) → {!!} ;
+       .(𝑖 (i , h , t , s) , ℎ (i , h , t , s) , _ , _) (on-𝑡 x) → {!!}}
+  )
+
 
 open WellFoundedInduction Shape _<ₛ_ Shape-accessible public
   -- renaming (wf-ind to shape-ind)
 
--- shape induction
+-- shape induction.
 shape-ind : ∀ {ℓ} (P : Shape → Type ℓ)
             -- case (i,0,0)
             → (∀ i

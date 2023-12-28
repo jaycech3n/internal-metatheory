@@ -1,8 +1,6 @@
 {-# OPTIONS --without-K --rewriting --termination-depth=2 #-}
 
 {--- IMPORTANT! This version switches off termination checking temporarily. ---}
-{--- IMPORTANT: This attempt is (probably) archived ---}
-
 
 open import reedy.SimpleSemicategories
 open import cwfs.CwFs
@@ -10,7 +8,7 @@ open import cwfs.Pi
 open import cwfs.Universe
 open import hott.WellFounded
 
-module reedy.Diagrams-wf-wrapped {ℓₘᴵ ℓₒ ℓₘ}
+module reedy.Diagrams-wf-two {ℓₘᴵ ℓₒ ℓₘ}
   (I : SimpleSemicategory ℓₘᴵ)
   (I-strictly-oriented : is-strictly-oriented I)
   {C : WildCategory ℓₒ ℓₘ}
@@ -33,15 +31,71 @@ open TelIndexedTypes univstr
 
 
 record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
+  i = 𝑖 s
+  h = ℎ s
+  t = 𝑡 s
+  
   field
     𝔻  : Con
-    Mᵒ  : ∀ {s' : Shape} → (s' ≤ₛ s) → Tel 𝔻
+    Mᵒ  : (s' : Shape) → (s' ≤ₛ s) → Tel 𝔻
+
+  -- convenience definitions
+  M : ∀ (s' : Shape) → (s' ≤ₛ s) → Con
+  M s' q = close (Mᵒ s' q)
+
+  Mᵒᵗᵒᵗ : (i : ℕ) → (boundary-shape i ≤ₛ s) → Tel 𝔻
+  Mᵒᵗᵒᵗ i q = Mᵒ (boundary-shape i) q
+
+
+  {- todo: give names to the shapes in the Cosieves file.
+  Mᵒᶠᵘˡˡ : (i h : ℕ) → Tel (𝔻 (1+ h))
+  Mᵒᶠᵘˡˡ i h = Mᵒ i h full shp
+    where
+    full = hom-size i h
+    shp = full-shape i h
+  -}
+
+  -- Mᵒᵗᵒᵗ : (i : ℕ) → (i ≤ 1+ h) → Tel 𝔻  -- i < or i ≤ 1+ h?
+  -- Mᵒᵗᵒᵗ = {!!}
+
+  𝔸 : (i : ℕ) → (i ≤ h) → Ty 𝔻
+  𝔸 i q = Πₜₑₗ (Mᵒᵗᵒᵗ i {!!}) U
+  {- Nicolai's comment:
+     Would it be useful to add  (h ≤ i) to the shape condition?
+     We only care about shapes that fulfil this condition.
+     Without this condition, the above type of 𝔸 is wrong,
+     as `i ≤ h` doesn't imply `boundary-shape i ≤ₛ s`.
+     (Ideally, give a name to the prove of `boundary-shape i ≤ₛ s`
+     since we need it multiple times.)
+  -}
+
+  A : (i : ℕ) → (q : i ≤ h) → Ty (𝔻 ∷ 𝔸 i q ++ₜₑₗ  Mᵒᵗᵒᵗ i {!!} [ π (𝔸 i {!!}) ]ₜₑₗ  )
+  A i q = generic[ Mᵒᵗᵒᵗ i {!!} ]type
+  {-
+
+  M= : ∀ i h {t} {s} {t'} {s'} → t == t' → M i h t s == M i h t' s'
+  M= i h {t} {s} {.t} {s'} idp = ap (M i h t) shape-path
+
+  M=' :
+    ∀ i h t t' {s} {s'}
+    → t == t'
+    → M i h t s == M i h t' s'
+  M=' i h t t' {s} {s'} p = M= i h {s = s} {s' = s'} p
+  -}
+  {-
+  
+  field
+    M⃗ : ∀ i h t s {j} (f : hom i j)
+         → let cf = count-factors i h t s f
+               sh = count-factors-shape i h t s f
+           in Sub (M (i h t s) (M j h cf sh)
+
+  field
     M⃗  : ∀ {s' : Shape} → (p : s' ≤ₛ s)
             → {k : ℕ} → (f : hom (𝑖 s') k)
             → Sub (close $ Mᵒ p)
                   (close $ Mᵒ {s' = s' · f}
                               (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) p)))
-
 
   id-iso : ∀ (s' : Shape) → (p : s' ≤ₛ s)
              → {k : ℕ} → (f : hom (𝑖 s') k)
@@ -49,8 +103,8 @@ record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
              → Sub (close $ Mᵒ (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' (g ◦ f)) p)))
                    (close $ Mᵒ (inr (<ₛ-≤ₛ-<ₛ (·<ₛ (s' · f) g) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) p)))))
   id-iso = {!transp {A = Σ[!}
-  -- !! or use Josh's strategy (maybe better?); cf Diagrams.agda
 
+-- !! or use Josh's strategy (maybe better?); cf Diagrams.agda
 
   field
     M⃗∘ : ∀ {s' : Shape} → (p : s' ≤ₛ s)
@@ -62,7 +116,7 @@ record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
                (id-iso s' p f g) ◦ˢᵘᵇ (M⃗ {s' = s'} p (g ◦ f))
 
     -- γ   : {!!}
-
+  -}
 
 
 

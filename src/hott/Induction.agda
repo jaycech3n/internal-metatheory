@@ -6,7 +6,7 @@ module hott.Induction where
 
 module _ {ℓ₁ ℓ₂} (A : Type ℓ₁) (_<_ : A → A → Type ℓ₂) where
   data is-accessible : A → Type (ℓ₁ ∪ ℓ₂) where
-    acc : ∀ a → (∀ b → b < a → is-accessible b) → is-accessible a
+    acc : ∀ {a} → (∀ b → b < a → is-accessible b) → is-accessible a
 
   open is-accessible public
 
@@ -15,9 +15,9 @@ module _ {ℓ₁ ℓ₂} (A : Type ℓ₁) (_<_ : A → A → Type ℓ₂) where
     → (f : (a : A)
          → (h : ∀ b → b < a → is-accessible b)
          → (f : ∀ b → (u : b < a) → P b (h b u))
-         → P a (acc a h) )
+         → P a (acc h) )
     → (a : A) (c : is-accessible a) → P a c
-  is-accessible-elim P f a (acc .a w) =
+  is-accessible-elim P f a (acc w) =
     f a w (λ b u → is-accessible-elim P f b (w b u))
 
   is-accessible-rec : ∀ {ℓ}
