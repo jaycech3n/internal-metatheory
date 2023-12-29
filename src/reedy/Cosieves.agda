@@ -15,14 +15,14 @@ is-shape i h t = t ≤ hom-size i h
 -- This definition might have some advantages (but also create problems):
 -- shape i h t = (t ≤ hom-size i h) × (h ≤ i)
 
-prev-shape : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
-prev-shape = S≤-≤
+prev-is-shape : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
+prev-is-shape = S≤-≤
 
-full-shape : ∀ i h → is-shape i h (hom-size i h)
-full-shape i h = lteE
+is-full-shape : ∀ i h → is-shape i h (hom-size i h)
+is-full-shape i h = lteE
 
-total-shape-1+ : ∀ i → is-shape (1+ i) i (hom-size (1+ i) i)
-total-shape-1+ i = full-shape (1+ i) i
+is-total-shape-1+ : ∀ i → is-shape (1+ i) i (hom-size (1+ i) i)
+is-total-shape-1+ i = is-full-shape (1+ i) i
 
 Shape = Σ[ i ﹕ ℕ ] Σ[ h ﹕ ℕ ] Σ[ t ﹕ ℕ ] is-shape i h t
 
@@ -41,7 +41,7 @@ is-s = 3rd ∘ snd
 -- boundary cosieve
 boundary-shape : ℕ → Shape
 boundary-shape O = (O , O , O , O≤ _)
-boundary-shape (1+ i) = (1+ i , i , hom-size (1+ i) i , total-shape-1+ i)
+boundary-shape (1+ i) = (1+ i , i , hom-size (1+ i) i , is-total-shape-1+ i)
 
 
 {- Shape equality -}
