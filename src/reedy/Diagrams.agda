@@ -30,22 +30,22 @@ open TelIndexedTypes univstr
 
 
 𝔻 : ℕ → Con
-Mᵒ : (i h t : ℕ) → shape i h t → Tel (𝔻 (1+ h))
+Mᵒ : (i h t : ℕ) → is-shape i h t → Tel (𝔻 (1+ h))
 
 -- Convenience definitions ====
 
-M : (i h t : ℕ) → shape i h t → Con
+M : (i h t : ℕ) → is-shape i h t → Con
 M i h t s = close (Mᵒ i h t s)
 
 Mᵒᵗᵒᵗ : (i : ℕ) → Tel (𝔻 i)
 Mᵒᵗᵒᵗ O = •
-Mᵒᵗᵒᵗ (1+ i) = Mᵒ (1+ i) i (hom-size (1+ i) i) (total-shape-1+ i)
+Mᵒᵗᵒᵗ (1+ i) = Mᵒ (1+ i) i (hom-size (1+ i) i) (is-total-shape-1+ i)
 
 Mᵒᶠᵘˡˡ : (i h : ℕ) → Tel (𝔻 (1+ h))
 Mᵒᶠᵘˡˡ i h = Mᵒ i h full shp
   where
   full = hom-size i h
-  shp = full-shape i h
+  shp = is-full-shape i h
 
 𝔸 : (i : ℕ) → Ty (𝔻 i)
 𝔸 i = Πₜₑₗ (Mᵒᵗᵒᵗ i) U
@@ -75,8 +75,8 @@ M⃗ :
 
 -- Also use this equation
 M=₁ :
-  ∀ i h t (s : shape i h (1+ t))
-  → let prev = prev-shape s
+  ∀ i h t (s : is-shape i h (1+ t))
+  → let prev = prev-is-shape s
         u = S≤-< s
         [t] = #[ t ] i h u
         cf = count-factors i h t prev [t]
@@ -95,7 +95,7 @@ M⃗◦ :
 Mᵒ i h (1+ t) s =
   Mᵒ i h t prev ‣ A h [ idd eq ◦ˢᵘᵇ M⃗ i h t prev (#[ t ] i h u) ]
   where
-  prev = prev-shape s
+  prev = prev-is-shape s
   u : t < hom-size i h
   u = S≤-< s
 
@@ -113,7 +113,7 @@ M=₁ i O t s =
   M O O O (O≤ (hom-size O O)) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ O [ π (𝔸 O) ]ₜₑₗ) =∎
   where
-  prev = prev-shape s
+  prev = prev-is-shape s
   u = S≤-< s
   [t] = #[ t ] i O u
   cf = count-factors i O t prev [t]
@@ -127,7 +127,7 @@ M=₁ i (1+ h) t s =
   M (1+ h) (1+ h) O (O≤ _) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ (1+ h) [ π (𝔸 (1+ h)) ]ₜₑₗ) =∎
   where
-  prev = prev-shape s
+  prev = prev-is-shape s
   u = S≤-< s
   [t] = #[ t ] i (1+ h) u
   cf = count-factors i (1+ h) t prev [t]
@@ -159,7 +159,7 @@ M⃗ i h (1+ O) s {j} f =
               (count-factors-shape-aux i h O u f d))
 
   module yes (w : f∣[O]) where
-    prev = prev-shape s
+    prev = prev-is-shape s
 
     p : count-factors i h O prev f == O
     p = idp
@@ -170,12 +170,12 @@ M⃗ i h (1+ O) s {j} f =
       ,, {!!}
 
   module no (w : ¬ f∣[O]) where
-    prev = prev-shape s
+    prev = prev-is-shape s
 
     sub : Sub (M i h 1 s) (M j h O _)
     sub = M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
 
-  prev = prev-shape s
+  prev = prev-is-shape s
 
 M⃗ i h (2+ t) s {j} f =
   depcase P
@@ -199,7 +199,7 @@ M⃗ i h (2+ t) s {j} f =
               (count-factors-shape-aux i h (1+ t) u f d))
 
   module yes (w : f∣[t+1]) where
-    prev = prev-shape s
+    prev = prev-is-shape s
 
     v : t < hom-size i h
     v = S<-< u
@@ -215,7 +215,7 @@ M⃗ i h (2+ t) s {j} f =
       ,, {!!}
 
   module no (w : ¬ f∣[t+1]) where
-    prev = prev-shape s
+    prev = prev-is-shape s
 
     sub : Sub (M i h (2+ t) s)
               (M j h (count-factors i h (1+ t) prev f) _)
@@ -304,13 +304,13 @@ M⃗ i (1+ h) O s {j} f =
     (𝔸 (1+ h))
   where
   fullᵢ = hom-size i h
-  shpᵢ = full-shape i h
+  shpᵢ = is-full-shape i h
 
   cf = count-factors i h fullᵢ shpᵢ f
   sh = count-factors-shape i h fullᵢ shpᵢ f
 
   fullⱼ = hom-size j h
-  shpⱼ = full-shape j h
+  shpⱼ = is-full-shape j h
 
   eq : M j h cf sh == M j h fullⱼ shpⱼ
   eq = M= j h (count-factors-full i h shpᵢ f)
