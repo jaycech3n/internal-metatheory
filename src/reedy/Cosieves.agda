@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --termination-depth=99 --allow-unsolved-metas #-}
+{-# OPTIONS --without-K --rewriting --termination-depth=9 --allow-unsolved-metas #-}
 
 open import reedy.SimpleSemicategories
 open import hott.WellFounded
@@ -10,20 +10,21 @@ open SimpleSemicategory I
 
 {- Shapes of linear cosieves -}
 
-shape : ℕ → ℕ → ℕ → Type₀
-shape i h t = t ≤ hom-size i h
+is-shape : ℕ → ℕ → ℕ → Type₀
+is-shape i h t = t ≤ hom-size i h
+-- This definition might have some advantages (but also create problems):
 -- shape i h t = (t ≤ hom-size i h) × (h ≤ i)
 
-prev-shape : ∀ {i h t} → shape i h (1+ t) → shape i h t
+prev-shape : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
 prev-shape = S≤-≤
 
-full-shape : ∀ i h → shape i h (hom-size i h)
+full-shape : ∀ i h → is-shape i h (hom-size i h)
 full-shape i h = lteE
 
-total-shape-1+ : ∀ i → shape (1+ i) i (hom-size (1+ i) i)
+total-shape-1+ : ∀ i → is-shape (1+ i) i (hom-size (1+ i) i)
 total-shape-1+ i = full-shape (1+ i) i
 
-Shape = Σ[ i ﹕ ℕ ] Σ[ h ﹕ ℕ ] Σ[ t ﹕ ℕ ] shape i h t
+Shape = Σ[ i ﹕ ℕ ] Σ[ h ﹕ ℕ ] Σ[ t ﹕ ℕ ] is-shape i h t
 
 𝑖 : Shape → ℕ
 𝑖 = fst
@@ -34,8 +35,8 @@ Shape = Σ[ i ﹕ ℕ ] Σ[ h ﹕ ℕ ] Σ[ t ﹕ ℕ ] shape i h t
 𝑡 : Shape → ℕ
 𝑡 = 2nd ∘ snd
 
-is-shape : ((i , h , t , _) : Shape) → shape i h t
-is-shape = 3rd ∘ snd
+is-s : ((i , h , t , _) : Shape) → is-shape i h t
+is-s = 3rd ∘ snd
 
 -- boundary cosieve
 boundary-shape : ℕ → Shape
@@ -45,10 +46,10 @@ boundary-shape (1+ i) = (1+ i , i , hom-size (1+ i) i , total-shape-1+ i)
 
 {- Shape equality -}
 
-shape-is-prop : ∀ {i h t} → is-prop (shape i h t)
+shape-is-prop : ∀ {i h t} → is-prop (is-shape i h t)
 shape-is-prop = ≤-is-prop
 
-shape-path : ∀ {i h t} {s s' : shape i h t} → s == s'
+shape-path : ∀ {i h t} {s s' : is-shape i h t} → s == s'
 shape-path = prop-has-all-paths _ _
 
 
@@ -193,7 +194,7 @@ shape-ind : ∀ {ℓ} (P : Shape → Type ℓ)
                   → (∀ s → (𝑖 s < i) ⊔ ((𝑖 s == i) × (ℎ s < 1+ h)) → P s)
                   → P (i , 1+ h , 0 , O≤ _))
             -- case (i,h,t+1)
-            → ((∀ i h t → (is-s : shape i h (1+ t))
+            → ((∀ i h t → (is-s : is-shape i h (1+ t))
                   → (∀ s → (𝑖 s < i) ⊔ ((𝑖 s == i) × (ℎ s < h)) ⊔ ((𝑖 s == i) × (ℎ s == h) × (𝑡 s < 1+ t)) → P s)
                   → P (i , h , 1+ t , is-s)))
             → ∀ s → P s
@@ -244,13 +245,13 @@ count-factors[ i , h ,1+ 1+ t ] u f (inl yes) =
   1+ (count-factors[ i , h ,1+ t ] v f (f ∣? #[ t ] i h v))
   where v = S<-< u
 
-count-factors : ∀ i h t {j} → shape i h t → hom i j → ℕ
+count-factors : ∀ i h t {j} → is-shape i h t → hom i j → ℕ
 count-factors i h O s f = O
 count-factors i h (1+ t) s f =
   count-factors[ i , h ,1+ t ] u f (f ∣? #[ t ] i h u)
   where u = S≤-< s
 
-count-factors-eq : ∀ i h t {j} (f : hom i j) (u u' : shape i h t)
+count-factors-eq : ∀ i h t {j} (f : hom i j) (u u' : is-shape i h t)
   → count-factors i h t u f == count-factors i h t u' f
 count-factors-eq i h t f u u' =
   ap (λ v → count-factors i h t v f) (≤-has-all-paths _ _)
@@ -279,7 +280,7 @@ count-factors-top-level-aux i h (1+ t) u f (inr _) =
   where v = S<-< u
 
 -- Lemma 6.7 (paper version as of 12.10.23)
-count-factors-top-level : ∀ i h t (s : shape i h t) (f : hom i h)
+count-factors-top-level : ∀ i h t (s : is-shape i h t) (f : hom i h)
   → count-factors i h t s f == O
 count-factors-top-level i h O s f = idp
 count-factors-top-level i h (1+ t) s f with f ∣? #[ t ] i h (S≤-< s)
