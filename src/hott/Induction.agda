@@ -46,3 +46,39 @@ module WellFoundedInduction {ℓ₁ ℓ₂}
 
   wf-ind : ∀ {ℓ} (P : A → Type ℓ) → has-wf-ind A _<_ P
   wf-ind P = all-accessible-implies-has-wf-ind A _<_ P c
+
+
+-- The transitive closure of a wellfounded relation is wellfounded.
+
+module TransitiveClosure {ℓ₀ ℓ₁} {A : Type ℓ₀} (R : A → A → Type ℓ₁) where
+
+  data TransClosure : A → A → Type (ℓ₀ ∪ ℓ₁) where
+    [_]⁺ : {a b : A} → R a b → TransClosure a b
+    _∷⁺_ : {a b c : A} → R a b → TransClosure b c → TransClosure a c
+
+  infixr 4 _++⁺_
+
+  R⁺ = TransClosure
+
+  -- The transitive closure is transitive
+  _++⁺_ : ∀ {a b c} → R⁺ a b → R⁺ b c → R⁺ a c
+  [ a↝b ]⁺ ++⁺ b↝c = a↝b ∷⁺ b↝c
+  (a↝b₀ ∷⁺ b₀↝b) ++⁺ b↝c = a↝b₀ ∷⁺ (b₀↝b ++⁺ b↝c)
+
+module TransWellFounded {ℓ₀ ℓ₁} {A : Type ℓ₀} (R : A → A → Type ℓ₁) (R-is-wf : all-accessible A R) where
+
+  open TransitiveClosure R
+
+  -- Nicolai: I had originally formalised this for https://arxiv.org/abs/2107.01594
+  -- see: https://www.cs.nott.ac.uk/~psznk/agda/confluence/
+
+  multiple-steps : ∀ {a c} → R⁺ c a → (∀ b → R b a → is-accessible A R⁺ b) → is-accessible A R⁺ c
+  multiple-steps [ c<a ]⁺ ih = ih _ c<a
+  multiple-steps (c<c₁ ∷⁺ c₁<⁺a) ih with multiple-steps c₁<⁺a ih
+  multiple-steps (c<c₁ ∷⁺ c₁<⁺a) ih | acc <c₁-is-acc = <c₁-is-acc _ [ c<c₁ ]⁺
+
+  trans-closure-wf : all-accessible A R⁺
+  trans-closure-wf = all-accessible-implies-has-wf-ind A R (is-accessible A R⁺) R-is-wf
+                       λ a ih → acc λ c p → multiple-steps p ih
+
+

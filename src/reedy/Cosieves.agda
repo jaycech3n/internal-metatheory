@@ -92,7 +92,6 @@ s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
 ≤ₛ-dec s s' = {!!}
 
 -- TODO. Wellfounded induction.
--- Maybe we should define the order differently. It's a bit non-uniform atm.
 
 -- _<ₛ_ is the transitive closure of this:
 data _<<_ (s : Shape) : Shape → Type₀ where
@@ -100,61 +99,14 @@ data _<<_ (s : Shape) : Shape → Type₀ where
   on-ℎ : ∀ {t q} → s << (𝑖 s , 1+ (ℎ s) , t , q)
   on-𝑡 : ∀ {q} → s << (𝑖 s , ℎ s , 1+ (𝑡 s) , q)
 
-
-{- termination checking fails (don't know why)
-
-<<-is-wf : ∀ i h t q → is-accessible Shape _<<_ (i , h , t , q)
-<<-is-wf O          O      O  q = acc λ _ ()
-<<-is-wf O          O  (1+ t) q = acc λ { (.O , .O , .t , q₁) on-𝑡 → <<-is-wf O O t q₁ }
-<<-is-wf O      (1+ h) (1+ t) q = acc λ { (.O , .h , t₁ , q₁) on-ℎ → <<-is-wf O h t₁ q₁ ;
-                                          (.O , .(1+ h) , .t , q₁) on-𝑡 → <<-is-wf O (1+ h) t q₁}
-<<-is-wf O      (1+ h)     O  q = {!acc λ {s p → {!!}}!}
-<<-is-wf (1+ i)     O      O  q = {!acc λ {s p → {!!}}!}
-<<-is-wf (1+ i)     O  (1+ t) q = {!acc λ {s p → {!!}}!}
-<<-is-wf (1+ i) (1+ h) (1+ t) q = {!acc λ {s p → {!!}}!}
-<<-is-wf (1+ i) (1+ h)     O  q = {!acc λ {s p → {!!}}!}
--}
-
-{-
-all-accessible Shape _<<_
-<<-is-wf (O     , O     , O     , q₀) = acc λ _ ()
-<<-is-wf (O     , O     , 1+ t₀ , q₀) = {!!} -- acc λ { (.O , .O , t , q) on-𝑡 → <<-is-wf (O , O , t₀ , q)} -- This doesn't termination-check, it's probably the record termination problem again.
-<<-is-wf (O     , 1+ h₀ , O     , q₀) = {!!}
-<<-is-wf (O     , 1+ h₀ , 1+ t₀ , q₀) = {!!}
-<<-is-wf (1+ i₀ , O     , O     , q₀) = {!!}
-<<-is-wf (1+ i₀ , O     , 1+ t₀ , q₀) = {!!}
-<<-is-wf (1+ i₀ , 1+ h₀ , O     , q₀) = {!!}
-<<-is-wf (1+ i₀ , 1+ h₀ , 1+ t₀ , q₀) = {!!}
--}
-
-{-
--- BEGIN TEST
-
-ℕ2 = ℕ × ℕ 
-
-data _<'_ : ℕ2 → ℕ2 → Type₀ where
-  lex₁ : ∀ {a b b'} → (a , b) <' (1+ a , b')
-  lex₂ : ∀ {a b}    → (a , b) <' (a , 1+ b)
-
-<'-is-wf : (a : ℕ) → (b : ℕ) → is-accessible ℕ2 _<'_ (a , b)
-<'-is-wf O          O  = acc λ _ ()
-<'-is-wf O      (1+ b) = acc λ { (.O , .b) lex₂ → <'-is-wf O b}
-<'-is-wf (1+ a)     O  = {!!} -- acc λ {(.a , b') lex₁ → <'-is-wf a b'}
-<'-is-wf (1+ a) (1+ b) = acc λ { (.a , b') lex₁ → {!<'-is-wf a b'!} ;
-                                 (.(1+ a) , .b) lex₂ → <'-is-wf (1+ a) b}
-
-The termination checker is unhappy with this. After naming the anonymous functions, it's still unhappy.
-
--- END TEST
--}
-
--- For some reason that I don't know, this *is* ok. The important step for Agda's termination checker is to copy the arguments ihtq. Pattern matching on the outside doesn't work. Ugly, and no idea why I need to do it, but it works.
+-- Agda's termination checker is very strict and rejects many things that
+-- look fine. Fortunately, the following is ok:
 <<-is-wf : ∀ i h t q → is-accessible Shape _<<_ (i , h , t , q)
 <<-is-wf i h t q = acc (aux i h t q) where
   aux : ∀ i h t q s → (s << (i , h , t , q)) → is-accessible Shape _<<_ s
-  aux .(1+ (𝑖 (i' , h' , t' , q'))) h t q (i' , h' , t' , q') on-𝑖 = <<-is-wf i' h' t' q'
-  aux i .(1+ (ℎ (i , h' , t' , q'))) t q (.i , h' , t' , q') on-ℎ = <<-is-wf i h' t' q'
-  aux i h .(1+ (𝑡 (i , h , t' , q'))) q (.i , .h , t' , q') on-𝑡 = <<-is-wf i h t' q'
+  aux .(1+ i')      h        t   q (i' , h' , t' , q') on-𝑖  = <<-is-wf i' h' t' q'
+  aux      i   .(1+ h')      t   q (.i , h' , t' , q') on-ℎ = <<-is-wf i h' t' q'
+  aux      i        h   .(1+ t') q (.i , .h , t' , q') on-𝑡  = <<-is-wf i h t' q'
 
 
 
