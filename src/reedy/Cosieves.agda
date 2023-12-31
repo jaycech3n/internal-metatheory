@@ -93,6 +93,7 @@ s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
 
 -- TODO. Wellfounded induction.
 
+{- Thanks to the "copying arguments" trick, we don't need any of this:
 -- _<ₛ_ is the transitive closure of this
 data _<<_ (s : Shape) : Shape → Type₀ where
   on-𝑖 : ∀ {h t q} → s << (1+ (𝑖 s) , h , t , q)
@@ -107,32 +108,22 @@ data _<<_ (s : Shape) : Shape → Type₀ where
   aux .(1+ i')      h        t   q (i' , h' , t' , q') on-𝑖  = <<-is-wf i' h' t' q'
   aux      i   .(1+ h')      t   q (.i , h' , t' , q') on-ℎ = <<-is-wf i h' t' q'
   aux      i        h   .(1+ t') q (.i , .h , t' , q') on-𝑡  = <<-is-wf i h t' q'
-
-
+-}
 
 -- Now I try the above trick with the original <ₛ, just in case it works...
 <ₛ-is-wf : ∀ i h t q → is-accessible Shape _<ₛ_ (i , h , t , q)
 <ₛ-is-wf i h t q = acc (aux i h t q) where
-  aux : ∀ i h t q s → (s <ₛ (i , h , t , q)) → is-accessible Shape _<ₛ_ s
-  aux .(1+ i) h t q (i , h' , t' , q') (on-𝑖 ltS) = <ₛ-is-wf i h' t' q'
-  aux .(1+ i₀) h t q (i' , h' , t' , q') (on-𝑖 (ltSR {i'} {i₀} p)) = aux i₀ h t {!!} (i' , h' , t' , q') (on-𝑖 p) -- <ₛ-is-wf i' h' t' q'
-  aux i .(1+ h') t q (.i , h' , t' , q') (on-ℎ ltS) = <ₛ-is-wf i h' t' q'
-  aux i .(1+ h₀) t q (.i , h' , t' , q') (on-ℎ (ltSR {h'} {h₀} p)) = aux i h₀ t {!q!} (i , h' , t' , q') (on-ℎ p) -- !!! (see below)
-  aux i h t q .(𝑖 (i , h , t , q) , ℎ (i , h , t , q) , _ , _) (on-𝑡 x) = {!!}
-
-{- Problem in line !!! above:
-   (i , h₀ , t) may indeed not be a valid shape!
-   Thus, I suggest to really use that <ₛ as the transitive closure of <<? Or maybe just show that they are equivalent?
-
-   (Outdated and wrong:
-     CAVEAT: Unfortunately, <ₛ is NOT the transitive closure of <<, because there may be "not enough shapes".
-     For example, if `hom-size 5 3 == 0`, then (5,2,2) <ₛ (5,4,2), but we can't "jump" over (5,3,2) because it doesn't exist
-     -- but wait, we can go via (5,3,0), there's no need to keep t fixed.
--}
+  aux : ∀  i        h        t   q s → (s <ₛ (i , h , t , q)) → is-accessible Shape _<ₛ_ s
+  aux .(1+ i)       h        t   q ( i  ,  h' , t' , q') (on-𝑖 ltS)                = <ₛ-is-wf i h' t' q'
+  aux .(1+ i₀)      h        t   q ( i' ,  h' , t' , q') (on-𝑖 (ltSR {i'} {i₀} p)) = aux i₀ h O (O≤ _) (i' , h' , t' , q') (on-𝑖 p)
+  aux      i   .(1+ h')      t   q (.i  ,  h' , t' , q') (on-ℎ ltS)               = <ₛ-is-wf i h' t' q'
+  aux      i   .(1+ h₀)      t   q (.i  ,  h' , t' , q') (on-ℎ (ltSR {h'} {h₀} p)) = aux i h₀ O (O≤ _) ((i , h' , t' , q')) (on-ℎ p)
+  aux      i        h   .(1+ t') q (.i ,  .h ,  t' , q') (on-𝑡 ltS)                 = <ₛ-is-wf i h t' q'
+  aux      i        h   .(1+ t₀) q (.i ,  .h ,  t' , q') (on-𝑡 (ltSR {t'} {t₀} p))  = aux i h t₀ (≤-trans lteS q) (i , h , t' , q') (on-𝑡 p)
 
 
 Shape-accessible : all-accessible Shape _<ₛ_
-Shape-accessible (i , h , t , s) = {!!}
+Shape-accessible (i , h , t , q) = <ₛ-is-wf i h t q
 
 
 
@@ -140,7 +131,7 @@ Shape-accessible (i , h , t , s) = {!!}
 open WellFoundedInduction Shape _<ₛ_ Shape-accessible public
   -- renaming (wf-ind to shape-ind)
 
--- TODO. shape induction.
+-- TODO. shape induction. Formulate differently.
 shape-ind : ∀ {ℓ} (P : Shape → Type ℓ)
             -- case (i,0,0)
             → (∀ i
@@ -263,7 +254,7 @@ module count-factors-properties (i h j : ℕ) (f : hom i j) where
       f∣?[t₀] : f ∣ #[ t₀ ] i h v
       f∣?[t₀] rewrite hom#-idx ([0] ◦ f) = [0] , idp
 
-      p : c == 1+ {!!}
+      p : c == 1+ _
       p = {!count-factors-rec i h t₀ f (<-S≤ v) f∣?[t₀]!}
 
   hom-size-O-no-divisible :
