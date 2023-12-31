@@ -93,7 +93,7 @@ s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
 
 -- TODO. Wellfounded induction.
 
--- _<ₛ_ is the transitive closure of this:
+-- _<ₛ_ is the transitive closure of this
 data _<<_ (s : Shape) : Shape → Type₀ where
   on-𝑖 : ∀ {h t q} → s << (1+ (𝑖 s) , h , t , q)
   on-ℎ : ∀ {t q} → s << (𝑖 s , 1+ (ℎ s) , t , q)
@@ -122,7 +122,12 @@ data _<<_ (s : Shape) : Shape → Type₀ where
 
 {- Problem in line !!! above:
    (i , h₀ , t) may indeed not be a valid shape!
-   Thus, I suggest to really use that <ₛ is the transitive closure of <<.
+   Thus, I suggest to really use that <ₛ as the transitive closure of <<? Or maybe just show that they are equivalent?
+
+   (Outdated and wrong:
+     CAVEAT: Unfortunately, <ₛ is NOT the transitive closure of <<, because there may be "not enough shapes".
+     For example, if `hom-size 5 3 == 0`, then (5,2,2) <ₛ (5,4,2), but we can't "jump" over (5,3,2) because it doesn't exist
+     -- but wait, we can go via (5,3,0), there's no need to keep t fixed.
 -}
 
 
