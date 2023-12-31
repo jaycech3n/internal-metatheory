@@ -49,6 +49,8 @@ module WellFoundedInduction {ℓ₁ ℓ₂}
 
 
 -- The transitive closure of a wellfounded relation is wellfounded.
+-- (Nicolai: While all of this is correct, we don't actually need it
+--  anymore for the argument that <ₛ is wellfounded!)
 
 module TransitiveClosure {ℓ₀ ℓ₁} {A : Type ℓ₀} (R : A → A → Type ℓ₁) where
 
