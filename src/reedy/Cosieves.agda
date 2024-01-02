@@ -126,46 +126,51 @@ Shape-accessible : all-accessible Shape _<ₛ_
 Shape-accessible (i , h , t , q) = <ₛ-is-wf i h t q
 
 
-
+-- Shape induction. It may help to split already here.
 
 open WellFoundedInduction Shape _<ₛ_ Shape-accessible public
   -- renaming (wf-ind to shape-ind)
 
--- TODO. shape induction. Formulate differently.
 shape-ind : ∀ {ℓ} (P : Shape → Type ℓ)
             -- case (i,0,0)
             → (∀ i
-                  → (∀ s → (𝑖 s < i) → P s)
+                  -- → (∀ s → (𝑖 s < i) → P s)
+                  → (∀ s → (s <ₛ (i , 0 , 0 , O≤ _)) → P s)
                   → P (i , 0 , 0 , O≤ _))
             -- case (i,h+1,0)
             → (∀ i h
-                  → (∀ s → (𝑖 s < i) ⊔ ((𝑖 s == i) × (ℎ s < 1+ h)) → P s)
+                  -- → (∀ s → (𝑖 s < i) ⊔ ((𝑖 s == i) × (ℎ s < 1+ h)) → P s)
+                  → (∀ s → (s <ₛ (i , 1+ h , 0 , O≤ _)) → P s)
                   → P (i , 1+ h , 0 , O≤ _))
             -- case (i,h,t+1)
             → ((∀ i h t → (is-s : is-shape i h (1+ t))
-                  → (∀ s → (𝑖 s < i) ⊔ ((𝑖 s == i) × (ℎ s < h)) ⊔ ((𝑖 s == i) × (ℎ s == h) × (𝑡 s < 1+ t)) → P s)
+                  -- → (∀ s → (𝑖 s < i) ⊔ ((𝑖 s == i) × (ℎ s < h)) ⊔ ((𝑖 s == i) × (ℎ s == h) × (𝑡 s < 1+ t)) → P s)
+                  → (∀ s → (s <ₛ (i , h , 1+ t , is-s)) → P s)
                   → P (i , h , 1+ t , is-s)))
             → ∀ s → P s
 shape-ind P ih₁ ih₂ ih₃ = wf-ind P ih where
   ih : ∀ s → (∀ s' → s' <ₛ s → P s') → P s
-  ih (i , O , O , is-s) = λ gen-ih → transp (λ p → P (i , 0 , 0 , p))
-                                            {x = O≤ _} {y = is-s}
-                                            shape-path
-                                            (ih₁ i λ s q → gen-ih s (on-𝑖 q))
-  ih (i , 1+ h , O , is-s) = λ gen-ih → transp (λ p → P (i , 1+ h , 0 , p))
-                                            {x = O≤ _} {y = is-s}
-                                            shape-path
-                                            (ih₂ i h λ (i' , h' , t' , is-s') q → gen-ih (i' , h' , t' , is-s')
-                                              (Coprod-rec
-                                                on-𝑖
-                                                (λ (i=i , h<h) →
-                                                  {!!} -- ≤ₛ-<ₛ-<ₛ (inl {!should be ok. I need to organise this better.!}) (on-ℎ {s = (i , 1+ h , O , is-s)} h<h)
-                                                  )
-                                                  {- transp (λ (i' , r) → (i , 1+ h , O , is-s) >ₛ (i' , ℎ s , 𝑡 s , r))
-                                                  (pair×= (! i=i) shape-path) -- (! i=i)
-                                                  {!!} -}   --  (on-ℎ {s = (i , 1+ h , O , is-s)} h<h))
-                                                q))
-  ih (i , h , 1+ t , is-s) = {!should be the same again!}
+  ih (i ,    O ,    O , is-s) = λ new-ih → transp (λ p → P (i , O , O , p))
+                                                  {x = O≤ _}
+                                                  {y = is-s}
+                                                  shape-path
+                                                  (ih₁ i (λ s q → new-ih s
+                                                                         (transp (λ p → s <ₛ (i , O , O , p))
+                                                                                 {x = O≤ _}
+                                                                                 {y = is-s}
+                                                                                 shape-path
+                                                                                 q)))
+  ih (i , 1+ h ,    O , is-s) = λ new-ih → transp (λ p → P (i , 1+ h , O , p))
+                                                   {x = O≤ _}
+                                                   {y = is-s}
+                                                   shape-path
+                                                   (ih₂ i h λ s q → new-ih s
+                                                                           (transp (λ p → s <ₛ (i , 1+ h , O , p))
+                                                                                 {x = O≤ _}
+                                                                                 {y = is-s}
+                                                                                 shape-path
+                                                                                 q))
+  ih (i ,    h , 1+ t , is-s) = ih₃ i h t is-s
 
 
 
