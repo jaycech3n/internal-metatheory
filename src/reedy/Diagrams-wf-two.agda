@@ -28,9 +28,7 @@ open import cwfs.Telescopes cwfstr
 open Πₜₑₗ pistr
 open TelIndexedTypes univstr
 
-
-
-record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
+record ind-data (s : Shape) (h≤i : is-height-restricted s) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
   i = 𝑖 s
   h = ℎ s
   t = 𝑡 s
@@ -58,19 +56,20 @@ record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
   -- Mᵒᵗᵒᵗ : (i : ℕ) → (i ≤ 1+ h) → Tel 𝔻  -- i < or i ≤ 1+ h?
   -- Mᵒᵗᵒᵗ = {!!}
 
-  𝔸 : (i : ℕ) → (i ≤ h) → Ty 𝔻
-  𝔸 i q = Πₜₑₗ (Mᵒᵗᵒᵗ i {!!}) U
+  𝔸 : (k : ℕ) → (k ≤ h) → Ty 𝔻
+  𝔸 k k≤h = Πₜₑₗ (Mᵒᵗᵒᵗ k (boundary-smaller h≤i k≤h)) U
   {- Nicolai's comment:
      Would it be useful to add  (h ≤ i) to the shape condition?
      We only care about shapes that fulfil this condition.
      Without this condition, the above type of 𝔸 is wrong,
-     as `i ≤ h` doesn't imply `boundary-shape i ≤ₛ s`.
+     as `k ≤ h` doesn't imply `boundary-shape k ≤ₛ s`.
      (Ideally, give a name to the prove of `boundary-shape i ≤ₛ s`
      since we need it multiple times.)
   -}
 
-  A : (i : ℕ) → (q : i ≤ h) → Ty (𝔻 ∷ 𝔸 i q ++ₜₑₗ  Mᵒᵗᵒᵗ i {!!} [ π (𝔸 i {!!}) ]ₜₑₗ  )
-  A i q = generic[ Mᵒᵗᵒᵗ i {!!} ]type
+  -- todo: rename q to k≤h to increase readability?
+  A : (k : ℕ) → (q : k ≤ h) → Ty (𝔻 ∷ 𝔸 k q ++ₜₑₗ  Mᵒᵗᵒᵗ k (boundary-smaller h≤i q) [ π (𝔸 k q) ]ₜₑₗ  )
+  A k q = generic[ Mᵒᵗᵒᵗ k (boundary-smaller h≤i q) ]type
   {-
 
   M= : ∀ i h {t} {s} {t'} {s'} → t == t' → M i h t s == M i h t' s'
@@ -105,6 +104,13 @@ record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
   id-iso = {!transp {A = Σ[!}
 
 -- !! or use Josh's strategy (maybe better?); cf Diagrams.agda
+  that would be something like:
+  field
+    M⃗ : ∀ {s' : Shape} → (s'≤s : s' ≤ₛ s)
+            → {k : ℕ} → (f : hom (𝑖 s') k)
+           → let cf = count-factors i h t s f
+                 sh = count-factors-shape i h t s f
+           in Sub (M i h t s) (M j h cf sh)
 
   field
     M⃗∘ : ∀ {s' : Shape} → (p : s' ≤ₛ s)

@@ -49,7 +49,7 @@ boundary-shape (1+ i) = (1+ i , i , hom-size (1+ i) i , is-total-shape-1+ i)
 shape-is-prop : ∀ {i h t} → is-prop (is-shape i h t)
 shape-is-prop = ≤-is-prop
 
-shape-path : ∀ {i h t} (s s' : shape i h t) → s == s'
+shape-path : ∀ {i h t} (s s' : is-shape i h t) → s == s'
 shape-path = prop-has-all-paths
 
 {- Shape order -}
@@ -152,22 +152,22 @@ shape-ind P ih₁ ih₂ ih₃ = wf-ind P ih where
   ih (i ,    O ,    O , is-s) = λ new-ih → transp (λ p → P (i , O , O , p))
                                                   {x = O≤ _}
                                                   {y = is-s}
-                                                  shape-path
+                                                  (shape-path _ _)
                                                   (ih₁ i (λ s q → new-ih s
                                                                          (transp (λ p → s <ₛ (i , O , O , p))
                                                                                  {x = O≤ _}
                                                                                  {y = is-s}
-                                                                                 shape-path
+                                                                                 (shape-path _ _)
                                                                                  q)))
   ih (i , 1+ h ,    O , is-s) = λ new-ih → transp (λ p → P (i , 1+ h , O , p))
                                                    {x = O≤ _}
                                                    {y = is-s}
-                                                   shape-path
+                                                   (shape-path _ _)
                                                    (ih₂ i h λ s q → new-ih s
                                                                            (transp (λ p → s <ₛ (i , 1+ h , O , p))
                                                                                  {x = O≤ _}
                                                                                  {y = is-s}
-                                                                                 shape-path
+                                                                                 (shape-path _ _)
                                                                                  q))
   ih (i ,    h , 1+ t , is-s) = ih₃ i h t is-s
 
@@ -258,7 +258,7 @@ module count-factors-properties (i h j : ℕ) (f : hom i j) where
       f∣?[t₀] : f ∣ #[ t₀ ] i h v
       f∣?[t₀] rewrite hom#-idx ([0] ◦ f) = [0] , idp
 
-      p : c == 1+ _
+      p : c == 1+ {!!}
       p = {!count-factors-rec i h t₀ f (<-S≤ v) f∣?[t₀]!}
 
   hom-size-O-no-divisible :
@@ -477,5 +477,14 @@ module Cosieves-IsStrictlyOriented
              → s · (g ◦ f) == (s · f) · g  
   ∙comp (i , h , t , s) {k} {l} f g  = {!!}
 
+
+-- Shapes with restricted height (no actual restriction)
+
+is-height-restricted : Shape → Type₀
+is-height-restricted (i , h , _ , _) = h ≤ i
+
+boundary-smaller : {k : ℕ} {s : Shape} (q : is-height-restricted s) → (k ≤ ℎ s) → boundary-shape k ≤ₛ s
+boundary-smaller {O}    {i , h , t , is-s} q k≤h   = {!!}
+boundary-smaller {1+ k} {i , h , t , is-s} q 1+k≤h = {!!}
 
 
