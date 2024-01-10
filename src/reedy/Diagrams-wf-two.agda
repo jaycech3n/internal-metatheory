@@ -37,10 +37,13 @@ open TelIndexedTypes univstr
 
 -- The data that we construct by shape induction consists of
 -- 𝔻, Mᵒ, M⃗, M⃗∘, γ (working name) 
-record ind-data (s : Shape) (h≤i : is-height-restricted s) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
+record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
   i = 𝑖 s
   h = ℎ s
   t = 𝑡 s
+
+  -- h≤i = ?
+  
   
   field
     𝔻  : Con
@@ -69,10 +72,10 @@ record ind-data (s : Shape) (h≤i : is-height-restricted s) : Type (ℓₘᴵ �
   --  since we need it multiple times.)
 
   𝔸 : (k : ℕ) → (k ≤ h) → Ty 𝔻
-  𝔸 k k≤h = Πₜₑₗ (Mᵒᵗᵒᵗ k (boundary-smaller h≤i k≤h)) U
+  𝔸 k k≤h = Πₜₑₗ (Mᵒᵗᵒᵗ k (boundary-smaller {! h≤i !} k≤h)) U
 
-  A : (k : ℕ) → (k≤h : k ≤ h) → Ty (𝔻 ∷ 𝔸 k k≤h ++ₜₑₗ  Mᵒᵗᵒᵗ k (boundary-smaller h≤i k≤h) [ π (𝔸 k k≤h) ]ₜₑₗ  )
-  A k k≤h = generic[ Mᵒᵗᵒᵗ k (boundary-smaller h≤i k≤h) ]type
+  A : (k : ℕ) → (k≤h : k ≤ h) → Ty (𝔻 ∷ 𝔸 k k≤h ++ₜₑₗ  Mᵒᵗᵒᵗ k (boundary-smaller {! h≤i !} k≤h) [ π (𝔸 k k≤h) ]ₜₑₗ  )
+  A k k≤h = generic[ Mᵒᵗᵒᵗ k (boundary-smaller {! h≤i !} k≤h) ]type
 
   field
     M⃗  : ∀ {s' : Shape} → (s'≤s : s' ≤ₛ s)
@@ -102,4 +105,6 @@ record ind-data (s : Shape) (h≤i : is-height-restricted s) : Type (ℓₘᴵ �
                {!id2iso applied on M[·comp]!} ◦ˢᵘᵇ (M⃗ {s' = s'} s'≤s (g ◦ f))
 
     -- γ : {!!}
+
+-- Main-construction : (s : Shape) → 
 

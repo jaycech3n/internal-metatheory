@@ -11,15 +11,15 @@ open SimpleSemicategory I
 {- Shapes of linear cosieves -}
 
 is-shape : ℕ → ℕ → ℕ → Type₀
-is-shape i h t = t ≤ hom-size i h
+-- is-shape i h t = t ≤ hom-size i h
 -- This definition might have some advantages (but also create problems):
--- is-shape i h t = (t ≤ hom-size i h) × (h ≤ i)
+is-shape i h t = (h ≤ i) × (t ≤ hom-size i h)
 
 prev-is-shape : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
-prev-is-shape = S≤-≤
+prev-is-shape (h-small , t-small) = h-small , S≤-≤ t-small
 
 is-full-shape : ∀ i h → is-shape i h (hom-size i h)
-is-full-shape i h = lteE
+is-full-shape i h = {!!} -- lteE
 
 is-total-shape-1+ : ∀ i → is-shape (1+ i) i (hom-size (1+ i) i)
 is-total-shape-1+ i = is-full-shape (1+ i) i
@@ -40,14 +40,14 @@ is-s = 3rd ∘ snd
 
 -- boundary cosieve
 boundary-shape : ℕ → Shape
-boundary-shape O = (O , O , O , O≤ _)
+boundary-shape O = (O , O , O , O≤ _ , O≤ _)
 boundary-shape (1+ i) = (1+ i , i , hom-size (1+ i) i , is-total-shape-1+ i)
 
 
 {- Shape equality -}
 
 shape-is-prop : ∀ {i h t} → is-prop (is-shape i h t)
-shape-is-prop = ≤-is-prop
+shape-is-prop = {!!} -- ≤-is-prop
 
 shape-path : ∀ {i h t} (s s' : is-shape i h t) → s == s'
 shape-path = prop-has-all-paths
@@ -114,11 +114,11 @@ data _<<_ (s : Shape) : Shape → Type₀ where
 <ₛ-is-wf i h t q = acc (aux i h t q) where
   aux : ∀  i        h        t   q s → (s <ₛ (i , h , t , q)) → is-accessible Shape _<ₛ_ s
   aux .(1+ i)       h        t   q ( i  ,  h' , t' , q') (on-𝑖 ltS)                = <ₛ-is-wf i h' t' q'
-  aux .(1+ i₀)      h        t   q ( i' ,  h' , t' , q') (on-𝑖 (ltSR {i'} {i₀} p)) = aux i₀ h O (O≤ _) (i' , h' , t' , q') (on-𝑖 p)
+  aux .(1+ i₀)      h        t   q ( i' ,  h' , t' , q') (on-𝑖 (ltSR {i'} {i₀} p)) = aux i₀ O O (O≤ _ , O≤ _) (i' , h' , t' , q') (on-𝑖 p)
   aux      i   .(1+ h')      t   q (.i  ,  h' , t' , q') (on-ℎ ltS)               = <ₛ-is-wf i h' t' q'
-  aux      i   .(1+ h₀)      t   q (.i  ,  h' , t' , q') (on-ℎ (ltSR {h'} {h₀} p)) = aux i h₀ O (O≤ _) ((i , h' , t' , q')) (on-ℎ p)
+  aux      i   .(1+ h₀)      t   q (.i  ,  h' , t' , q') (on-ℎ (ltSR {h'} {h₀} p)) = aux i h₀ O (≤-trans lteS (fst q) , O≤ _) ((i , h' , t' , q')) (on-ℎ p)
   aux      i        h   .(1+ t') q (.i ,  .h ,  t' , q') (on-𝑡 ltS)                 = <ₛ-is-wf i h t' q'
-  aux      i        h   .(1+ t₀) q (.i ,  .h ,  t' , q') (on-𝑡 (ltSR {t'} {t₀} p))  = aux i h t₀ (≤-trans lteS q) (i , h , t' , q') (on-𝑡 p)
+  aux      i        h   .(1+ t₀) q (.i ,  .h ,  t' , q') (on-𝑡 (ltSR {t'} {t₀} p))  = aux i h t₀ (fst q , ≤-trans lteS (snd q)) (i , h , t' , q') (on-𝑡 p)
 
 
 Shape-accessible : all-accessible Shape _<ₛ_
@@ -134,13 +134,13 @@ shape-ind : ∀ {ℓ} (P : Shape → Type ℓ)
             -- case (i,0,0)
             → (∀ i
                   -- → (∀ s → (𝑖 s < i) → P s)
-                  → (∀ s → (s <ₛ (i , 0 , 0 , O≤ _)) → P s)
-                  → P (i , 0 , 0 , O≤ _))
+                  → (∀ s → (s <ₛ (i , 0 , 0 , O≤ _ , O≤ _)) → P s)
+                  → P (i , 0 , 0 ,  O≤ _ , O≤ _))
             -- case (i,h+1,0)
-            → (∀ i h
+            → (∀ i h → (1+h≤i : 1+ h ≤ i)
                   -- → (∀ s → (𝑖 s < i) ⊔ ((𝑖 s == i) × (ℎ s < 1+ h)) → P s)
-                  → (∀ s → (s <ₛ (i , 1+ h , 0 , O≤ _)) → P s)
-                  → P (i , 1+ h , 0 , O≤ _))
+                  → (∀ s → (s <ₛ (i , 1+ h , 0 ,  1+h≤i , O≤ _ )) → P s)
+                  → P (i , 1+ h , 0 , 1+h≤i , O≤ _))
             -- case (i,h,t+1)
             → ((∀ i h t → (is-s : is-shape i h (1+ t))
                   -- → (∀ s → (𝑖 s < i) ⊔ ((𝑖 s == i) × (ℎ s < h)) ⊔ ((𝑖 s == i) × (ℎ s == h) × (𝑡 s < 1+ t)) → P s)
@@ -150,25 +150,25 @@ shape-ind : ∀ {ℓ} (P : Shape → Type ℓ)
 shape-ind P ih₁ ih₂ ih₃ = wf-ind P ih where
   ih : ∀ s → (∀ s' → s' <ₛ s → P s') → P s
   ih (i ,    O ,    O , is-s) = λ new-ih → transp (λ p → P (i , O , O , p))
-                                                  {x = O≤ _}
+                                                  -- {x = {! O≤ _ !}}
                                                   {y = is-s}
                                                   (shape-path _ _)
                                                   (ih₁ i (λ s q → new-ih s
                                                                          (transp (λ p → s <ₛ (i , O , O , p))
-                                                                                 {x = O≤ _}
+                                                                                 -- {x = {! O≤ _ !}}
                                                                                  {y = is-s}
                                                                                  (shape-path _ _)
                                                                                  q)))
   ih (i , 1+ h ,    O , is-s) = λ new-ih → transp (λ p → P (i , 1+ h , O , p))
-                                                   {x = O≤ _}
+                                                   -- {x = {! O≤ _ !}}
                                                    {y = is-s}
                                                    (shape-path _ _)
-                                                   (ih₂ i h λ s q → new-ih s
-                                                                           (transp (λ p → s <ₛ (i , 1+ h , O , p))
-                                                                                 {x = O≤ _}
-                                                                                 {y = is-s}
-                                                                                 (shape-path _ _)
-                                                                                 q))
+                                                   (ih₂ i h (fst is-s) λ s q → new-ih s
+                                                                         (transp (λ p → s <ₛ (i , 1+ h , O , p))
+                                                                               -- {x = {! O≤ _ !}}
+                                                                               {y = is-s}
+                                                                               (shape-path _ _)
+                                                                               q))
   ih (i ,    h , 1+ t , is-s) = ih₃ i h t is-s
 
 
@@ -201,12 +201,12 @@ count-factors : ∀ i h t {j} → is-shape i h t → hom i j → ℕ
 count-factors i h O s f = O
 count-factors i h (1+ t) s f =
   count-factors[ i , h ,1+ t ] u f (f ∣? #[ t ] i h u)
-  where u = S≤-< s
+  where u = {!!} -- S≤-< s
 
 count-factors-eq : ∀ i h t {j} (f : hom i j) (u u' : is-shape i h t)
   → count-factors i h t u f == count-factors i h t u' f
 count-factors-eq i h t f u u' =
-  ap (λ v → count-factors i h t v f) (≤-has-all-paths _ _)
+  ap (λ v → count-factors i h t v f) {! ≤-has-all-paths _ _ !}
 
 {-
 count-factors-rec : ∀ i h t {j} (f : hom i j) (u : shape i h (1+ t))
@@ -235,9 +235,9 @@ count-factors-top-level-aux i h (1+ t) u f (inr _) =
 count-factors-top-level : ∀ i h t (s : is-shape i h t) (f : hom i h)
   → count-factors i h t s f == O
 count-factors-top-level i h O s f = idp
-count-factors-top-level i h (1+ t) s f with f ∣? #[ t ] i h (S≤-< s)
+count-factors-top-level i h (1+ t) s f with f ∣? #[ t ] i h {! S≤-< s !}
 ... | inl (g , _) = ⊥-rec $ endo-hom-empty g
-... | inr no = count-factors-top-level-aux i h t (S≤-< s) f (inr no)
+... | inr no = {!!} -- count-factors-top-level-aux i h t {! S≤-< s !} f (inr no)
 
 -- Lemma 6.10 (12.10.23)
 -- The proof here differs from the paper.
@@ -246,14 +246,14 @@ module count-factors-properties (i h j : ℕ) (f : hom i j) where
     (∀ t s → count-factors i h t s f == O) → hom-size j h == O
   count-factors-all-O-hom-size-O P =
     ¬O<-=O (hom-size j h) (λ O<homjh →
-      O<¬=O (c {O<homjh}) (transp! (O <_) (p) (O<S _)) (P (1+ t₀) w))
+      O<¬=O (c {O<homjh}) (transp! (O <_) (p) (O<S _)) (P (1+ t₀) {! w !}))
     where module _ {u : O < hom-size j h} where
       [0] = #[ O ] j h u
       idx₀ = idx-of ([0] ◦ f)
       t₀ = fst idx₀
       v = snd idx₀
       w = <-S≤ v
-      c = count-factors i h (1+ t₀) w f
+      c = count-factors i h (1+ t₀) {! w !} f
 
       f∣?[t₀] : f ∣ #[ t₀ ] i h v
       f∣?[t₀] rewrite hom#-idx ([0] ◦ f) = [0] , idp
@@ -269,7 +269,7 @@ module count-factors-properties (i h j : ℕ) (f : hom i j) where
   no-divisible-count-factors-all-O :
     (∀ t u → ¬ (f ∣ #[ t ] i h u)) → ∀ t s → count-factors i h t s f == O
   no-divisible-count-factors-all-O P O s = idp
-  no-divisible-count-factors-all-O P (1+ t) s with f ∣? #[ t ] i h (S≤-< s)
+  no-divisible-count-factors-all-O P (1+ t) s with f ∣? #[ t ] i h {! S≤-< s !}
   ... | inl yes = ⊥-rec $ P _ _ yes
   ... | inr no = {!no-divisible-count-factors-all-O P t (S≤-≤ s)!}
 
@@ -442,7 +442,7 @@ module Cosieves-IsStrictlyOriented
   count-factors-shape i h O s {j} f = O≤ (hom-size j h)
   count-factors-shape i h (1+ t) s f =
     count-factors[ i , h ,1+ t ]-shape u f (f ∣? #[ t ] i h u)
-    where u = S≤-< s
+    where u = {!!} -- S≤-< s
 
   -- Lemma 6.8 in paper
   count-factors-full :
@@ -462,7 +462,7 @@ module Cosieves-IsStrictlyOriented
   -- Shape restriction
   -- \cdot; different from \.
   _·_ : (s : Shape) {j : ℕ} (f : hom (𝑖 s) j) → Shape
-  _·_ (i , h , t , s) {j} f = j , h , cf , sh
+  _·_ (i , h , t , s) {j} f = j , h , cf , {!!} -- sh
     where
     cf = count-factors i h t s f
     sh = count-factors-shape i h t s f
@@ -479,6 +479,7 @@ module Cosieves-IsStrictlyOriented
 
 
 -- Shapes with restricted height (no actual restriction)
+-- TODO this becomes part of `is-shape`
 
 is-height-restricted : Shape → Type₀
 is-height-restricted (i , h , _ , _) = h ≤ i
@@ -487,14 +488,4 @@ boundary-smaller : {k : ℕ} {s : Shape} (q : is-height-restricted s) → (k ≤
 boundary-smaller {O}    {i , h , t , is-s} q k≤h   = {!!}
 boundary-smaller {1+ k} {i , h , t , is-s} q 1+k≤h = {!!}
 
-
-{- IGNORE. Probably delete, was copied from another module.
--- Another lemma about shape restriction: 
-  id-iso : ∀ (s' : Shape) → (p : s' ≤ₛ s)
-             → {k : ℕ} → (f : hom (𝑖 s') k)
-             → {l : ℕ} → (g : hom k l)
-             → Sub (close $ Mᵒ (s' · (g ◦ f)) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' (g ◦ f)) p)))
-                   (close $ Mᵒ ((s' · f) · g) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ (s' · f) g) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) p)))))
-  id-iso = {!transp {A = Σ[!}
--}
 
