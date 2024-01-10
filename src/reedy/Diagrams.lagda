@@ -50,7 +50,7 @@ components. The first two core ones are 𝔻 and Mᵒ:
 \begin{code}
 
 𝔻 : ℕ → Con
-Mᵒ : (i h t : ℕ) → shape i h t → Tel (𝔻 (1+ h))
+Mᵒ : (i h t : ℕ) → is-shape i h t → Tel (𝔻 (1+ h))
 
 \end{code}
 
@@ -60,18 +60,18 @@ For readability, we immediately define a host of frequently used abbreviations.
 
 module Convenience where
 
-  M : (i h t : ℕ) → shape i h t → Con
+  M : (i h t : ℕ) → is-shape i h t → Con
   M i h t s = close (Mᵒ i h t s)
 
   Mᵒᵗᵒᵗ : (i : ℕ) → Tel (𝔻 i)
   Mᵒᵗᵒᵗ O = •
-  Mᵒᵗᵒᵗ (1+ i) = Mᵒ (1+ i) i (hom-size (1+ i) i) (total-shape-1+ i)
+  Mᵒᵗᵒᵗ (1+ i) = Mᵒ (1+ i) i (hom-size (1+ i) i) (is-total-shape-1+ i)
 
   Mᵒᶠᵘˡˡ : (i h : ℕ) → Tel (𝔻 (1+ h))
   Mᵒᶠᵘˡˡ i h = Mᵒ i h full shp
     where
     full = hom-size i h
-    shp = full-shape i h
+    shp = is-full-shape i h
 
   𝔸 : (i : ℕ) → Ty (𝔻 i)
   𝔸 i = Πₜₑₗ (Mᵒᵗᵒᵗ i) U
@@ -129,8 +129,8 @@ the other diagram components.
 \begin{code}
 
 M⁼= :
-  ∀ i h t (s : shape i h (1+ t))
-  → let prev = prev-shape s
+  ∀ i h t (s : is-shape i h (1+ t))
+  → let prev = prev-is-shape s
         u = S≤-< s
         [t] = #[ t ] i h u
         cf = count-factors i h t prev [t]
@@ -157,7 +157,7 @@ The object part of the functor is Mᵒ.
 Mᵒ i h (1+ t) s =
   Mᵒ i h t prev ‣ A h [ idd eq ◦ˢᵘᵇ M⃗ i h t prev (#[ t ] i h u) ]
   where
-  prev = prev-shape s
+  prev = prev-is-shape s
   u : t < hom-size i h
   u = S≤-< s
 
@@ -182,7 +182,7 @@ M⁼= i O t s =
   M O O O (O≤ _) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ O [ π (𝔸 O) ]ₜₑₗ) =∎
   where
-  prev = prev-shape s
+  prev = prev-is-shape s
   u = S≤-< s
   [t] = #[ t ] i O u
   cf = count-factors i O t prev [t]
@@ -196,7 +196,7 @@ M⁼= i (1+ h) t s =
   M (1+ h) (1+ h) O (O≤ _) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ (1+ h) [ π (𝔸 (1+ h)) ]ₜₑₗ) =∎
   where
-  prev = prev-shape s
+  prev = prev-is-shape s
   u = S≤-< s
   [t] = #[ t ] i (1+ h) u
   cf = count-factors i (1+ h) t prev [t]
@@ -230,7 +230,7 @@ expose an argument of type (Dec (f ∣ #[ t ] i h u)).
 \begin{code}
 
   P[_,_,1] :
-    ∀ i h (s : shape i h 1) {j} (f : hom i j)
+    ∀ i h (s : is-shape i h 1) {j} (f : hom i j)
     → let u = S≤-< s in Dec (f ∣ #[ O ] i h u)
     → Type _
   P[ i , h ,1] s {j} f d =
@@ -247,9 +247,9 @@ the two cases separately, with explicit dependence on witnesses w.
 \begin{code}
 
   M⃗[_,_,1]-yes :
-    ∀ i h (s : shape i h 1) {j} (f : hom i j)
+    ∀ i h (s : is-shape i h 1) {j} (f : hom i j)
     → let u = S≤-< s in (w : f ∣ #[ O ] i h u)
-    → let prev = prev-shape s
+    → let prev = prev-is-shape s
           cfp = count-factors i h O prev f
           shp = S≤-≤ (count-factors[ i , h ,1+ O ]-shape u f (inl w))
       in Sub (M i h 1 s) (M j h cfp shp ∷ A h [ _ ])
@@ -257,16 +257,16 @@ the two cases separately, with explicit dependence on witnesses w.
     idd (M=shape cfp _) ◦ˢᵘᵇ M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
     ,, {!!}
     where
-    prev = prev-shape s
+    prev = prev-is-shape s
     cfp = count-factors-shape i h O prev f
 
   M⃗[_,_,1]-no :
-    ∀ i h (s : shape i h 1) {j} (f : hom i j)
+    ∀ i h (s : is-shape i h 1) {j} (f : hom i j)
     → let u = S≤-< s in (w : ¬ (f ∣ #[ O ] i h u))
-    → let prev = prev-shape s
+    → let prev = prev-is-shape s
       in Sub (M i h 1 s) (M j h O _)
   M⃗[ i , h ,1]-no s {j} f w = M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
-    where prev = prev-shape s
+    where prev = prev-is-shape s
 
 open M⃗[i,h,1]-Cases
 
@@ -279,7 +279,7 @@ Repeat the above for M⃗ (i, h, t+2) f.
 module M⃗[i,h,t+2]-Cases where
 
   P[_,_,2+_] :
-    ∀ i h t (s : shape i h (2+ t)) {j} (f : hom i j)
+    ∀ i h t (s : is-shape i h (2+ t)) {j} (f : hom i j)
     → let u = S≤-< s in Dec (f ∣ #[ 1+ t ] i h u)
     → Type _
   P[ i , h ,2+ t ] s {j} f d =
@@ -289,9 +289,9 @@ module M⃗[i,h,t+2]-Cases where
     where u = S≤-< s
 
   M⃗[_,_,2+_]-yes :
-    ∀ i h t (s : shape i h (2+ t)) {j} (f : hom i j)
+    ∀ i h t (s : is-shape i h (2+ t)) {j} (f : hom i j)
     → let u = S≤-< s in (w : f ∣ #[ 1+ t ] i h u)
-    → let prev = prev-shape s
+    → let prev = prev-is-shape s
           cfp = count-factors i h (1+ t) prev f
           shp = S≤-≤ (count-factors[ i , h ,1+ 1+ t ]-shape u f (inl w))
       in Sub (M i h (2+ t) s) (M j h cfp shp ∷ A h [ _ ])
@@ -299,16 +299,16 @@ module M⃗[i,h,t+2]-Cases where
     idd (M=shape shp _) ◦ˢᵘᵇ M⃗ i h (1+ t) prev f ◦ˢᵘᵇ π (A h [ _ ])
     ,, {!!}
     where
-    prev = prev-shape s
+    prev = prev-is-shape s
     shp = count-factors-shape i h (1+ t) prev f
 
   M⃗[_,_,2+_]-no :
-    ∀ i h t (s : shape i h (2+ t)) {j} (f : hom i j)
+    ∀ i h t (s : is-shape i h (2+ t)) {j} (f : hom i j)
     → let u = S≤-< s in (w : ¬ (f ∣ #[ 1+ t ] i h u))
-    → let prev = prev-shape s
+    → let prev = prev-is-shape s
       in Sub (M i h (2+ t) s) (M j h (count-factors i h (1+ t) prev f) _)
   M⃗[ i , h ,2+ t ]-no s f w = M⃗ i h (1+ t) prev f ◦ˢᵘᵇ π (A h [ _ ])
-    where prev = prev-shape s
+    where prev = prev-is-shape s
 
 open M⃗[i,h,t+2]-Cases
 
@@ -319,7 +319,7 @@ Now we can package everything up to define M⃗ (i, h, t+1) f.
 \begin{code}
 
 M⃗[_,_,1] :
-  ∀ i h (s : shape i h 1) {j} (f : hom i j)
+  ∀ i h (s : is-shape i h 1) {j} (f : hom i j)
   → let u = S≤-< s in (d : Dec (f ∣ #[ O ] i h u))
   → P[ i , h ,1] s f d
 M⃗[ i , h ,1] s f =
@@ -329,7 +329,7 @@ M⃗[ i , h ,1] s f =
   where u = S≤-< s
 
 M⃗[_,_,2+_] :
-  ∀ i h t (s : shape i h (2+ t)) {j} (f : hom i j)
+  ∀ i h t (s : is-shape i h (2+ t)) {j} (f : hom i j)
   → let u = S≤-< s in (d : Dec (f ∣ #[ 1+ t ] i h u))
   → P[ i , h ,2+ t ] s f d
 M⃗[ i , h ,2+ t ] s f =
@@ -357,13 +357,13 @@ M⃗ i (1+ h) O s {j} f =
     (𝔸 (1+ h))
   where
   fullᵢ = hom-size i h
-  shpᵢ = full-shape i h
+  shpᵢ = is-full-shape i h
 
   cf = count-factors i h fullᵢ shpᵢ f
   sh = count-factors-shape i h fullᵢ shpᵢ f
 
   fullⱼ = hom-size j h
-  shpⱼ = full-shape j h
+  shpⱼ = is-full-shape j h
 
   eq : M j h cf sh == M j h fullⱼ shpⱼ
   eq = M= j h (count-factors-full i h shpᵢ f)
