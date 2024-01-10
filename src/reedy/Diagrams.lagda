@@ -2,6 +2,8 @@ A HoTT construction of Reedy fibrant diagrams
 in contexts of a wild category with families
 =============================================
 
+**Obsolete? To be deleted?**
+
 **IMPORTANT! This version switches off termination checking.**
 
 \begin{code}
