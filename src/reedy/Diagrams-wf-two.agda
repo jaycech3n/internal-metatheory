@@ -28,6 +28,13 @@ open import cwfs.Telescopes cwfstr
 open Πₜₑₗ pistr
 open TelIndexedTypes univstr
 
+  {- Nicolai's comment:
+     Would it be useful to add  (h ≤ i) to the shape condition?
+     We only care about shapes that fulfil this condition.
+     We need it in the below record.
+     Without this condition, the later type of 𝔸 is wrong,
+     as `k ≤ h` doesn't imply `boundary-shape k ≤ₛ s`.
+  -}
 record ind-data (s : Shape) (h≤i : is-height-restricted s) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
   i = 𝑖 s
   h = ℎ s
@@ -56,20 +63,14 @@ record ind-data (s : Shape) (h≤i : is-height-restricted s) : Type (ℓₘᴵ �
   -- Mᵒᵗᵒᵗ : (i : ℕ) → (i ≤ 1+ h) → Tel 𝔻  -- i < or i ≤ 1+ h?
   -- Mᵒᵗᵒᵗ = {!!}
 
+  -- (Ideally, give a name to the prove of `boundary-shape i ≤ₛ s`
+  --  since we need it multiple times.)
+
   𝔸 : (k : ℕ) → (k ≤ h) → Ty 𝔻
   𝔸 k k≤h = Πₜₑₗ (Mᵒᵗᵒᵗ k (boundary-smaller h≤i k≤h)) U
-  {- Nicolai's comment:
-     Would it be useful to add  (h ≤ i) to the shape condition?
-     We only care about shapes that fulfil this condition.
-     Without this condition, the above type of 𝔸 is wrong,
-     as `k ≤ h` doesn't imply `boundary-shape k ≤ₛ s`.
-     (Ideally, give a name to the prove of `boundary-shape i ≤ₛ s`
-     since we need it multiple times.)
-  -}
 
-  -- todo: rename q to k≤h to increase readability?
-  A : (k : ℕ) → (q : k ≤ h) → Ty (𝔻 ∷ 𝔸 k q ++ₜₑₗ  Mᵒᵗᵒᵗ k (boundary-smaller h≤i q) [ π (𝔸 k q) ]ₜₑₗ  )
-  A k q = generic[ Mᵒᵗᵒᵗ k (boundary-smaller h≤i q) ]type
+  A : (k : ℕ) → (k≤h : k ≤ h) → Ty (𝔻 ∷ 𝔸 k k≤h ++ₜₑₗ  Mᵒᵗᵒᵗ k (boundary-smaller h≤i k≤h) [ π (𝔸 k k≤h) ]ₜₑₗ  )
+  A k k≤h = generic[ Mᵒᵗᵒᵗ k (boundary-smaller h≤i k≤h) ]type
   {-
 
   M= : ∀ i h {t} {s} {t'} {s'} → t == t' → M i h t s == M i h t' s'
@@ -80,28 +81,52 @@ record ind-data (s : Shape) (h≤i : is-height-restricted s) : Type (ℓₘᴵ �
     → t == t'
     → M i h t s == M i h t' s'
   M=' i h t t' {s} {s'} p = M= i h {s = s} {s' = s'} p
-  -}
-  {-
   
   field
     M⃗ : ∀ i h t s {j} (f : hom i j)
          → let cf = count-factors i h t s f
                sh = count-factors-shape i h t s f
            in Sub (M (i h t s) (M j h cf sh)
+  -}
 
   field
-    M⃗  : ∀ {s' : Shape} → (p : s' ≤ₛ s)
+    M⃗  : ∀ {s' : Shape} → (s'≤s : s' ≤ₛ s)
             → {k : ℕ} → (f : hom (𝑖 s') k)
-            → Sub (close $ Mᵒ p)
-                  (close $ Mᵒ {s' = s' · f}
-                              (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) p)))
+            → Sub (close $ Mᵒ s' s'≤s)
+                  (close $ Mᵒ (s' · f)
+                              (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) s'≤s)))
 
+  {-
+  -- this is good, but maybe better formulate as equalities OUTSIDE this module/record - SEE BELOW
   id-iso : ∀ (s' : Shape) → (p : s' ≤ₛ s)
              → {k : ℕ} → (f : hom (𝑖 s') k)
              → {l : ℕ} → (g : hom k l)
-             → Sub (close $ Mᵒ (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' (g ◦ f)) p)))
-                   (close $ Mᵒ (inr (<ₛ-≤ₛ-<ₛ (·<ₛ (s' · f) g) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) p)))))
+             → Sub (close $ Mᵒ (s' · (g ◦ f)) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' (g ◦ f)) p)))
+                   (close $ Mᵒ ((s' · f) · g) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ (s' · f) g) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) p)))))
   id-iso = {!transp {A = Σ[!}
+  -}
+  M[·comp] : ∀ (s' : Shape) → (s'≤s : s' ≤ₛ s)
+             → {k : ℕ} → (f : hom (𝑖 s') k)
+             → {l : ℕ} → (g : hom k l)
+             → Mᵒ (s' · (g ◦ f)) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' (g ◦ f)) s'≤s))
+               ==
+               Mᵒ ((s' · f) · g) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ (s' · f) g) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) s'≤s))))
+  M[·comp] s' s'≤s {k} f {l} g
+           = {! (apd Mᵒ (∙comp s' f g)) !}
+
+  -- todo. An `id2iso` should be in Categories module.
+
+  field
+    M⃗∘ : ∀ {s' : Shape} → (s'≤s : s' ≤ₛ s)
+             → {k : ℕ} → (f : hom (𝑖 s') k)
+             → {l : ℕ} → (g : hom k l)
+             → (M⃗ {s' = s' · f} (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) s'≤s)) g)
+                   ◦ˢᵘᵇ (M⃗ {s' = s'} s'≤s f)
+               ==
+               {!id2iso applied on M[·comp]!} ◦ˢᵘᵇ (M⃗ {s' = s'} s'≤s (g ◦ f))
+
+
+  {-
 
 -- !! or use Josh's strategy (maybe better?); cf Diagrams.agda
   that would be something like:
@@ -112,14 +137,6 @@ record ind-data (s : Shape) (h≤i : is-height-restricted s) : Type (ℓₘᴵ �
                  sh = count-factors-shape i h t s f
            in Sub (M i h t s) (M j h cf sh)
 
-  field
-    M⃗∘ : ∀ {s' : Shape} → (p : s' ≤ₛ s)
-             → {k : ℕ} → (f : hom (𝑖 s') k)
-             → {l : ℕ} → (g : hom k l)
-             → (M⃗ {s' = s' · f} (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) p)) g)
-                   ◦ˢᵘᵇ (M⃗ {s' = s'} p f)
-               ==
-               (id-iso s' p f g) ◦ˢᵘᵇ (M⃗ {s' = s'} p (g ◦ f))
 
     -- γ   : {!!}
   -}

@@ -488,3 +488,13 @@ boundary-smaller {O}    {i , h , t , is-s} q k≤h   = {!!}
 boundary-smaller {1+ k} {i , h , t , is-s} q 1+k≤h = {!!}
 
 
+{- IGNORE. Probably delete, was copied from another module.
+-- Another lemma about shape restriction: 
+  id-iso : ∀ (s' : Shape) → (p : s' ≤ₛ s)
+             → {k : ℕ} → (f : hom (𝑖 s') k)
+             → {l : ℕ} → (g : hom k l)
+             → Sub (close $ Mᵒ (s' · (g ◦ f)) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' (g ◦ f)) p)))
+                   (close $ Mᵒ ((s' · f) · g) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ (s' · f) g) (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) p)))))
+  id-iso = {!transp {A = Σ[!}
+-}
+

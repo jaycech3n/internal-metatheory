@@ -36,3 +36,16 @@ record WildCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ ∪ ℓₘ)) where
     wildcatstr : WildCategoryStructure ℓₒ ℓₘ Ob
 
   open WildCategoryStructure wildcatstr public
+
+
+
+
+-- TODO. Need some simple things, for example an "id2iso" would be very useful
+-- (equal objects have an iso between them).
+{-
+module _ {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) where
+
+  Ob = WildCategory.Ob C
+  Hom : Ob → Ob → Type ℓₘ
+  Hom = {!WildCategory.wildcatstr C!}
+-}
