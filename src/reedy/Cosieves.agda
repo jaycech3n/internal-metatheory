@@ -49,9 +49,8 @@ boundary-shape (1+ i) = (1+ i , i , hom-size (1+ i) i , is-total-shape-1+ i)
 shape-is-prop : ∀ {i h t} → is-prop (is-shape i h t)
 shape-is-prop = ≤-is-prop
 
-shape-path : ∀ {i h t} {s s' : is-shape i h t} → s == s'
-shape-path = prop-has-all-paths _ _
-
+shape-path : ∀ {i h t} (s s' : shape i h t) → s == s'
+shape-path = prop-has-all-paths
 
 {- Shape order -}
 
@@ -426,15 +425,15 @@ module Cosieves-IsStrictlyOriented
         (divby-monotone t t' u (S<-< u') v)
         (divby-monotone t' (1+ t') (S<-< u') u' ltS)
 
-  count-factors-shape-aux :
+  count-factors[_,_,1+_]-shape :
     ∀ i h t u {j} (f : hom i j)
     → (d : Dec (f ∣ #[ t ] i h u))
     → count-factors[ i , h ,1+ t ] u f d ≤ hom-size j h
-  count-factors-shape-aux i h O u f (inl yes) = {!!}
-  count-factors-shape-aux i h (1+ t) u f (inl yes) = {!!}
-  count-factors-shape-aux i h O u f (inr no) = O≤ _
-  count-factors-shape-aux i h (1+ t) u f (inr no) =
-    count-factors-shape-aux i h t v f (f ∣? #[ t ] i h v)
+  count-factors[ i , h ,1+ O ]-shape u f (inl yes) = {!!}
+  count-factors[ i , h ,1+ 1+ t ]-shape u f (inl yes) = {!!}
+  count-factors[ i , h ,1+ O ]-shape u f (inr no) = O≤ _
+  count-factors[ i , h ,1+ 1+ t ]-shape u f (inr no) =
+    count-factors[ i , h ,1+ t ]-shape v f (f ∣? #[ t ] i h v)
     where v = S<-< u -- S≤-< (inr u)
 
   count-factors-shape :
@@ -442,7 +441,7 @@ module Cosieves-IsStrictlyOriented
     → count-factors i h t s f ≤ hom-size j h
   count-factors-shape i h O s {j} f = O≤ (hom-size j h)
   count-factors-shape i h (1+ t) s f =
-    count-factors-shape-aux i h t u f (f ∣? #[ t ] i h u)
+    count-factors[ i , h ,1+ t ]-shape u f (f ∣? #[ t ] i h u)
     where u = S≤-< s
 
   -- Lemma 6.8 in paper
@@ -455,8 +454,10 @@ module Cosieves-IsStrictlyOriented
   count-factors-comp :
     ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
     → ∀ {s'}
-    → count-factors i h t s (g ◦ f) == count-factors j h (count-factors i h t s f) s' g
-  count-factors-comp = {!!}
+    → count-factors i h t s (g ◦ f)
+      == count-factors j h (count-factors i h t s f) s' g
+  count-factors-comp i h O s f g = idp
+  count-factors-comp i h (1+ t) s f g = {!!}
 
   -- Shape restriction
   -- \cdot; different from \.
