@@ -13,7 +13,7 @@ open SimpleSemicategory I
 is-shape : ℕ → ℕ → ℕ → Type₀
 is-shape i h t = t ≤ hom-size i h
 -- This definition might have some advantages (but also create problems):
--- shape i h t = (t ≤ hom-size i h) × (h ≤ i)
+-- is-shape i h t = (t ≤ hom-size i h) × (h ≤ i)
 
 prev-is-shape : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
 prev-is-shape = S≤-≤
@@ -87,8 +87,8 @@ s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
 
 -- TODO. Decidability of the relation. We might also need it for <ₛ and ==.
 -- (maybe we don't actually need it?)
-≤ₛ-dec : ∀ s s' → Dec (s ≤ₛ s')
-≤ₛ-dec s s' = {!!}
+-- ≤ₛ-dec : ∀ s s' → Dec (s ≤ₛ s')
+-- ≤ₛ-dec s s' = {!!}
 
 -- TODO. Wellfounded induction.
 
