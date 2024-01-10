@@ -32,6 +32,8 @@ open TelIndexedTypes univstr
      We need it in the below record.
      Without this condition, the later type of 𝔸 is wrong,
      as `k ≤ h` doesn't imply `boundary-shape k ≤ₛ s`.
+
+     UPDATE: This is now added to the shape condition.
   -}
 
 
