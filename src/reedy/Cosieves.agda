@@ -47,7 +47,7 @@ boundary-shape (1+ i) = (1+ i , i , hom-size (1+ i) i , is-total-shape-1+ i)
 {- Shape equality -}
 
 shape-is-prop : ∀ {i h t} → is-prop (is-shape i h t)
-shape-is-prop = {!!} -- ≤-is-prop
+shape-is-prop = {!×-prop!} -- ≤-is-prop
 
 shape-path : ∀ {i h t} (s s' : is-shape i h t) → s == s'
 shape-path = prop-has-all-paths
