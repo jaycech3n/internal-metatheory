@@ -39,16 +39,23 @@ open TelIndexedTypes univstr
 
 -- The data that we construct by shape induction consists of
 -- 𝔻, Mᵒ, M⃗, M⃗∘, γ (working name) 
+-- TODO: decide what exactly these are!
+-- E.g., for 𝔻, we might want to ignore everything apart from `h`.
+-- However, there's an off-by-1, as M (i,h,t) needs 𝔻 (1+ h).
+-- So, do we need to re-interpret h as h-1 here? Or what do we do?
 record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
   i = 𝑖 s
   h = ℎ s
   t = 𝑡 s
 
-  -- h≤i = ?
+  h≤i : h ≤ i
+  h≤i = fst (is-s s)
+
+  t≤max = snd (is-s s)
   
   
   field
-    𝔻  : Con
+    𝔻  : Con -- interpretation: ignore everything but `h` in `s`
     Mᵒ  : (s' : Shape) → (s' ≤ₛ s) → Tel 𝔻
 
   -- convenience definitions
@@ -74,10 +81,10 @@ record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
   --  since we need it multiple times.)
 
   𝔸 : (k : ℕ) → (k ≤ h) → Ty 𝔻
-  𝔸 k k≤h = Πₜₑₗ (Mᵒᵗᵒᵗ k (boundary-smaller {! h≤i !} k≤h)) U
+  𝔸 k k≤h = Πₜₑₗ (Mᵒᵗᵒᵗ k (boundary-smaller {k} {s} k≤h)) U
 
-  A : (k : ℕ) → (k≤h : k ≤ h) → Ty (𝔻 ∷ 𝔸 k k≤h ++ₜₑₗ  Mᵒᵗᵒᵗ k (boundary-smaller {! h≤i !} k≤h) [ π (𝔸 k k≤h) ]ₜₑₗ  )
-  A k k≤h = generic[ Mᵒᵗᵒᵗ k (boundary-smaller {! h≤i !} k≤h) ]type
+  A : (k : ℕ) → (k≤h : k ≤ h) → Ty (𝔻 ∷ 𝔸 k k≤h ++ₜₑₗ  Mᵒᵗᵒᵗ k (boundary-smaller {k} {s} k≤h) [ π (𝔸 k k≤h) ]ₜₑₗ  )
+  A k k≤h = generic[ Mᵒᵗᵒᵗ k (boundary-smaller {k} {s} k≤h) ]type
 
   field
     M⃗  : ∀ {s' : Shape} → (s'≤s : s' ≤ₛ s)
@@ -96,6 +103,7 @@ record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
            = {! (apd Mᵒ (∙comp s' f g)) !}
 
   -- todo. An `id2iso` should be in Categories module.
+  -- Answer: That' idd!
 
   field
     M⃗∘ : ∀ {s' : Shape} → (s'≤s : s' ≤ₛ s)
@@ -104,9 +112,51 @@ record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
              → (M⃗ {s' = s' · f} (inr (<ₛ-≤ₛ-<ₛ (·<ₛ s' f) s'≤s)) g)
                    ◦ˢᵘᵇ (M⃗ {s' = s'} s'≤s f)
                ==
-               {!id2iso applied on M[·comp]!} ◦ˢᵘᵇ (M⃗ {s' = s'} s'≤s (g ◦ f))
+               idd (ap close (M[·comp] s' s'≤s f g))
+                   ◦ˢᵘᵇ (M⃗ {s' = s'} s'≤s (g ◦ f))
 
     -- γ : {!!}
 
--- Main-construction : (s : Shape) → 
+Main-construction : (s : Shape) → ind-data s
+Main-construction =
+  shape-ind ind-data
+
+    -- case (i,O,O)
+    (λ i ih →
+      record {
+        𝔻 = {!!}
+        ;
+        Mᵒ = λ _ _ → •
+        ;
+        M⃗ = {!!}
+        ;
+        M⃗∘ = {!!}
+      })
+
+    -- case (i,h+1,O)
+    (λ i h 1+h≤i ih →
+      record {
+        𝔻 = {!!}
+        ;
+        Mᵒ = {!!}
+        ;
+        M⃗ = {!!}
+        ;
+        M⃗∘ = {!!}
+      })
+
+    -- case (i,h,t+1)
+    (λ i h t is-s ih →
+      record {
+        𝔻 = {!!}
+        ;
+        Mᵒ = {!!}
+        ;
+        M⃗ = {!!}
+        ;
+        M⃗∘ = {!!}
+      })
+
+
+
 

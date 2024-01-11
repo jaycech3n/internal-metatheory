@@ -478,14 +478,10 @@ module Cosieves-IsStrictlyOriented
   ∙comp (i , h , t , s) {k} {l} f g  = {!!}
 
 
--- Shapes with restricted height (no actual restriction)
--- TODO this becomes part of `is-shape`
+-- Finally: Show that some typical shapes are sufficiently small
 
-is-height-restricted : Shape → Type₀
-is-height-restricted (i , h , _ , _) = h ≤ i
-
-boundary-smaller : {k : ℕ} {s : Shape} (q : is-height-restricted s) → (k ≤ ℎ s) → boundary-shape k ≤ₛ s
-boundary-smaller {O}    {i , h , t , is-s} q k≤h   = {!!}
-boundary-smaller {1+ k} {i , h , t , is-s} q 1+k≤h = {!!}
+boundary-smaller : ∀ {k s} → (k ≤ ℎ s) → boundary-shape k ≤ₛ s
+boundary-smaller {O}    {i , h , t , is-s} k≤h   = {!!}
+boundary-smaller {1+ k} {i , h , t , is-s} 1+k≤h = {!!}
 
 
