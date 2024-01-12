@@ -37,12 +37,17 @@ open TelIndexedTypes univstr
   -}
 
 
--- The data that we construct by shape induction consists of
--- 𝔻, Mᵒ, M⃗, M⃗∘, γ (working name) 
--- TODO: decide what exactly these are!
--- E.g., for 𝔻, we might want to ignore everything apart from `h`.
--- However, there's an off-by-1, as M (i,h,t) needs 𝔻 (1+ h).
--- So, do we need to re-interpret h as h-1 here? Or what do we do?
+{-
+  The data that we construct by shape induction consists of
+  𝔻, Mᵒ, M⃗, M⃗∘, γ (working name) 
+  TODO: decide what exactly these are!
+  E.g., for 𝔻, we might want to ignore everything apart from `h`.
+  However, there's an off-by-1, as M (i,h,t) needs 𝔻 (1+ h).
+  So, do we need to re-interpret h as h-1 here? Or what do we do?
+
+  Ugly solution would be to skip 0, and say that `𝔻 s` should have length `1+ (ℎ s)`.
+
+-}
 record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
   i = 𝑖 s
   h = ℎ s
@@ -102,8 +107,8 @@ record ind-data (s : Shape) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
   M[·comp] s' s'≤s {k} f {l} g
            = {! (apd Mᵒ (∙comp s' f g)) !}
 
-  -- todo. An `id2iso` should be in Categories module.
-  -- Answer: That' idd!
+  -- We could transport along this equality. However, it's nicer to
+  -- use the usual `id2iso`, here called `idd`, and compose with that:
 
   field
     M⃗∘ : ∀ {s' : Shape} → (s'≤s : s' ≤ₛ s)
