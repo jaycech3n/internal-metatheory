@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import reedy.SimpleSemicategories
 
@@ -20,6 +20,9 @@ full-shape i h = lteE
 
 total-shape-1+ : ∀ i → shape (1+ i) i (hom-size (1+ i) i)
 total-shape-1+ i = full-shape (1+ i) i
+
+<-shape : ∀ {i h t} → t < hom-size i h → shape i h t
+<-shape = inr
 
 Shape = Σ[ i ﹕ ℕ ] Σ[ h ﹕ ℕ ] Σ[ t ﹕ ℕ ] shape i h t
 
@@ -46,37 +49,37 @@ shape-path = prop-has-all-paths
 
 {- Shape order -}
 
-data _>ₛ_ (s : Shape) : Shape → Type₀ where
-  on-𝑖 : ∀ {s'} → 𝑖 s > 𝑖 s' → s >ₛ s'
-  on-ℎ : ∀ {h' t' s'} → ℎ s > h' → s >ₛ 𝑖 s , h' , t' , s'
-  on-𝑡 : ∀ {t' s'} → 𝑡 s > t' → s >ₛ 𝑖 s , ℎ s , t' , s'
+-- data _>ₛ_ (s : Shape) : Shape → Type₀ where
+--   on-𝑖 : ∀ {s'} → 𝑖 s > 𝑖 s' → s >ₛ s'
+--   on-ℎ : ∀ {h' t' s'} → ℎ s > h' → s >ₛ 𝑖 s , h' , t' , s'
+--   on-𝑡 : ∀ {t' s'} → 𝑡 s > t' → s >ₛ 𝑖 s , ℎ s , t' , s'
 
-_<ₛ_ : Shape → Shape → Type₀
-s <ₛ s' = s' >ₛ s
+-- _<ₛ_ : Shape → Shape → Type₀
+-- s <ₛ s' = s' >ₛ s
 
-_≤ₛ_ : Shape → Shape → Type₀
-s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
+-- _≤ₛ_ : Shape → Shape → Type₀
+-- s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
 
-<ₛ-trans : ∀ {s s' s''} → s <ₛ s' → s' <ₛ s'' → s <ₛ s''
-<ₛ-trans (on-𝑖 u) (on-𝑖 v) = on-𝑖 (<-trans u v)
-<ₛ-trans (on-𝑖 u) (on-ℎ v) = on-𝑖 u
-<ₛ-trans (on-𝑖 u) (on-𝑡 v) = on-𝑖 u
-<ₛ-trans (on-ℎ u) (on-𝑖 v) = on-𝑖 v
-<ₛ-trans (on-ℎ u) (on-ℎ v) = on-ℎ (<-trans u v)
-<ₛ-trans (on-ℎ u) (on-𝑡 v) = on-ℎ u
-<ₛ-trans (on-𝑡 u) (on-𝑖 v) = on-𝑖 v
-<ₛ-trans (on-𝑡 u) (on-ℎ v) = on-ℎ v
-<ₛ-trans (on-𝑡 u) (on-𝑡 v) = on-𝑡 (<-trans u v)
+-- <ₛ-trans : ∀ {s s' s''} → s <ₛ s' → s' <ₛ s'' → s <ₛ s''
+-- <ₛ-trans (on-𝑖 u) (on-𝑖 v) = on-𝑖 (<-trans u v)
+-- <ₛ-trans (on-𝑖 u) (on-ℎ v) = on-𝑖 u
+-- <ₛ-trans (on-𝑖 u) (on-𝑡 v) = on-𝑖 u
+-- <ₛ-trans (on-ℎ u) (on-𝑖 v) = on-𝑖 v
+-- <ₛ-trans (on-ℎ u) (on-ℎ v) = on-ℎ (<-trans u v)
+-- <ₛ-trans (on-ℎ u) (on-𝑡 v) = on-ℎ u
+-- <ₛ-trans (on-𝑡 u) (on-𝑖 v) = on-𝑖 v
+-- <ₛ-trans (on-𝑡 u) (on-ℎ v) = on-ℎ v
+-- <ₛ-trans (on-𝑡 u) (on-𝑡 v) = on-𝑡 (<-trans u v)
 
-<ₛ-≤ₛ-<ₛ : ∀ {s s' s''} → s <ₛ s' → s' ≤ₛ s'' → s <ₛ s''
-<ₛ-≤ₛ-<ₛ u (inl idp) = u
-<ₛ-≤ₛ-<ₛ u (inr v) = <ₛ-trans u v
+-- <ₛ-≤ₛ-<ₛ : ∀ {s s' s''} → s <ₛ s' → s' ≤ₛ s'' → s <ₛ s''
+-- <ₛ-≤ₛ-<ₛ u (inl idp) = u
+-- <ₛ-≤ₛ-<ₛ u (inr v) = <ₛ-trans u v
 
-Shape-accessible : all-accessible Shape _<ₛ_
-Shape-accessible (i , h , t , s) = {!!}
+-- Shape-accessible : all-accessible Shape _<ₛ_
+-- Shape-accessible (i , h , t , s) = {!!}
 
-open WellFoundedInduction Shape _<ₛ_ Shape-accessible public
-  renaming (wf-ind to shape-ind)
+-- open WellFoundedInduction Shape _<ₛ_ Shape-accessible public
+--   renaming (wf-ind to shape-ind)
 
 
 {- Counting factors -}
@@ -90,6 +93,7 @@ open WellFoundedInduction Shape _<ₛ_ Shape-accessible public
 --   else λ _ → rec
 --   where rec = count-factors i h t (prev-shape s) f
 
+{-
 count-factors[_,_,1+_] :
   ∀ i h t (u : t < hom-size i h) {j} (f : hom i j)
   → Dec (f ∣ (#[ t ] i h u))
@@ -107,7 +111,25 @@ count-factors : ∀ i h t {j} → shape i h t → hom i j → ℕ
 count-factors i h O s f = O
 count-factors i h (1+ t) s f =
   count-factors[ i , h ,1+ t ] u f (f ∣? #[ t ] i h u)
+where u = S≤-< s
+-}
+
+count-factors : ∀ i h t {j} → shape i h t → hom i j → ℕ
+
+count-factors[_,_,1+_] :
+  ∀ i h t (u : t < hom-size i h) {j} (f : hom i j)
+  → Dec (f ∣ (#[ t ] i h u))
+  → ℕ
+
+count-factors i h O s f = O
+count-factors i h (1+ t) s f =
+  count-factors[ i , h ,1+ t ] u f (f ∣? #[ t ] i h u)
   where u = S≤-< s
+
+count-factors[ i , h ,1+ t ] u f (inr no) =
+  count-factors i h t (<-shape u) f
+count-factors[ i , h ,1+ t ] u f (inl yes) =
+  1+ (count-factors i h t (<-shape u) f)
 
 count-factors-eq : ∀ i h t {j} (f : hom i j) (u u' : shape i h t)
   → count-factors i h t u f == count-factors i h t u' f
@@ -123,6 +145,7 @@ count-factors-rec i h t f u div with f ∣? #[ t ] i h (S≤-< u)
 ... | inr no = ⊥-rec $ no (transp (f ∣_) (#[]-eq t i h _ _) div)
 -}
 
+{-
 -- Helper for Lemma 6.7
 count-factors-top-level-aux :
   ∀ i h t u (f : hom i h) (d : Dec (f ∣ #[ t ] i h u))
@@ -136,6 +159,7 @@ count-factors-top-level-aux i h O u f (inr _) =
 count-factors-top-level-aux i h (1+ t) u f (inr _) =
   count-factors-top-level-aux i h t v f (f ∣? #[ t ] i h v)
   where v = S<-< u
+-}
 
 -- Lemma 6.7 (paper version as of 12.10.23)
 count-factors-top-level : ∀ i h t (s : shape i h t) (f : hom i h)
@@ -143,8 +167,9 @@ count-factors-top-level : ∀ i h t (s : shape i h t) (f : hom i h)
 count-factors-top-level i h O s f = idp
 count-factors-top-level i h (1+ t) s f with f ∣? #[ t ] i h (S≤-< s)
 ... | inl (g , _) = ⊥-rec $ endo-hom-empty g
-... | inr no = count-factors-top-level-aux i h t (S≤-< s) f (inr no)
+... | inr no = count-factors-top-level i h t (prev-shape s) f
 
+{-
 -- Lemma 6.10 (12.10.23)
 -- The proof here differs from the paper.
 module count-factors-properties (i h j : ℕ) (f : hom i j) where
@@ -377,3 +402,4 @@ module Cosieves-IsStrictlyOriented
 
   ·<ₛ : (s : Shape) {j : ℕ} (f : hom (𝑖 s) j) → s · f <ₛ s
   ·<ₛ s f = on-𝑖 (hom-inverse _ _ f)
+-}

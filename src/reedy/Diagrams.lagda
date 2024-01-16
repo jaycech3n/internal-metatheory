@@ -123,7 +123,7 @@ M⃗◦ :
 Our encoding of linear cosieves as shapes does not present some important
 equalities definitionally. Hence, when we define the functor M on shapes, we
 need to transport along certain propositional equalities. One of these is the
-following─ used in the definition of Mᵒ ─which needs to be mutually defined with
+following, used in the definition of Mᵒ, which needs to be defined mutually with
 the other diagram components.
 
 \begin{code}
@@ -380,18 +380,16 @@ As before, for the (i, h, t+1) case we need to compute on whether or not
 
 \begin{code}
 
-M⃗◦ i h (1+ O) s {j} f {k} g =
-  depcase P (f ∣? #[ O ] i h u)
-    {!!}
-    {!!}
-  where
-  u = S≤-< s
-  P : Dec (f ∣ #[ O ] i h u) → Type _
-  P d =
-    M⃗ j h (count-factors[ i , h ,1+ O ] u f d)
-      (count-factors[ i , h ,1+ O ]-shape u f d) g
-    ◦ˢᵘᵇ M⃗[ i , h ,1] s f d
-    == idd {!!} ◦ˢᵘᵇ M⃗[ i , h ,1] s (g ◦ f) {!!}
+module M⃗◦[i,h,1]-Cases where
+
+-- M⃗◦[_,_,1] :
+--   ∀ i h (s : shape i h 1) {i} (f : hom i j) {k} (g : hom j k)
+--   → let u = S≤-< s in (d : Dec (f ∣ #[ O ] i h u))
+--   → ?
+--   -- this one's a hunch
+--   → M⃗[ i, h ,1]
+
+M⃗◦ i h (1+ O) s {j} f {k} g = {!!}
 
 M⃗◦ i h (2+ t) s {j} f {k} g = {!!}
 
