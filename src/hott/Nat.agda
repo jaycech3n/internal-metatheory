@@ -193,16 +193,16 @@ module Nat-monus where
 
 open Nat-monus public
 
-{-
-module subtraction where
-  infixl 80 _-_
-  _-_ : (m n : ℕ) → ⦃ n ≤ m ⦄ → ℕ
-  (m - .m) ⦃ inl idp ⦄ = O
-  (.(1+ n) - n) ⦃ inr ltS ⦄ = 1
-  ((1+ m) - n) ⦃ inr (ltSR u) ⦄ = 1+ ((m - n) ⦃ inr u ⦄)
 
-open subtraction public
--}
+module Nat-subtraction where
+  infixl 80 _−_
+  _−_ : (m n : ℕ) → ⦃ n ≤ m ⦄ → ℕ
+  (m − .m) ⦃ inl idp ⦄ = O
+  (.(1+ n) − n) ⦃ inr ltS ⦄ = 1
+  ((1+ m) − n) ⦃ inr (ltSR u) ⦄ = 1+ ((m − n) ⦃ inr u ⦄)
+
+open Nat-subtraction public
+
 
 module Nat-induction where
   ℕ-ind-from : ∀ {ℓ} (n₀ : ℕ) (P : ℕ → Type ℓ)

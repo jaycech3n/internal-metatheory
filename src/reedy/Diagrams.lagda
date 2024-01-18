@@ -145,9 +145,11 @@ Partial matching objects: Mᵒ (object part)
 Now we define the partial matching object functor. This will be done with a well
 founded induction on shapes. For now, to more clearly present the intuitive
 ideas and focus on the coherences before worrying about the fully correct
-induction principle, we use pattern matching with the \begin{code}
+induction principle, we use pattern matching with the
+\begin{code}
 {-# TERMINATING #-}
-\end{code} pragma to (temporarily) circumvent when Agda doesn't see the well
+\end{code}
+pragma to (temporarily) circumvent when Agda doesn't see the well
 foundedness.
 
 The object part of the functor is Mᵒ.
@@ -212,141 +214,35 @@ Partial matching objects: M⃗ (morphism part)
 
 Now, the action of the partial matching object on morphisms f.
 
-In the (i, h, t+1) case, we have a further case distinction on t = 0 or t = t'+1
-(as count-factors, and thus the type of M⃗, takes different values based on this
-distinction).
-
-\begin{code}
-
-module M⃗[i,h,1]-Cases where
-
-\end{code}
-
-The recursion in this part of the construction relies on certain types computing
-to the appropriate things, depending on whether or not f divides [t]ⁱₕ. To
-actually allow this computation to occur, the types of the definitions need to
+In the (i, h, t+1) case, the recursive definition relies on certain types
+computing to the appropriate things depending on whether or not f divides
+[t]ⁱₕ. To actually allow this computation to occur, the relevant types need to
 expose an argument of type (Dec (f ∣ #[ t ] i h u)).
 
 \begin{code}
 
-  P[_,_,1] :
-    ∀ i h (s : shape i h 1) {j} (f : hom i j)
-    → let u = S≤-< s in Dec (f ∣ #[ O ] i h u)
-    → Type _
-  P[ i , h ,1] s {j} f d =
-    Sub (M i h 1 s)
-        (M j h (count-factors[ i , h ,1+ O ] u f d)
-          (count-factors[ i , h ,1+ O ]-shape u f d))
-    where u = S≤-< s
+M⃗ i h (1+ t) s {j} f =
+  depcase M⃗-deptype (f ∣? #[ t ] i h u)
+    (λ (g , _) →
+      idd (M=shape sh _) ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,,
+      {!!})
+    (λ no →
+      M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]))
+  where
+  u = S≤-< s
+
+  M⃗-deptype : Dec (f ∣ #[ t ] i h u) → Type _
+  M⃗-deptype d =
+    Sub (M i h (1+ t) s)
+        (M j h (count-factors[ i , h ,1+ t ] u f d)
+          (count-factors-shape[ i , h ,1+ t ] u f d))
+
+  prev = prev-shape s
+  sh = count-factors-shape i h t prev f
 
 \end{code}
 
-In general, M⃗ (i, h, t+1) f is defined by case analysis on (f ∣? [t]). We prove
-the two cases separately, with explicit dependence on witnesses w.
-
-\begin{code}
-
-  M⃗[_,_,1]-yes :
-    ∀ i h (s : shape i h 1) {j} (f : hom i j)
-    → let u = S≤-< s in (w : f ∣ #[ O ] i h u)
-    → let prev = prev-shape s
-          cfp = count-factors i h O prev f
-          shp = S≤-≤ (count-factors[ i , h ,1+ O ]-shape u f (inl w))
-      in Sub (M i h 1 s) (M j h cfp shp ∷ A h [ _ ])
-  M⃗[ i , h ,1]-yes s {j} f w =
-    idd (M=shape cfp _) ◦ˢᵘᵇ M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
-    ,, {!!}
-    where
-    prev = prev-shape s
-    cfp = count-factors-shape i h O prev f
-
-  M⃗[_,_,1]-no :
-    ∀ i h (s : shape i h 1) {j} (f : hom i j)
-    → let u = S≤-< s in (w : ¬ (f ∣ #[ O ] i h u))
-    → let prev = prev-shape s
-      in Sub (M i h 1 s) (M j h O _)
-  M⃗[ i , h ,1]-no s {j} f w = M⃗ i h O prev f ◦ˢᵘᵇ π (A h [ _ ])
-    where prev = prev-shape s
-
-open M⃗[i,h,1]-Cases
-
-\end{code}
-
-Repeat the above for M⃗ (i, h, t+2) f.
-
-\begin{code}
-
-module M⃗[i,h,t+2]-Cases where
-
-  P[_,_,2+_] :
-    ∀ i h t (s : shape i h (2+ t)) {j} (f : hom i j)
-    → let u = S≤-< s in Dec (f ∣ #[ 1+ t ] i h u)
-    → Type _
-  P[ i , h ,2+ t ] s {j} f d =
-    Sub (M i h (2+ t) s)
-        (M j h (count-factors[ i , h ,1+ 1+ t ] u f d)
-          (count-factors[ i , h ,1+ 1+ t ]-shape u f d))
-    where u = S≤-< s
-
-  M⃗[_,_,2+_]-yes :
-    ∀ i h t (s : shape i h (2+ t)) {j} (f : hom i j)
-    → let u = S≤-< s in (w : f ∣ #[ 1+ t ] i h u)
-    → let prev = prev-shape s
-          cfp = count-factors i h (1+ t) prev f
-          shp = S≤-≤ (count-factors[ i , h ,1+ 1+ t ]-shape u f (inl w))
-      in Sub (M i h (2+ t) s) (M j h cfp shp ∷ A h [ _ ])
-  M⃗[ i , h ,2+ t ]-yes s f w =
-    idd (M=shape shp _) ◦ˢᵘᵇ M⃗ i h (1+ t) prev f ◦ˢᵘᵇ π (A h [ _ ])
-    ,, {!!}
-    where
-    prev = prev-shape s
-    shp = count-factors-shape i h (1+ t) prev f
-
-  M⃗[_,_,2+_]-no :
-    ∀ i h t (s : shape i h (2+ t)) {j} (f : hom i j)
-    → let u = S≤-< s in (w : ¬ (f ∣ #[ 1+ t ] i h u))
-    → let prev = prev-shape s
-      in Sub (M i h (2+ t) s) (M j h (count-factors i h (1+ t) prev f) _)
-  M⃗[ i , h ,2+ t ]-no s f w = M⃗ i h (1+ t) prev f ◦ˢᵘᵇ π (A h [ _ ])
-    where prev = prev-shape s
-
-open M⃗[i,h,t+2]-Cases
-
-\end{code}
-
-Now we can package everything up to define M⃗ (i, h, t+1) f.
-
-\begin{code}
-
-M⃗[_,_,1] :
-  ∀ i h (s : shape i h 1) {j} (f : hom i j)
-  → let u = S≤-< s in (d : Dec (f ∣ #[ O ] i h u))
-  → P[ i , h ,1] s f d
-M⃗[ i , h ,1] s f =
-  ⊔-elim {C = P[ i , h ,1] s f}
-    (M⃗[ i , h ,1]-yes s f)
-    (M⃗[ i , h ,1]-no s f)
-  where u = S≤-< s
-
-M⃗[_,_,2+_] :
-  ∀ i h t (s : shape i h (2+ t)) {j} (f : hom i j)
-  → let u = S≤-< s in (d : Dec (f ∣ #[ 1+ t ] i h u))
-  → P[ i , h ,2+ t ] s f d
-M⃗[ i , h ,2+ t ] s f =
-  ⊔-elim {C = P[ i , h ,2+ t ] s f}
-    (M⃗[ i , h ,2+ t ]-yes s f)
-    (M⃗[ i , h ,2+ t ]-no s f)
-  where u = S≤-< s
-
-M⃗ i h (1+ O) s {j} f = M⃗[ i , h ,1] s f (f ∣? #[ O ] i h u)
-  where u = S≤-< s
-
-M⃗ i h (2+ t) s {j} f = M⃗[ i , h ,2+ t ] s f (f ∣? #[ 1+ t ] i h u)
-  where u = S≤-< s
-
-\end{code}
-
-The other cases for M⃗ ─ (i, h+1, 0) and (i, 0, 0).
+The other cases for M⃗: (i, h+1, 0) and (i, 0, 0).
 
 \begin{code}
 
@@ -372,26 +268,15 @@ M⃗ i O O s f = id
 
 \end{code}
 
-Partial matching objects: M⃗∘ (functoriality)
----------------------------------------------
+Partial matching objects: M⃗∘ (anafunctoriality)
+------------------------------------------------
 
 As before, for the (i, h, t+1) case we need to compute on whether or not
 (f ∣ [t]ⁱₕ).
 
 \begin{code}
 
-module M⃗◦[i,h,1]-Cases where
-
--- M⃗◦[_,_,1] :
---   ∀ i h (s : shape i h 1) {i} (f : hom i j) {k} (g : hom j k)
---   → let u = S≤-< s in (d : Dec (f ∣ #[ O ] i h u))
---   → ?
---   -- this one's a hunch
---   → M⃗[ i, h ,1]
-
-M⃗◦ i h (1+ O) s {j} f {k} g = {!!}
-
-M⃗◦ i h (2+ t) s {j} f {k} g = {!!}
+M⃗◦ i h (1+ t) s {j} f {k} g = {!!}
 
 \end{code}
 

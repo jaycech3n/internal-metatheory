@@ -1,8 +1,8 @@
-{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import reedy.SimpleSemicategories
 
-module reedy.Cosieves {ℓₘ} (I : SimpleSemicategory ℓₘ) where
+module reedy.Cosieves-old {ℓₘ} (I : SimpleSemicategory ℓₘ) where
 
 open SimpleSemicategory I
 
@@ -47,11 +47,75 @@ shape-is-prop = ≤-is-prop
 shape-path : ∀ {i h t} (s s' : shape i h t) → s == s'
 shape-path = prop-has-all-paths
 
+{- Shape order -}
+
+-- data _>ₛ_ (s : Shape) : Shape → Type₀ where
+--   on-𝑖 : ∀ {s'} → 𝑖 s > 𝑖 s' → s >ₛ s'
+--   on-ℎ : ∀ {h' t' s'} → ℎ s > h' → s >ₛ 𝑖 s , h' , t' , s'
+--   on-𝑡 : ∀ {t' s'} → 𝑡 s > t' → s >ₛ 𝑖 s , ℎ s , t' , s'
+
+-- _<ₛ_ : Shape → Shape → Type₀
+-- s <ₛ s' = s' >ₛ s
+
+-- _≤ₛ_ : Shape → Shape → Type₀
+-- s ≤ₛ s' = (s == s') ⊔ (s <ₛ s')
+
+-- <ₛ-trans : ∀ {s s' s''} → s <ₛ s' → s' <ₛ s'' → s <ₛ s''
+-- <ₛ-trans (on-𝑖 u) (on-𝑖 v) = on-𝑖 (<-trans u v)
+-- <ₛ-trans (on-𝑖 u) (on-ℎ v) = on-𝑖 u
+-- <ₛ-trans (on-𝑖 u) (on-𝑡 v) = on-𝑖 u
+-- <ₛ-trans (on-ℎ u) (on-𝑖 v) = on-𝑖 v
+-- <ₛ-trans (on-ℎ u) (on-ℎ v) = on-ℎ (<-trans u v)
+-- <ₛ-trans (on-ℎ u) (on-𝑡 v) = on-ℎ u
+-- <ₛ-trans (on-𝑡 u) (on-𝑖 v) = on-𝑖 v
+-- <ₛ-trans (on-𝑡 u) (on-ℎ v) = on-ℎ v
+-- <ₛ-trans (on-𝑡 u) (on-𝑡 v) = on-𝑡 (<-trans u v)
+
+-- <ₛ-≤ₛ-<ₛ : ∀ {s s' s''} → s <ₛ s' → s' ≤ₛ s'' → s <ₛ s''
+-- <ₛ-≤ₛ-<ₛ u (inl idp) = u
+-- <ₛ-≤ₛ-<ₛ u (inr v) = <ₛ-trans u v
+
+-- Shape-accessible : all-accessible Shape _<ₛ_
+-- Shape-accessible (i , h , t , s) = {!!}
+
+-- open WellFoundedInduction Shape _<ₛ_ Shape-accessible public
+--   renaming (wf-ind to shape-ind)
+
 
 {- Counting factors -}
 
-count-factors :
-  ∀ i h t {j} → shape i h t → hom i j → ℕ
+-- Old definition:
+-- count-factors : ∀ i h t {j} → shape i h t → hom i j → ℕ
+-- count-factors i h O s f = O
+-- count-factors i h (1+ t) s f =
+--   if f ∣? #[ t ] i h (S≤-< s)
+--   then (λ _ → 1+ rec)
+--   else λ _ → rec
+--   where rec = count-factors i h t (prev-shape s) f
+
+{-
+count-factors[_,_,1+_] :
+  ∀ i h t (u : t < hom-size i h) {j} (f : hom i j)
+  → Dec (f ∣ (#[ t ] i h u))
+  → ℕ
+count-factors[ i , h ,1+ O ] u f (inr no) = O
+count-factors[ i , h ,1+ O ] u f (inl yes) = 1
+count-factors[ i , h ,1+ 1+ t ] u f (inr no) =
+  count-factors[ i , h ,1+ t ] v f (f ∣? #[ t ] i h v)
+  where v = S<-< u
+count-factors[ i , h ,1+ 1+ t ] u f (inl yes) =
+  1+ (count-factors[ i , h ,1+ t ] v f (f ∣? #[ t ] i h v))
+  where v = S<-< u
+
+count-factors : ∀ i h t {j} → shape i h t → hom i j → ℕ
+count-factors i h O s f = O
+count-factors i h (1+ t) s f =
+  count-factors[ i , h ,1+ t ] u f (f ∣? #[ t ] i h u)
+where u = S≤-< s
+-}
+
+count-factors : ∀ i h t {j} → shape i h t → hom i j → ℕ
+
 count-factors[_,_,1+_] :
   ∀ i h t (u : t < hom-size i h) {j} (f : hom i j)
   → Dec (f ∣ (#[ t ] i h u))
@@ -66,6 +130,20 @@ count-factors[ i , h ,1+ t ] u f (inr no) =
   count-factors i h t (<-shape u) f
 count-factors[ i , h ,1+ t ] u f (inl yes) =
   1+ (count-factors i h t (<-shape u) f)
+
+count-factors-eq : ∀ i h t {j} (f : hom i j) (u u' : shape i h t)
+  → count-factors i h t u f == count-factors i h t u' f
+count-factors-eq i h t f u u' =
+  ap (λ v → count-factors i h t v f) (≤-has-all-paths _ _)
+
+{-
+count-factors-rec : ∀ i h t {j} (f : hom i j) (u : shape i h (1+ t))
+  → ∀ {v} → f ∣ #[ t ] i h v
+  → count-factors i h (1+ t) u f == 1+ (count-factors i h t (prev-shape u) f)
+count-factors-rec i h t f u div with f ∣? #[ t ] i h (S≤-< u)
+... | inl yes = ap 1+ (count-factors-eq i h t f _ _)
+... | inr no = ⊥-rec $ no (transp (f ∣_) (#[]-eq t i h _ _) div)
+-}
 
 -- Lemma 6.22 (paper version as of 16.01.24)
 count-factors-top-level :
@@ -137,14 +215,14 @@ module count-factors-properties (i h j : ℕ) (f : hom i j) where
     where
     contra : hom-size j h ≠ O → ¬ (∀ t u → ¬ (f ∣ #[ t ] i h u))
     contra = contrapos no-divisible-hom-size-O
--}
+
 
 module Cosieves-IsStrictlyOriented
   (I-strictly-oriented : is-strictly-oriented I)
   where
   open SimpleSemicategories-IsStrictlyOriented I I-strictly-oriented
 
-  {-
+
   module _ {i j h : ℕ} {size-cond : 0 < hom-size j h} (f : hom i j) where
     0<homih : 0 < hom-size i h
     0<homih = hom[ i , h ]-inhab $ #[ 0 ] j h size-cond ◦ f
@@ -282,57 +360,20 @@ module Cosieves-IsStrictlyOriented
   count-factors[ i , h ,1+ 1+ t ]-shape u f (inr no) =
     count-factors[ i , h ,1+ t ]-shape v f (f ∣? #[ t ] i h v)
     where v = S<-< u -- S≤-< (inr u)
-  -}
 
-  module Lemma-6∙34-alt where -- paper version 17.10.24
-    record Shape-helper (i h t : ℕ) ⦃ s : shape i h t ⦄ : Type₀  where
-      constructor _,_
-      field
-        dt : ℕ
-        eq : dt == hom-size i h − t
+  count-factors-shape :
+    ∀ i h t s {j} (f : hom i j)
+    → count-factors i h t s f ≤ hom-size j h
+  count-factors-shape i h O s {j} f = O≤ (hom-size j h)
+  count-factors-shape i h (1+ t) s f =
+    count-factors[ i , h ,1+ t ]-shape u f (f ∣? #[ t ] i h u)
+    where u = S≤-< s
 
-    count-factors-shape :
-      ∀ i h t s {j} (f : hom i j)
-      → count-factors i h t s f ≤ hom-size j h
-    count-factors-shape[_,_,1+_] :
-      ∀ i h t u {j} (f : hom i j) d
-      → count-factors[ i , h ,1+ t ] u f d ≤ hom-size j h
-
-    count-factors-shape i h O s f = O≤ _
-    count-factors-shape i h (1+ t) s f =
-      count-factors-shape[ i , h ,1+ t ] u f (f ∣? #[ t ] i h u)
-      where u = S≤-< s
-
-    count-factors-shape[ i , h ,1+ t ] u f (inl yes) = {!!}
-    count-factors-shape[ i , h ,1+ t ] u f (inr no) =
-      count-factors-shape i h t (<-shape u) f
-
-  module Lemma-6∙34 where -- paper version 17.10.24
-    count-factors-shape :
-      ∀ i h t s {j} (f : hom i j)
-      → count-factors i h t s f ≤ hom-size j h
-    count-factors-shape[_,_,1+_] :
-      ∀ i h t u {j} (f : hom i j) d
-      → count-factors[ i , h ,1+ t ] u f d ≤ hom-size j h
-
-    count-factors-shape i h O s f = O≤ _
-    count-factors-shape i h (1+ t) s f =
-      count-factors-shape[ i , h ,1+ t ] u f (f ∣? #[ t ] i h u)
-      where u = S≤-< s
-
-    count-factors-shape[ i , h ,1+ t ] u f (inl yes) = {!!}
-    count-factors-shape[ i , h ,1+ t ] u f (inr no) =
-      count-factors-shape i h t (<-shape u) f
-
-  open Lemma-6∙34 public
-
-  module Lemma-6∙23 where -- version 17.10.24
-    count-factors-full :
-      ∀ i h s {j} (f : hom i j)
-      → count-factors i h (hom-size i h) s f == hom-size j h
-    count-factors-full = {!!}
-
-  open Lemma-6∙23 public
+  -- Lemma 6.8 in paper
+  count-factors-full :
+    ∀ i h s {j} (f : hom i j)
+    → count-factors i h (hom-size i h) s f == hom-size j h
+  count-factors-full = {!!}
 
   -- Need this too; prove it on paper:
   count-factors-comp :
@@ -342,3 +383,17 @@ module Cosieves-IsStrictlyOriented
       == count-factors j h (count-factors i h t s f) s' g
   count-factors-comp i h O s f g = idp
   count-factors-comp i h (1+ t) s f g = {!!}
+
+  -- Shape restriction
+  -- \cdot; different from \.
+  _·_ : (s : Shape) {j : ℕ} (f : hom (𝑖 s) j) → Shape
+  _·_ (i , h , t , s) {j} f = j , h , cf , sh
+    where
+    cf = count-factors i h t s f
+    sh = count-factors-shape i h t s f
+
+  infixl 80 _·_
+
+  ·<ₛ : (s : Shape) {j : ℕ} (f : hom (𝑖 s) j) → s · f <ₛ s
+  ·<ₛ s f = on-𝑖 (hom-inverse _ _ f)
+-}
