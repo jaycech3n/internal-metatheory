@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import reedy.SimpleSemicategories
 
@@ -340,5 +340,17 @@ module Cosieves-IsStrictlyOriented
     → ∀ {s'}
     → count-factors i h t s (g ◦ f)
       == count-factors j h (count-factors i h t s f) s' g
+  count-factors-comp[_,_,1+_] :
+    ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
+    → (d : Dec (g ◦ f ∣ #[ t ] i h u))
+    → ∀ {s'}
+    → count-factors[ i , h ,1+ t ] u (g ◦ f) d
+      == count-factors j h (count-factors[ i , h ,1+ t ] u f {!!}) s' g
+
   count-factors-comp i h O s f g = idp
-  count-factors-comp i h (1+ t) s f g = {!!}
+  count-factors-comp i h (1+ t) s f g =
+    count-factors-comp[ i , h ,1+ t ] u f g (g ◦ f ∣? #[ t ] i h u)
+    where u = S≤-< s
+
+  count-factors-comp[ i , h ,1+ t ] u f g (inl yes) = {!!}
+  count-factors-comp[ i , h ,1+ t ] u f g (inr no) = {!!}

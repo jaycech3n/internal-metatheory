@@ -35,6 +35,7 @@ open TelIndexedTypes univstr
 
 \end{code}
 
+
 Preliminaries, Overview, and 𝔻 (context of diagram fillers)
 -----------------------------------------------------------
 
@@ -89,7 +90,7 @@ open Convenience
 
 \end{code}
 
-Then we can formally write down the definition of 𝔻:
+Then we can write down the definition of 𝔻:
 
 \begin{code}
 
@@ -138,6 +139,7 @@ M⁼= :
     in M h h cf sh == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
 
 \end{code}
+
 
 Partial matching objects: Mᵒ (object part)
 ------------------------------------------
@@ -209,42 +211,57 @@ M⁼= i (1+ h) t s =
 
 \end{code}
 
+
 Partial matching objects: M⃗ (morphism part)
 --------------------------------------------
 
-Now, the action of the partial matching object on morphisms f.
+Now, the action M⃗ of the partial matching object on morphisms f.
 
-In the (i, h, t+1) case, the recursive definition relies on certain types
-computing to the appropriate things depending on whether or not f divides
-[t]ⁱₕ. To actually allow this computation to occur, the relevant types need to
-expose an argument of type (Dec (f ∣ #[ t ] i h u)).
+The recursive definition of M⃗ in the (i, h, t+1) case requires its type to
+compute to the appropriate value depending on whether or not f divides [t]ⁱₕ. To
+actually allow this computation to occur, the type needs to expose an argument
+of type (Dec (f ∣ #[ t ] i h u)).
 
 \begin{code}
 
-M⃗ i h (1+ t) s {j} f =
-  depcase M⃗-deptype (f ∣? #[ t ] i h u)
-    (λ (g , _) →
-      idd (M=shape sh _) ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,,
-      {!!})
-    (λ no →
-      M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]))
-  where
-  u = S≤-< s
-
-  M⃗-deptype : Dec (f ∣ #[ t ] i h u) → Type _
-  M⃗-deptype d =
-    Sub (M i h (1+ t) s)
-        (M j h (count-factors[ i , h ,1+ t ] u f d)
-          (count-factors-shape[ i , h ,1+ t ] u f d))
-
-  prev = prev-shape s
-  sh = count-factors-shape i h t prev f
+M⃗[_,_,1+_]-deptype :
+  ∀ i h t (s : shape i h (1+ t)) {j} (f : hom i j)
+  → Dec (f ∣ #[ t ] i h (S≤-< s))
+  → Type _
+M⃗[ i , h ,1+ t ]-deptype s {j} f d =
+  Sub (M i h (1+ t) s)
+      (M j h (count-factors[ i , h ,1+ t ] u f d)
+        (count-factors-shape[ i , h ,1+ t ] u f d))
+  where u = S≤-< s
 
 \end{code}
 
-The other cases for M⃗: (i, h+1, 0) and (i, 0, 0).
+We also expose the discriminant in an auxiliary implementation of M⃗ (i, h, t+1);
+this will be needed later.
 
 \begin{code}
+
+M⃗[_,_,1+_] :
+  ∀ i h t s {j} (f : hom i j)
+  → (d : Dec (f ∣ #[ t ] i h (S≤-< s)))
+  → M⃗[ i , h ,1+ t ]-deptype s f d
+M⃗[ i , h ,1+ t ] s f (inl (g , _)) =
+  idd (M=shape shp _) ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, {!!}
+  where
+  prev = prev-shape s
+  shp = count-factors-shape i h t prev f
+M⃗[ i , h ,1+ t ] s f (inr no) = M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
+  where prev = prev-shape s
+
+\end{code}
+
+Now we can wrap the above up into a definition of M⃗. We also define the
+(i, h+1, 0) and (i, 0, 0) cases.
+
+\begin{code}
+
+M⃗ i h (1+ t) s f = M⃗[ i , h ,1+ t ] s f (f ∣? #[ t ] i h u)
+  where u = S≤-< s
 
 M⃗ i (1+ h) O s {j} f =
   wkn-sub (Mᵒᶠᵘˡˡ i h) (Mᵒᶠᵘˡˡ j h)
@@ -268,15 +285,42 @@ M⃗ i O O s f = id
 
 \end{code}
 
+
 Partial matching objects: M⃗∘ (anafunctoriality)
 ------------------------------------------------
 
 As before, for the (i, h, t+1) case we need to compute on whether or not
 (f ∣ [t]ⁱₕ).
 
+OR on g ◦ f ∣ [t]ⁱₕ?...
+
 \begin{code}
 
-M⃗◦ i h (1+ t) s {j} f {k} g = {!!}
+M⃗◦ i h (1+ t) s {j} f {k} g =
+  depcase M⃗◦-deptype (g ◦ f ∣? #[ t ] i h u)
+    (λ (h , _) → {!!})
+    (λ no → {!!})
+  where
+  u = S≤-< s
+
+  M⃗◦-deptype : Dec (g ◦ f ∣ #[ t ] i h u) → Type _
+  M⃗◦-deptype d =
+    M⃗ j h (count-factors[ i , h ,1+ t ] u f {!!})
+      (count-factors-shape[ i , h ,1+ t ] u f {!!}) g
+    ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f {!!} -- M⃗ i h (1+ t) s f
+    ==
+    idd (M= k h (count-factors-comp[ i , h ,1+ t ] u f g d))
+             -- (count-factors-comp i h (1+ t) s f g))
+    ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s (g ◦ f) d
+         -- i h (1+ t) s (g ◦ f)
+  {-
+  M⃗ j h (count-factors i h (1+ t) s f)
+       (count-factors-shape i h (1+ t) s f) g
+       ◦ˢᵘᵇ M⃗ i h (1+ t) s f
+       ==
+       idd (M= k h (count-factors-comp i h (1+ t) s f g)) ◦ˢᵘᵇ
+       M⃗ i h (1+ t) s (g ◦ f)
+  -}
 
 \end{code}
 
