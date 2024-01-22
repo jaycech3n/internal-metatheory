@@ -51,135 +51,172 @@ shape-path = prop-has-all-paths
 {- Counting factors -}
 
 count-factors :
-  ∀ i h t {j} → shape i h t → hom i j → ℕ
+  ∀ i h t → shape i h t → ∀ {j} → hom i j → ℕ
 count-factors[_,_,1+_] :
   ∀ i h t (u : t < hom-size i h) {j} (f : hom i j)
   → Dec (f ∣ (#[ t ] i h u))
   → ℕ
 
+count-factors-discrim :
+  ∀ {i h} t s {j} (f : hom i j) → Dec (f ∣ #[ t ] i h (S≤-< s))
+count-factors-discrim {i} {h} t s f = f ∣? #[ t ] i h (S≤-< s)
+
 count-factors i h O s f = O
 count-factors i h (1+ t) s f =
-  count-factors[ i , h ,1+ t ] u f (f ∣? #[ t ] i h u)
-  where u = S≤-< s
+  count-factors[ i , h ,1+ t ] (S≤-< s) f (count-factors-discrim t s f)
 
 count-factors[ i , h ,1+ t ] u f (inr no) =
   count-factors i h t (<-shape u) f
 count-factors[ i , h ,1+ t ] u f (inl yes) =
   1+ (count-factors i h t (<-shape u) f)
 
--- Lemma 6.22 (paper version as of 16.01.24)
-count-factors-top-level :
-  ∀ i h t (s : shape i h t) (f : hom i h)
-  → count-factors i h t s f == O
-count-factors-top-level i h O s f = idp
-count-factors-top-level i h (1+ t) s f with f ∣? #[ t ] i h (S≤-< s)
-... | inl (g , _) = ⊥-rec (endo-hom-empty g)
-... | inr no = count-factors-top-level i h t (prev-shape s) f
+module 6∙22 where -- paper version as of 16.01.24
+  count-factors-top-level :
+    ∀ i h t (s : shape i h t) (f : hom i h)
+    → count-factors i h t s f == O
+  count-factors-top-level i h O s f = idp
+  count-factors-top-level i h (1+ t) s f with count-factors-discrim t s f
+  ... | inl (g , _) = ⊥-rec (endo-hom-empty g)
+  ... | inr no = count-factors-top-level i h t (prev-shape s) f
+
+open 6∙22 public
 
 -- Intermediate results for Lemma 6.23
-module count-factors-properties (i h j : ℕ) (f : hom i j) where
+module _ (i j h : ℕ) (f : hom i j) where
+  smallest-divisible :
+    (t₀ : ℕ) (u : t₀ < hom-size i h) → Type _
+  smallest-divisible t₀ u =
+    (f ∣ #[ t₀ ] i h u) × (∀ t v → f ∣ #[ t ] i h v → t₀ ≤ t)
+
   module 6∙24 where
+    count-factors-O-below-first-divisible :
+      (t₀ : ℕ) (u : t₀ < hom-size i h)
+      → smallest-divisible t₀ u
+      → ∀ t {s} → t ≤ t₀
+      → count-factors i h t s f == O
+    count-factors-O-below-first-divisible t₀ u _ O w = idp
+    count-factors-O-below-first-divisible t₀ u sml@(t₀-div , t₀-sml) (1+ t) {s} w
+     with count-factors-discrim t s f
+    ... | inl yes = ⊥-rec $ S≰ (≤-trans w v)
+                    where v = t₀-sml _ _ yes :> (t₀ ≤ t)
+    ... | inr no = count-factors-O-below-first-divisible t₀ u sml t (S≤-≤ w)
 
-  module 6∙25 where
-    -- Proof here differs from the paper
+  module 6∙25 where -- Proof here differs from the paper
     count-factors-all-O-hom-size-O :
-      (∀ t s → count-factors i h t s f == O) → hom-size j h == O
-    count-factors-all-O-hom-size-O P = {!!}
-{-
--- Lemma 6.10 (12.10.23)
--- The proof here differs from the paper.
-module count-factors-properties (i h j : ℕ) (f : hom i j) where
-  count-factors-all-O-hom-size-O :
-    (∀ t s → count-factors i h t s f == O) → hom-size j h == O
-  count-factors-all-O-hom-size-O P =
-    ¬O<-=O (hom-size j h) (λ O<homjh →
-      O<¬=O (c {O<homjh}) (transp! (O <_) (p) (O<S _)) (P (1+ t₀) w))
-    where module _ {u : O < hom-size j h} where
-      [0] = #[ O ] j h u
-      idx₀ = idx-of ([0] ◦ f)
-      t₀ = fst idx₀
-      v = snd idx₀
-      w = <-S≤ v
-      c = count-factors i h (1+ t₀) w f
+      (∀ t s → count-factors i h t s f == O)
+      → hom-size j h == O
+    count-factors-all-O-hom-size-O cf-all-O =
+      ¬O<-=O (hom-size j h) assuming<O.get-⊥
+      where
+      module assuming<O (w : O < hom-size j h) where
+        [0] = #[ O ] j h w
+        idx₀ = idx-of ([0] ◦ f)
+        t₀ = fst idx₀
+        u  = snd idx₀
+        s₀ = <-S≤ u
 
-      f∣?[t₀] : f ∣ #[ t₀ ] i h v
-      f∣?[t₀] rewrite hom#-idx ([0] ◦ f) = [0] , idp
+        f∣[t₀] : f ∣ #[ t₀ ] i h u
+        f∣[t₀] rewrite hom#-idx ([0] ◦ f) = [0] , idp
 
-      p : c == 1+ _
-      p = {!count-factors-rec i h t₀ f (<-S≤ v) f∣?[t₀]!}
+        f∣[t₀]' = f∣[t₀]
+          ◂$ transp (λ u → f ∣ #[ t₀ ] i h u) (<-has-all-paths _ _)
 
-  hom-size-O-no-divisible :
-    hom-size j h == O → ∀ t u → ¬ (f ∣ #[ t ] i h u)
-  hom-size-O-no-divisible p t u (g , q) =
-    ≮O _ $ transp (O <_) p $ hom[ j , h ]-inhab g
+        lem : count-factors i h (1+ t₀) s₀ f ≠ O
+        lem with count-factors-discrim t₀ s₀ f
+        ... | inl yes = ℕ-S≠O _
+        ... | inr no = ⊥-rec $ no f∣[t₀]'
 
-  no-divisible-count-factors-all-O :
-    (∀ t u → ¬ (f ∣ #[ t ] i h u)) → ∀ t s → count-factors i h t s f == O
-  no-divisible-count-factors-all-O P O s = idp
-  no-divisible-count-factors-all-O P (1+ t) s with f ∣? #[ t ] i h (S≤-< s)
-  ... | inl yes = ⊥-rec $ P _ _ yes
-  ... | inr no = {!no-divisible-count-factors-all-O P t (S≤-≤ s)!}
+        get-⊥ : ⊥
+        get-⊥ = lem $ cf-all-O (1+ t₀) s₀
 
-  no-divisible-hom-size-O :
-    (∀ t u → ¬ (f ∣ #[ t ] i h u)) → hom-size j h == O
-  no-divisible-hom-size-O =
-    count-factors-all-O-hom-size-O ∘ no-divisible-count-factors-all-O
+    hom-size-O-no-divisible :
+      hom-size j h == O
+      → ∀ t u → ¬ (f ∣ #[ t ] i h u)
+    hom-size-O-no-divisible p t u (g , _) =
+      ≮O _ $ transp (O <_) p $ hom[ j , h ]-inhab g
 
-  -- Lots of annoying finagling to the right form in this... could probably do
-  -- all this more concisely. Maybe by formulating using ℕ instead of Fin (see
-  -- e.g.  Martín's TypeTopology).
-  hom-size>O-exists-divisible :
-    O < hom-size j h
-    → Σ (Fin (hom-size i h)) λ (t , u) → f ∣ #[ t ] i h u
-  hom-size>O-exists-divisible O<hom =
-    ¬∀Fin¬ _ _ (λ (t , u) → f ∣? #[ t ] i h u) $
-      ¬uncurry $ contra $ ≠-inv $ <-to-≠ O<hom
-    where
-    contra : hom-size j h ≠ O → ¬ (∀ t u → ¬ (f ∣ #[ t ] i h u))
-    contra = contrapos no-divisible-hom-size-O
--}
+    no-divisible-count-factors-all-O :
+      (∀ t u → ¬ (f ∣ #[ t ] i h u))
+      → ∀ t s → count-factors i h t s f == O
+    no-divisible-count-factors-all-O no-div O s = idp
+    no-divisible-count-factors-all-O no-div (1+ t) s
+     with count-factors-discrim t s f
+    ... | inl yes = ⊥-rec $ no-div _ _ yes
+    ... | inr no = no-divisible-count-factors-all-O no-div t (prev-shape s)
+
+    {-
+    no-divisible-hom-size-O :
+      (∀ t u → ¬ (f ∣ #[ t ] i h u)) → hom-size j h == O
+    no-divisible-hom-size-O =
+      count-factors-all-O-hom-size-O ∘ no-divisible-count-factors-all-O
+
+    -- Lots of annoying finagling to the right form in this... could probably do
+    -- all this more concisely. Maybe by formulating using ℕ instead of Fin (see
+    -- e.g.  Martín's TypeTopology).
+    hom-size>O-exists-divisible :
+      O < hom-size j h
+      → Σ (Fin (hom-size i h)) λ (t , u) → f ∣ #[ t ] i h u
+    hom-size>O-exists-divisible O<hom =
+      ¬∀Fin¬ _ _ (λ (t , u) → f ∣? #[ t ] i h u) $
+        ¬uncurry $ contra $ ≠-inv $ <-to-≠ O<hom
+      where
+      contra : hom-size j h ≠ O → ¬ (∀ t u → ¬ (f ∣ #[ t ] i h u))
+      contra = contrapos no-divisible-hom-size-O
+    -}
 
 module Cosieves-IsStrictlyOriented
   (I-strictly-oriented : is-strictly-oriented I)
   where
   open SimpleSemicategories-IsStrictlyOriented I I-strictly-oriented
 
-  {-
-  module _ {i j h : ℕ} {size-cond : 0 < hom-size j h} (f : hom i j) where
-    0<homih : 0 < hom-size i h
-    0<homih = hom[ i , h ]-inhab $ #[ 0 ] j h size-cond ◦ f
+  module DivBy {i j h : ℕ} (f : hom i j) (size-cond : O < hom-size j h) where
+    nonempty-ih : O < hom-size i h
+    nonempty-ih = hom[ i , h ]-inhab (#[ O ] j h size-cond ◦ f)
 
-    divby : (t : ℕ) → t < hom-size i h → hom j h
-    divby O u = if f ∣? #[ 0 ] i h u
-      then fst
-      else λ _ → #[ 0 ] j h size-cond
-    divby (1+ t) u = if f ∣? #[ 1+ t ] i h u
-      then fst
-      else λ _ → divby t (S<-< u)
+    divby : ∀ t u → Dec (f ∣ #[ t ] i h u) → hom j h
+    divby t u (inl (g , _)) = g
+    divby O u (inr no) =
+      #[ O ] j h size-cond
+    divby (1+ t) u (inr no) =
+      divby t v (f ∣? #[ t ] i h v)
+      where v = S<-< u
 
     abstract
-      divby= : ∀ {t u g} → g ◦ f == #[ t ] i h u → divby t u == g
-      divby= {O} {u} {g} w with f ∣? #[ 0 ] i h u
-      ... | inl (g' , p) = hom-is-epi _ _ _ (p ∙ ! w)
-      ... | inr no = ⊥-rec $ no (g , w)
-      divby= {1+ t} {u} {g} w with f ∣? #[ 1+ t ] i h u
-      ... | inl (g' , p) = hom-is-epi _ _ _ (p ∙ ! w)
-      ... | inr no = ⊥-rec $ no (g , w)
+      divby= :
+        ∀ {t u g}
+        → g ◦ f == #[ t ] i h u
+        → ∀ d
+        → divby t u d == g
+      divby= {t} p (inl (_ , q)) = hom-is-epi _ _ _ (q ∙ ! p)
+      divby= {t} {u} {g} p (inr no) = ⊥-rec $ no (g , p)
 
+      {-
       divby-◦ : ∀ t u → f ∣ #[ t ] i h u → divby t u ◦ f == #[ t ] i h u
       divby-◦ t u (g , p) rewrite divby= p = p
+      -}
 
-    -- Lemma 6.11 (12.10.23)
-    divby-lub : (t : ℕ) (u : t < hom-size i h ) (g : hom j h)
-      → g ◦ f ≼ #[ t ] i h u
-      → g ≼ divby t u
-    divby-lub O u g w = =-≼ (! $ divby= (≼[O] _ _ w))
-    divby-lub (1+ t) u g w with f ∣? #[ 1+ t ] i h u
-    ... | inl (g' , p) = ≼-cancel-r _ _ _ (transp (_ ≼_) (! p) w)
-    ... | inr no with w
-    ...          | inl p = ⊥-rec $ no (g , hom= p)
-    ...          | inr u = divby-lub t _ _ (≺S-≼ _ _ u)
+    module 6∙26 where
+      divby-is-lub :
+        ∀ t u d (g : hom j h)
+        → g ◦ f ≼ #[ t ] i h u
+        → g ≼ divby t u d
+      divby-is-lub O u d g w = =-≼ (! (divby= (≼[O] _ _ w) d))
+      divby-is-lub (1+ t) u (inl (g' , p)) g w =
+        ≼-cancel-r _ _ _ (transp (_ ≼_) (! p) w)
+      divby-is-lub (1+ t) u (inr no) g (inl p) =
+        ⊥-rec $ no (g , hom= p)
+      divby-is-lub (1+ t) u (inr no) g (inr w) =
+        divby-is-lub t v d _ (≺S-≼ _ _ w)
+        where
+        v = S<-< u
+        d = f ∣? #[ t ] i h v
 
+    module 6∙27 where
+
+    module 6∙33 where
+      -- ? → count-factors
+
+    {-
     -- Lemma 6.12 (12.10.23), and extras
     module smallest-divisible
       (t₀ : ℕ)
@@ -271,26 +308,10 @@ module Cosieves-IsStrictlyOriented
       ≼-trans
         (divby-monotone t t' u (S<-< u') v)
         (divby-monotone t' (1+ t') (S<-< u') u' ltS)
+    -}
 
-  count-factors[_,_,1+_]-shape :
-    ∀ i h t u {j} (f : hom i j)
-    → (d : Dec (f ∣ #[ t ] i h u))
-    → count-factors[ i , h ,1+ t ] u f d ≤ hom-size j h
-  count-factors[ i , h ,1+ O ]-shape u f (inl yes) = {!!}
-  count-factors[ i , h ,1+ 1+ t ]-shape u f (inl yes) = {!!}
-  count-factors[ i , h ,1+ O ]-shape u f (inr no) = O≤ _
-  count-factors[ i , h ,1+ 1+ t ]-shape u f (inr no) =
-    count-factors[ i , h ,1+ t ]-shape v f (f ∣? #[ t ] i h v)
-    where v = S<-< u -- S≤-< (inr u)
-  -}
-
-  module Lemma-6∙34-alt where -- paper version 17.10.24
-    record Shape-helper (i h t : ℕ) ⦃ s : shape i h t ⦄ : Type₀  where
-      constructor _,_
-      field
-        dt : ℕ
-        eq : dt == hom-size i h − t
-
+  module 6∙34 where -- paper version 17.10.24
+    -- Deviates slightly from paper proof.
     count-factors-shape :
       ∀ i h t s {j} (f : hom i j)
       → count-factors i h t s f ≤ hom-size j h
@@ -300,39 +321,28 @@ module Cosieves-IsStrictlyOriented
 
     count-factors-shape i h O s f = O≤ _
     count-factors-shape i h (1+ t) s f =
-      count-factors-shape[ i , h ,1+ t ] u f (f ∣? #[ t ] i h u)
-      where u = S≤-< s
+      count-factors-shape[ i , h ,1+ t ] (S≤-< s) f (count-factors-discrim t s f)
 
     count-factors-shape[ i , h ,1+ t ] u f (inl yes) = {!!}
     count-factors-shape[ i , h ,1+ t ] u f (inr no) =
       count-factors-shape i h t (<-shape u) f
 
-  module Lemma-6∙34 where -- paper version 17.10.24
-    count-factors-shape :
-      ∀ i h t s {j} (f : hom i j)
-      → count-factors i h t s f ≤ hom-size j h
-    count-factors-shape[_,_,1+_] :
-      ∀ i h t u {j} (f : hom i j) d
-      → count-factors[ i , h ,1+ t ] u f d ≤ hom-size j h
+    private -- experimental; unused
+      record Shape-helper (i h t : ℕ) ⦃ s : shape i h t ⦄ : Type₀  where
+        constructor _,_
+        field
+          dt : ℕ
+          eq : dt == hom-size i h − t
 
-    count-factors-shape i h O s f = O≤ _
-    count-factors-shape i h (1+ t) s f =
-      count-factors-shape[ i , h ,1+ t ] u f (f ∣? #[ t ] i h u)
-      where u = S≤-< s
+  open 6∙34 public
 
-    count-factors-shape[ i , h ,1+ t ] u f (inl yes) = {!!}
-    count-factors-shape[ i , h ,1+ t ] u f (inr no) =
-      count-factors-shape i h t (<-shape u) f
-
-  open Lemma-6∙34 public
-
-  module Lemma-6∙23 where -- version 17.10.24
+  module 6∙23 where -- version 17.10.24
     count-factors-full :
       ∀ i h s {j} (f : hom i j)
       → count-factors i h (hom-size i h) s f == hom-size j h
     count-factors-full = {!!}
 
-  open Lemma-6∙23 public
+  open 6∙23 public
 
   -- Need this too; prove it on paper:
   count-factors-comp :

@@ -37,6 +37,10 @@ module Nat-ad-hoc-lemmas where
   S≮ {O} ()
   S≮ {1+ n} = S≮ ∘ <-cancel-S
 
+  S≰ : ∀ {n} → ¬ (S n ≤ n)
+  S≰ {O} = S≰O _
+  S≰ {1+ n} = S≰ ∘ ≤-cancel-S
+
   ¬O<-=O : ∀ n → ¬ (O < n) → n == O
   ¬O<-=O O u = idp
   ¬O<-=O (1+ n) u = ⊥-rec (u (O<S n))
