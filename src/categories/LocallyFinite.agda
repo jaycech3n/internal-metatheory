@@ -22,6 +22,11 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
         hom-equiv : (x y : Ob) → hom x y ≃ Fin (hom-size x y)
         hom-equiv x y = snd (hom-finite x y)
 
+        -- Could probably use this representation of morphisms. Would make
+        -- switching between indices and morphisms more definitional.
+        -- data hom[_,_] : Type _ where
+        --   #[_] : (t : ℕ) (x y : Ob) → t < hom-size x y → hom[ x , y ]
+
         idx-of : ∀ {x y} → hom x y → Fin (hom-size x y)
         idx-of {x} {y} f = –> (hom-equiv x y) f
 
@@ -48,10 +53,6 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
       #[_] : (t : ℕ) (x y : Ob) → t < hom-size x y → hom x y
       #[ t ] x y u = hom[ x , y ]#(t , u)
 
-      -- idx-ℕ-hom# : (i : Fin (hom-size x y))
-      --   → to-ℕ (idx-of (hom[ x , y ]# i)) == to-ℕ i
-      -- idx-ℕ-hom# = ap to-ℕ ∘ idx-hom#
-
       {- Not sure if the following will end up being useful...
       next : ∀ {x y} → hom x y → hom x y
       next {x} {y} f with hom-size x y | inspect (hom-size x) y | idx-of f
@@ -61,6 +62,15 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
       -}
 
   open basic-definitions public
+
+  private
+    module hom-indices where
+      idx-ℕ-hom# :
+        ∀ {x y} (i : Fin (hom-size x y))
+        → to-ℕ (idx-of (hom[ x , y ]# i)) == to-ℕ i
+      idx-ℕ-hom# = ap to-ℕ ∘ idx-hom#
+
+  open hom-indices public
 
   private
     module hom-equality where
@@ -78,8 +88,8 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
         → f == g
       hom= = hom=' ∘ Fin=
 
-      #[]-eq : ∀ t x y u u' → #[ t ] x y u == #[ t ] x y u'
-      #[]-eq t x y u u' = ap hom[ x , y ]# (Fin= idp)
+      #[]-eq : ∀ {t} {x y} {u u'} → #[ t ] x y u == #[ t ] x y u'
+      #[]-eq {t} {x} {y} = ap hom[ x , y ]# (Fin= idp)
 
   open hom-equality public
 
@@ -201,11 +211,15 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
                              e' : Lift {j = ℓₘ} (Fin n) ≃ hom x y
                              e' = (lift-equiv ∘e e)⁻¹
 
-      _∣_ : ∀ {x y z} (f : hom x y) (h : hom x z) → Type ℓₘ
-      _∣_ {y = y} {z} f h = Σ[ g ﹕ hom y z ] g ◦ f == h
+      module _ {x y z} (f : hom x y) where
+        _∣_ : hom x z → Type ℓₘ
+        _∣_ h = Σ[ g ﹕ hom y z ] g ◦ f == h
 
-      _∣?_ : ∀ {x y z} (f : hom x y) (h : hom x z) → Dec (f ∣ h)
-      f ∣? h = Σ-hom? (λ g → g ◦ f == h) (λ g → g ◦ f ≟-hom h)
+        _∣?_ : (h : hom x z) → Dec (_∣_ h)
+        _∣?_ h = Σ-hom? (λ g → g ◦ f == h) (λ g → g ◦ f ≟-hom h)
+
+        ∣◦ : (g : hom y z) → _∣_ (g ◦ f)
+        ∣◦ g = g , idp
 
   open hom-lemmas public
 
