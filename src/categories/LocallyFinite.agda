@@ -65,10 +65,23 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
 
   private
     module hom-indices where
+      ℕ-idx-of : ∀ {x y} → hom x y → ℕ
+      ℕ-idx-of = to-ℕ ∘ idx-of
+
       idx-ℕ-hom# :
         ∀ {x y} (i : Fin (hom-size x y))
-        → to-ℕ (idx-of (hom[ x , y ]# i)) == to-ℕ i
+        → ℕ-idx-of (hom[ x , y ]# i) == to-ℕ i
       idx-ℕ-hom# = ap to-ℕ ∘ idx-hom#
+
+      idx= :
+        ∀ {x y} {f g : hom x y}
+        → f == g → idx-of f == idx-of g
+      idx= idp = idp
+
+      ℕ-idx= :
+        ∀ {x y} {f g : hom x y}
+        → f == g → ℕ-idx-of f == ℕ-idx-of g
+      ℕ-idx= = ap to-ℕ ∘ idx=
 
   open hom-indices public
 
@@ -84,7 +97,7 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
         g =∎
 
       hom= : ∀ {x y} {f g : hom x y}
-        → to-ℕ (idx-of f) == to-ℕ (idx-of g)
+        → ℕ-idx-of f == ℕ-idx-of g
         → f == g
       hom= = hom=' ∘ Fin=
 
@@ -190,7 +203,7 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
         ≼[O] : (f : hom x y) → f ≼ #[ O ] x y u → f == #[ O ] x y u
         ≼[O] f (inl p) = hom= p
         ≼[O] f (inr v) = ⊥-rec $ ≮O _
-          (transp (λ ◻ → to-ℕ (idx-of f) < to-ℕ ◻) (idx-hom# _) v)
+          (transp (λ ◻ → ℕ-idx-of f < to-ℕ ◻) (idx-hom# _) v)
 
       #[_]≺S : (t : ℕ) (u : t < hom-size x y) (u' : 1+ t < hom-size x y)
         → #[ t ] x y u ≺ #[ 1+ t ] x y u'
@@ -220,6 +233,13 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
 
         ∣◦ : (g : hom y z) → _∣_ (g ◦ f)
         ∣◦ g = g , idp
+
+      ∣-transp-<-witness :
+        ∀ {x y z} {f : hom x y} {t} {u u'}
+        → f ∣ #[ t ] x z u
+        → f ∣ #[ t ] x z u'
+      ∣-transp-<-witness {x} {z = z} {f} {t} =
+        transp (λ u → f ∣ #[ t ] x z u) (<-has-all-paths _ _)
 
   open hom-lemmas public
 

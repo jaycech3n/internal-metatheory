@@ -57,13 +57,14 @@ count-factors[_,_,1+_] :
   → Dec (f ∣ (#[ t ] i h u))
   → ℕ
 
-count-factors-discrim :
-  ∀ {i h} t s {j} (f : hom i j) → Dec (f ∣ #[ t ] i h (S≤-< s))
-count-factors-discrim {i} {h} t s f = f ∣? #[ t ] i h (S≤-< s)
+count-factors-discrim[1+_] :
+  ∀ {i h} t u {j} (f : hom i j) → Dec (f ∣ #[ t ] i h u       )
+count-factors-discrim[1+_] {i} {h} t u f = f ∣? #[ t ] i h u
 
 count-factors i h O s f = O
 count-factors i h (1+ t) s f =
-  count-factors[ i , h ,1+ t ] (S≤-< s) f (count-factors-discrim t s f)
+  let u = S≤-< s in
+  count-factors[ i , h ,1+ t ] u f (count-factors-discrim[1+ t ] u f)
 
 count-factors[ i , h ,1+ t ] u f (inr no) =
   count-factors i h t (<-shape u) f
@@ -75,7 +76,8 @@ module 6∙22 where -- paper version as of 16.01.24
     ∀ i h t (s : shape i h t) (f : hom i h)
     → count-factors i h t s f == O
   count-factors-top-level i h O s f = idp
-  count-factors-top-level i h (1+ t) s f with count-factors-discrim t s f
+  count-factors-top-level i h (1+ t) s f
+   with count-factors-discrim[1+ t ] (S≤-< s) f
   ... | inl (g , _) = ⊥-rec (endo-hom-empty g)
   ... | inr no = count-factors-top-level i h t (prev-shape s) f
 
@@ -83,6 +85,14 @@ open 6∙22 public
 
 
 module count-factors-basic-properties (i h j : ℕ) (f : hom i j) where
+  count-factors-div :
+    ∀ t s
+    → f ∣ #[ t ] i h (S≤-< s)
+    → count-factors i h (1+ t) s f == 1+ (count-factors i h t (prev-shape s) f)
+  count-factors-div t s f∣[t] with count-factors-discrim[1+ t ] (S≤-< s) f
+  ... | inl _ = idp
+  ... | inr no = ⊥-rec $ no f∣[t]
+
   module 6∙25 where -- Proof here differs from the paper
     count-factors-all-O-hom-size-O :
       (∀ t s → count-factors i h t s f == O)
@@ -104,7 +114,7 @@ module count-factors-basic-properties (i h j : ℕ) (f : hom i j) where
           ◂$ transp (λ u → f ∣ #[ t₀ ] i h u) (<-has-all-paths _ _)
 
         lem : count-factors i h (1+ t₀) s₀ f ≠ O
-        lem with count-factors-discrim t₀ s₀ f
+        lem with count-factors-discrim[1+ t₀ ] (S≤-< s₀) f
         ... | inl yes = ℕ-S≠O _
         ... | inr no = ⊥-rec $ no f∣[t₀]'
 
@@ -122,7 +132,7 @@ module count-factors-basic-properties (i h j : ℕ) (f : hom i j) where
       → ∀ t s → count-factors i h t s f == O
     no-divisible-count-factors-all-O no-div O s = idp
     no-divisible-count-factors-all-O no-div (1+ t) s
-     with count-factors-discrim t s f
+     with count-factors-discrim[1+ t ] (S≤-< s) f
     ... | inl yes = ⊥-rec $ no-div _ _ yes
     ... | inr no = no-divisible-count-factors-all-O no-div t (prev-shape s)
 
@@ -154,11 +164,12 @@ module count-factors-basic-properties (i h j : ℕ) (f : hom i j) where
         ∀ t {s} → t ≤ t₀ → count-factors i h t s f == O
       count-factors-O-below-first-divisible O w = idp
       count-factors-O-below-first-divisible (1+ t) {s} w
-       with count-factors-discrim t s f
+       with count-factors-discrim[1+ t ] (S≤-< s) f
       ... | inl yes = ⊥-rec $ S≰ (≤-trans w v)
                       where v = smallest _ _ yes :> (t₀ ≤ t)
       ... | inr no = count-factors-O-below-first-divisible t (S≤-≤ w)
 
+    open 6∙24 public
 
 module Cosieves-IsStrictlyOriented
   (I-strictly-oriented : is-strictly-oriented I)
@@ -166,20 +177,23 @@ module Cosieves-IsStrictlyOriented
   open SimpleSemicategories-IsStrictlyOriented I I-strictly-oriented
 
   module divby {i h j : ℕ} (f : hom i j) (size-cond : O < hom-size j h) where
+    open count-factors-basic-properties i h j f
+
     nonempty-ih : O < hom-size i h
     nonempty-ih = hom[ i , h ]-inhab (#[ O ] j h size-cond ◦ f)
 
-    -- exists-smallest-divisible :
-    --   Σ (Fin (hom-size i h)) λ (t , u) → smallest-divisible i h j f t u
-    -- exists-smallest-divisible = w₁ , fst w₂ , curry (snd w₂)
-    --   -- More annoying wrangling here; formulation of Fin-smallest-witness could
-    --   -- possibly be improved.
-    --   where
-    --   w =
-    --     let div = hom-size>O-exists-divisible _ _ _ _ size-cond
-    --     in Fin-smallest-witness (λ (t , u) → f ∣? #[ t ] i h u) (fst div) (snd div)
-    --   w₁ = fst w
-    --   w₂ = snd w
+    exists-smallest-divisible :
+      Σ (Fin (hom-size i h)) (is-smallest-Fin (λ (t , u) → f ∣ #[ t ] i h u))
+    exists-smallest-divisible =
+      Fin-smallest-witness (λ (t , u) → f ∣? #[ t ] i h u) (fst div) (snd div)
+      where div = hom-size>O-exists-divisible size-cond
+
+    t₀ = to-ℕ (fst exists-smallest-divisible)
+    u₀ = snd (fst exists-smallest-divisible)
+    t₀-divisible = 2nd exists-smallest-divisible
+    t₀-smallest = curry (3rd exists-smallest-divisible)
+
+    open count-factors-smallest-divisible t₀ u₀ t₀-divisible t₀-smallest
 
     divby-aux : ∀ t u → Dec (f ∣ #[ t ] i h u) → hom j h
     divby-aux t u (inl (g , _)) = g
@@ -242,62 +256,54 @@ module Cosieves-IsStrictlyOriented
 
     open 6∙26 public
 
-    module divby-smallest-divisible
-      (t₀ : ℕ)
-      (u₀ : t₀ < hom-size i h)
-      (divisible : f ∣ #[ t₀ ] i h u₀)
-      (smallest : ∀ t u
-                  → f ∣ #[ t ] i h u
-                  → t₀ ≤ t)
-      where
-      module 6∙27 where
-        first-divby : divby t₀ u₀ == #[ O ] j h size-cond
-        first-divby = ≼[O] size-cond _ (≼-cancel-r _ _ _ lem)
-          where
-          [O] = #[ O ] j h size-cond
-          [t₀] = #[ t₀ ] i h u₀
+    module 6∙27 where
+      first-divby : divby t₀ u₀ == #[ O ] j h size-cond
+      first-divby = ≼[O] size-cond _ (≼-cancel-r _ _ _ lem)
+        where
+        [O] = #[ O ] j h size-cond
+        [t₀] = #[ t₀ ] i h u₀
 
-          idx₀ = idx-of ([O] ◦ f)
-          i₀ = fst idx₀
-          v₀ = snd idx₀
+        idx₀ = idx-of ([O] ◦ f)
+        i₀ = fst idx₀
+        v₀ = snd idx₀
 
-          p : divby t₀ u₀ ◦ f == [t₀]
-          p = divby-divisible-◦ t₀ u₀ divisible
+        p : divby t₀ u₀ ◦ f == [t₀]
+        p = divby-divisible-◦ t₀ u₀ t₀-divisible
 
-          -- Wouldn't need all this index-arrow wrangling with a more
-          -- definitional representation of arrows.
-          w : [t₀] ≼ [O] ◦ f
-          w = idx≤-≼ _ _
-            $ transp! (_≤ i₀) (idx-ℕ-hom# _)
-            $ smallest i₀ v₀ (transp! (f ∣_) (hom#-idx ([O] ◦ f)) $ ∣◦ _ _)
+        -- Wouldn't need all this index-arrow wrangling with a more
+        -- definitional representation of arrows.
+        w : [t₀] ≼ [O] ◦ f
+        w = idx≤-≼ _ _
+          $ transp! (_≤ i₀) (idx-ℕ-hom# _)
+          $ t₀-smallest i₀ v₀ (transp! (f ∣_) (hom#-idx ([O] ◦ f)) $ ∣◦ _ _)
 
-          lem : divby t₀ u₀ ◦ f ≼ [O] ◦ f
-          lem = ≼-trans (=-≼ p) w
+        lem : divby t₀ u₀ ◦ f ≼ [O] ◦ f
+        lem = ≼-trans (=-≼ p) w
 
-        divby-◦-ub :
-          ∀ t u → t₀ ≤ t → divby t u ◦ f ≼ #[ t ] i h u
-        divby-◦-ub t u (inl idp) = =-≼ (divby-divisible-◦ t u d)
-          where d = transp (f ∣_) #[]-eq divisible
-        divby-◦-ub (1+ t) u (inr v) with divby-discrim (1+ t) u
-        ... | inl yes = =-≼ (snd yes)
-        ... | inr no = ≼-≺-≼ (divby-◦-ub t w (<S-≤ v)) (#[ t ]≺S w u)
-                       where w = S<-< u
+      divby-◦-ub :
+        ∀ t u → t₀ ≤ t → divby t u ◦ f ≼ #[ t ] i h u
+      divby-◦-ub t u (inl idp) = =-≼ (divby-divisible-◦ t u d)
+        where d = transp (f ∣_) #[]-eq t₀-divisible
+      divby-◦-ub (1+ t) u (inr v) with divby-discrim (1+ t) u
+      ... | inl yes = =-≼ (snd yes)
+      ... | inr no = ≼-≺-≼ (divby-◦-ub t w (<S-≤ v)) (#[ t ]≺S w u)
+                     where w = S<-< u
 
-      open 6∙27 public
+    open 6∙27 public
 
-      divby-aux-<-smallest-divisible :
-        ∀ t u d → t < t₀ → divby-aux t u d == #[ O ] j h size-cond
-      divby-aux-<-smallest-divisible t u (inl yes) w =
-        ⊥-rec $ ¬<-self (<-≤-< w (smallest _ _ yes))
-      divby-aux-<-smallest-divisible O u (inr no) w = idp
-      divby-aux-<-smallest-divisible (1+ t) u (inr no) w =
-        divby-aux-<-smallest-divisible t v (divby-discrim t v) (S<-< w)
-        where v = S<-< u
+    divby-aux-<-smallest-divisible :
+      ∀ t u d → t < t₀ → divby-aux t u d == #[ O ] j h size-cond
+    divby-aux-<-smallest-divisible t u (inl yes) w =
+      ⊥-rec $ ¬<-self (<-≤-< w (t₀-smallest _ _ yes))
+    divby-aux-<-smallest-divisible O u (inr no) w = idp
+    divby-aux-<-smallest-divisible (1+ t) u (inr no) w =
+      divby-aux-<-smallest-divisible t v (divby-discrim t v) (S<-< w)
+      where v = S<-< u
 
-      divby-<-smallest-divisible :
-        ∀ t u → t < t₀ → divby t u == #[ O ] j h size-cond
-      divby-<-smallest-divisible t u =
-        divby-aux-<-smallest-divisible t u (divby-discrim t u)
+    divby-<-smallest-divisible :
+      ∀ t u → t < t₀ → divby t u == #[ O ] j h size-cond
+    divby-<-smallest-divisible t u =
+      divby-aux-<-smallest-divisible t u (divby-discrim t u)
 
     module 6∙28 where
       divby-monotone :
@@ -307,87 +313,92 @@ module Cosieves-IsStrictlyOriented
       divby-monotone t .(1+ t) {u'} ltS =
         case (ℕ-trichotomy' t₀ t) case-t₀≤t case-t<t₀
         where
-        open count-factors-basic-properties i h j f
-
-        smallest-divisible =
-          let div = hom-size>O-exists-divisible size-cond in
-          Fin-smallest-witness
-            (λ (t , u) → f ∣? #[ t ] i h u)
-            (fst div) (snd div)
-
-        idx₀ = fst smallest-divisible
-        t₀ = to-ℕ idx₀
-        u₀ = snd idx₀
-        t₀-div = 2nd smallest-divisible
-        t₀-sml = 3rd smallest-divisible
-
-        open divby-smallest-divisible t₀ u₀ t₀-div (curry t₀-sml)
-
         case-t₀≤t = λ t₀≤t →
           divby-is-lub (1+ t) _ _ $ ≼-≺-≼ (divby-◦-ub t _ t₀≤t) (#[ t ]≺S _ _)
 
         case-t<t₀ = λ t<t₀ →
           [O]-min _ _
           ◂$ transp! (_≼ _) (divby-<-smallest-divisible _ _ t<t₀)
-
       divby-monotone t (1+ t') {u'} (ltSR w) =
         ≼-trans
           (divby-monotone t t' {S<-< u'} w)
           (divby-monotone t' (1+ t') ltS)
 
+    open 6∙28
+
+    divby-monotone' :
+      ∀ t {u} t' {u'}
+      → t ≤ t'
+      → divby t u ≼ divby t' u'
+    divby-monotone' t t' (inl idp) = =-≼ (ap (divby t) (<-has-all-paths _ _))
+    divby-monotone' t t' (inr w) = divby-monotone t t' w
+
     module 6∙29 where
+      divby-surj :
+        (g : hom j h)
+        → let idx = idx-of (g ◦ f)
+        in divby (fst idx) (snd idx) == g
+      divby-surj g
+       with (let idx = idx-of (g ◦ f) in
+            divby-discrim (fst idx) (snd idx))
+      ... | inl (g' , p) = hom-is-epi _ _ _ (p ∙ hom#-idx _)
+      ... | inr no = ⊥-rec $ no (g , ! (hom#-idx _))
+
+    open 6∙29
+
+    module 6∙31 where
+      divby-no-gaps :
+        ∀ t (u : 1+ t < hom-size i h) (g : hom j h)
+        → divby t (S<-< u) ≼ g
+        → g ≺ divby (1+ t) u
+        → divby t (S<-< u) == g
+      divby-no-gaps t u g w w' = {!divby-monotone t t'!}
+        where
+        idx = idx-of (g ◦ f)
+        t' = to-ℕ idx
+        v = snd idx
+
+        p : g == divby t' v
+        p = ! (divby-surj g)
+
+    open 6∙31
+
+    module 6∙32 where
+      
 
     module 6∙33 where
-      -- ? → count-factors
+      abstract
+        count-factors-idx-divby :
+          (t : ℕ) (u : t < hom-size i h) (s : shape i h (1+ t))
+          → t₀ ≤ t
+          → count-factors i h (1+ t) s f == 1+ (ℕ-idx-of (divby t u))
 
-    {-
-    -- Lemma 6.12 (12.10.23), and extras
-    module smallest-divisible
-      (t₀ : ℕ)
-      (u : t₀ < hom-size i h)
-      (divisible : f ∣ #[ t₀ ] i h u)
-      (smallest : (t : ℕ) (v : t < hom-size i h)
-                  → f ∣ #[ t ] i h v
-                  → t₀ ≤ t)
-      where
-      <-smallest-divisible-divby :
-        ∀ t v → (t , v) <-Fin (t₀ , u) → divby t v == #[ O ] j h size-cond
-      <-smallest-divisible-divby O v w with f ∣? #[ 0 ] i h v
-      ... | inl yes = ⊥-rec $ ¬≤> (t₀ , u) (O , v) (smallest _ _ yes) w
-      ... | inr no = idp
-      <-smallest-divisible-divby (1+ t) v w with f ∣? #[ 1+ t ] i h v
-      ... | inl yes = ⊥-rec $ ¬≤> (t₀ , u) (1+ t , v) (smallest _ _ yes) w
-      ... | inr no = <-smallest-divisible-divby t (S<-< v) (S<-< w)
+        count-factors-idx-divby t u s (inl idp) = p ∙ ap 1+ (q ∙ ! r)
+          where
+          p : count-factors i h (1+ t₀) s f
+              == 1+ (count-factors i h t₀ (prev-shape s) f)
+          p = count-factors-div t₀ s (∣-transp-<-witness t₀-divisible)
 
-    -- Lemma 6.13 (16.10.23)
-    divby-monotone : ∀ t t' u u' → t < t' → divby t u ≼ divby t' u'
-    divby-monotone t .(1+ t) u u' ltS =
-      case (Fin-trichotomy' t₀ (t , u)) case-t₀≤t case-t<t₀
-      where
-      open count-factors-properties i h j f
+          q : count-factors i h t₀ (prev-shape s) f == O
+          q = count-factors-O-below-first-divisible t₀ lteE
 
-      smallest-divisible =
-        let div = hom-size>O-exists-divisible size-cond
-        in Fin-smallest-witness (λ (t , u) → f ∣? #[ t ] i h u) (fst div) (snd div)
+          r : ℕ-idx-of (divby t₀ u) == O
+          r = ℕ-idx= (ap (divby t) (<-has-all-paths _ _) ∙ first-divby)
+              ∙ (ap to-ℕ $ idx-hom# _)
 
-      t₀ = fst smallest-divisible
-      Pt₀ = 2nd smallest-divisible
-      t₀-smallest = 3rd smallest-divisible
-
-      open smallest-divisible (fst t₀) (snd t₀) Pt₀ (curry t₀-smallest)
-
-      case-t₀≤t : t₀ ≤-Fin (t , u) → divby t u ≼ divby (1+ t) u'
-      case-t₀≤t v = divby-lub (1+ t) u' _ lem
-        where lem = ≼-≺-≼ (divby-◦-ub t u v) (#[ t ]≺S u u')
-
-      case-t<t₀ : (t , u) <-Fin t₀ → divby t u ≼ divby (1+ t) u'
-      case-t<t₀ v rewrite <-smallest-divisible-divby t u v = [O]-min size-cond _
-
-    divby-monotone t (1+ t') u u' (ltSR v) =
-      ≼-trans
-        (divby-monotone t t' u (S<-< u') v)
-        (divby-monotone t' (1+ t') (S<-< u') u' ltS)
-    -}
+        count-factors-idx-divby (1+ t) u s (inr w)
+         with count-factors-discrim[1+ 1+ t ] (S≤-< s) f
+            | divby-discrim (1+ t) u
+        ... | inl yes | inl yes' = p ∙ {!!}
+              where
+              p : count-factors[ i , h ,1+ 1+ t ] (S≤-< s) f (inl yes)
+                  == 2+ (ℕ-idx-of (divby t (S<-< u)))
+              p = ap 1+
+                    (count-factors-idx-divby t (S<-< u) (prev-shape s) (<S-≤ w))
+        ... | inr no | inr no' =
+                count-factors-idx-divby t (S<-< u) (prev-shape s) (<S-≤ w)
+        ... | inl yes | inr no' = ⊥-rec $ no' (∣-transp-<-witness yes)
+        ... | inr no | inl yes' = ⊥-rec $ no (∣-transp-<-witness yes')
 
   module 6∙34 where -- paper version 17.10.24
     -- Deviates slightly from paper proof.
@@ -400,7 +411,8 @@ module Cosieves-IsStrictlyOriented
 
     count-factors-shape i h O s f = O≤ _
     count-factors-shape i h (1+ t) s f =
-      count-factors-shape[ i , h ,1+ t ] (S≤-< s) f (count-factors-discrim t s f)
+      let u = S≤-< s in
+      count-factors-shape[ i , h ,1+ t ] u f (count-factors-discrim[1+ t ] u f)
 
     count-factors-shape[ i , h ,1+ t ] u f (inl yes) = {!!}
     count-factors-shape[ i , h ,1+ t ] u f (inr no) =
