@@ -71,5 +71,5 @@ module SimpleSemicategories-IsStrictlyOriented {ℓₘ}
     ≼-cancel-r : ∀ {l m n} (f : hom l m) (g h : hom m n)
       → g ◦ f ≼ h ◦ f
       → g ≼ h
-    ≼-cancel-r f g h (inl p) = =-≼ (hom-is-epi _ _ _ (hom= p))
+    ≼-cancel-r f g h (inl p) = =-≼ (hom-is-epi _ _ _ (idx=-hom= p))
     ≼-cancel-r f g h (inr u) = inr (≺-cancel-r _ _ _ u)

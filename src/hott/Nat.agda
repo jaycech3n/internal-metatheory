@@ -93,6 +93,11 @@ module Nat-ad-hoc-lemmas where
     ... | inl m≤n = ⊥-rec $ ¬m≤n m≤n
     ... | inr n<m = n<m
 
+    ≮-to-≥ : ¬ (m < n) → n ≤ m
+    ≮-to-≥ m≮n with ℕ-trichotomy' n m
+    ... | inl n≤m = n≤m
+    ... | inr m<n = ⊥-rec $ m≮n m<n
+
   S≤-1≤ : ∀ {m n} → 1+ m ≤ n → 1 ≤ n
   S≤-1≤ {m} {O} u = ⊥-rec (S≰O m u)
   S≤-1≤ {m} {1+ n} u = ≤-ap-S (O≤ n)
