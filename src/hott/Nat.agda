@@ -98,6 +98,10 @@ module Nat-ad-hoc-lemmas where
     ... | inl n≤m = n≤m
     ... | inr m<n = ⊥-rec $ m≮n m<n
 
+    ≤-to-≯ : m ≤ n → ¬ (n < m)
+    ≤-to-≯ (inl idp) n<m = ¬<-self n<m
+    ≤-to-≯ (inr m<n) n<m = ¬<-self (<-trans m<n n<m)
+
   S≤-1≤ : ∀ {m n} → 1+ m ≤ n → 1 ≤ n
   S≤-1≤ {m} {O} u = ⊥-rec (S≰O m u)
   S≤-1≤ {m} {1+ n} u = ≤-ap-S (O≤ n)
