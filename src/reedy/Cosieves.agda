@@ -432,11 +432,14 @@ module Cosieves-IsStrictlyOriented
       count-factors-idx-divby (1+ t) u s (inr w)
        with count-factors-discrim[1+ 1+ t ] (S≤-< s) f
           | divby-discrim (1+ t) u
-      ... | inl yes | inl yes' = p ∙ ap 1+ {!! (idx-divby-1+-divisible t u ? yes')!}
+      ... | inl yes | inl yes'@(g , p)
+            =
+            q ∙ ap 1+ (! (idx-divby-1+-divisible t u (<S-≤ w) yes')
+                       ∙ ap idx (divby-value p))
             where
-            p : count-factors[ i , h ,1+ 1+ t ] (S≤-< s) f (inl yes)
+            q : count-factors[ i , h ,1+ 1+ t ] (S≤-< s) f (inl yes)
                 == 2+ (idx (divby t (S<-< u)))
-            p = ap 1+
+            q = ap 1+
                   (count-factors-idx-divby t (S<-< u) (prev-shape s) (<S-≤ w))
       ... | inr no | inr no' =
               count-factors-idx-divby t (S<-< u) (prev-shape s) (<S-≤ w)
