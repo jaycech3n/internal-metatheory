@@ -199,17 +199,23 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
         _∣?_ : (h : hom x z) → Dec (_∣_ h)
         _∣?_ h = Σ-hom? (λ g → g ◦ f == h) (λ g → g ◦ f ≟-hom h)
 
-        ∣◦ : (g : hom y z) → _∣_ (g ◦ f)
-        ∣◦ g = g , idp
-
         ∣-of-equals : (h h' : hom x z) → h == h' → _∣_ h → _∣_ h'
         ∣-of-equals h h' idp w = w
+
+        ∣◦ : (g : hom y z) → _∣_ (g ◦ f)
+        ∣◦ g = g , idp
 
       ∣#[]= :
         ∀ {x y z} {f : hom x y} {t} {u u'}
         → f ∣ #[ t ] x z u
         → f ∣ #[ t ] x z u'
       ∣#[]= = ∣-of-equals _ _ _ #[]=
+
+      ∣◦hom#-idx :
+        ∀ {x y z} (f : hom x y) (g : hom y z)
+        → {u : idx (g ◦ f) < hom-size x z}
+        → f ∣ #[ idx (g ◦ f) ] x z u
+      ∣◦hom#-idx f g = ∣◦ f g ◂$ transp (f ∣_) (! (hom#-idx _))
 
   open division public
 
