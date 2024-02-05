@@ -39,7 +39,7 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
   open basic-definitions public
 
   private
-    module hom-indices where
+    module indices where
       idx : ∀ {x y} → hom x y → ℕ
       idx = to-ℕ ∘ idx'
 
@@ -52,33 +52,34 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
       #[]= : ∀ {i} {x y} {u u'} → #[ i ] x y u == #[ i ] x y u'
       #[]= {i} {x} {y} = ap (#[ i ] x y) (<-has-all-paths _ _)
 
-      hom#-idx :
-        ∀ {x y} (f : hom x y)
-        → {u : idx f < hom-size x y}
-        → #[ idx f ] x y u == f
-      hom#-idx f = #[]= ∙ hom#'-idx' f
+      module _ {x y : Ob} where
+        hom#-idx :
+          (f : hom x y)
+          → {u : idx f < hom-size x y}
+          → #[ idx f ] x y u == f
+        hom#-idx f = #[]= ∙ hom#'-idx' f
 
-      idx-hom# :
-        ∀ {x y} (i : ℕ) {u : i < hom-size x y}
-        → idx (#[ i ] x y u) == i
-      idx-hom# i {u} = ap to-ℕ (idx'-hom#' (i , u))
+        idx-hom# :
+          (i : ℕ) {u : i < hom-size x y}
+          → idx (#[ i ] x y u) == i
+        idx-hom# i {u} = ap to-ℕ (idx'-hom#' (i , u))
 
-      hom=-idx= :
-        ∀ {x y} {f g : hom x y}
-        → f == g
-        → idx f == idx g
-      hom=-idx= idp = idp
+        hom=-idx= :
+          {f g : hom x y}
+          → f == g
+          → idx f == idx g
+        hom=-idx= idp = idp
 
-      idx=-hom= :
-        ∀ {x y} {f g : hom x y}
-        → idx f == idx g
-        → f == g
-      idx=-hom= {x} {y} {f} {g} p =
-        ! (hom#'-idx' f) ∙
-        ap hom[ x , y ]#' (Fin= p) ∙
-        hom#'-idx' g
+        idx=-hom= :
+          {f g : hom x y}
+          → idx f == idx g
+          → f == g
+        idx=-hom= {f} {g} p =
+          ! (hom#'-idx' f) ∙
+          ap hom[ x , y ]#' (Fin= p) ∙
+          hom#'-idx' g
 
-  open hom-indices public
+  open indices public
 
   private
     module hom-order {x y : Ob} where
@@ -134,9 +135,9 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
         [O]-min : (f : hom x y) → #[ O ] x y u ≼ f
         [O]-min f = transp (_≤ (idx f)) (! $ idx-hom# _) (O≤ _)
 
-        ≼[O] : (f : hom x y) → f ≼ #[ O ] x y u → f == #[ O ] x y u
-        ≼[O] f (inl p) = idx=-hom= p
-        ≼[O] f (inr v) = ⊥-rec $ ≮O _
+        ≼[O]-=[O] : (f : hom x y) → f ≼ #[ O ] x y u → f == #[ O ] x y u
+        ≼[O]-=[O] f (inl p) = idx=-hom= p
+        ≼[O]-=[O] f (inr v) = ⊥-rec $ ≮O _
           (transp (idx f <_) (idx-hom# _) v)
 
       #[_]≺S :
@@ -152,6 +153,9 @@ record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
         where
         w' : idx f ≤ i
         w' = <S-≤ $ transp (idx f <_) (idx-hom# _) w
+
+      #≼#-idx≤ : ∀ {t t'} {u u'} → #[ t ] x y u ≼ #[ t' ] x y u' → t ≤ t'
+      #≼#-idx≤ w = w ◂$ transp (_≤ _) (idx-hom# _) ◂$ transp (_ ≤_) (idx-hom# _)
 
   open hom-order public
 

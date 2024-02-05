@@ -73,3 +73,21 @@ module SimpleSemicategories-IsStrictlyOriented {ℓₘ}
       → g ≼ h
     ≼-cancel-r f g h (inl p) = =-≼ (hom-is-epi _ _ _ (idx=-hom= p))
     ≼-cancel-r f g h (inr u) = inr (≺-cancel-r _ _ _ u)
+
+  idx-◦-O :
+    ∀ {l m n} (f : hom l m) (g : hom m n)
+    → idx (g ◦ f) == O
+    → idx g == O
+  idx-◦-O {l} {m} {n} f g p = ¬O<-=O _ bot
+    where module _ (c : O < idx g) where
+    u = hom[ _ , _ ]-inhab g
+    [O] = #[ O ] m n u
+
+    w : g ◦ f ≼ [O] ◦ f
+    w = (O≤ _) ◂$ transp! (_≤ idx ([O] ◦ f)) p
+
+    q : idx g == O
+    q = ≤O-=O (≼-cancel-r _ _ _ w ◂$ transp (idx g ≤_) (idx-hom# _))
+
+    bot : ⊥
+    bot = ¬<-self (c ◂$ transp (O <_) q)

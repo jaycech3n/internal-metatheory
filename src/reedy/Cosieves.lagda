@@ -96,7 +96,7 @@ count-factors-aux i h t u f (inl yes) =
 
 \begin{code}
 
-count-factors-top-level : -- 6.22
+count-factors-top-level :
   ∀ i h t s (f : hom i h) → count-factors i h t s f == O
 count-factors-top-level-aux :
   ∀ i h t u f d → count-factors-aux i h t u f d == O
@@ -138,7 +138,7 @@ count-factors-divisible i h t s f yes =
 
 \begin{code}
 
-module _ -- 6.24
+module _
   (i h : ℕ) {j : ℕ} (f : hom i j)
   ((t₀ , u₀) : Fin (hom-size i h))
   (divisible : f ∣ #[ t₀ ] i h u₀)
@@ -166,7 +166,7 @@ module _ -- 6.24
 
 \begin{code}
 
-module _ (i h : ℕ) {j} (f : hom i j) where -- 6.25
+module _ (i h : ℕ) {j} (f : hom i j) where
   count-factors-all-O-hom-size-O :
     (∀ t s → count-factors i h t s f == O)
     → hom-size j h == O
@@ -303,7 +303,7 @@ A few basic observations about `divby`:
 * Lemma 6.26 (31.01.2024)
 
 \begin{code}
-    divby-is-lub : -- 6.26
+    divby-is-lub :
       ∀ t u g
       → g ◦ f ≼ #[ t ] i h u
       → g ≼ divby t u
@@ -315,7 +315,7 @@ A few basic observations about `divby`:
     divby-is-lub t u = divby-is-lub-aux t u $ discrim i h t u f
 
     divby-is-lub-aux O u d g w =
-      =-≼ (! (divby-value-aux _ _ d _ (≼[O] _ _ w)))
+      =-≼ (! (divby-value-aux _ _ d _ (≼[O]-=[O] _ _ w)))
     divby-is-lub-aux (1+ t) u (inl (g' , p)) g w =
       ≼-cancel-r _ _ _ (transp (_ ≼_) (! p) w)
     divby-is-lub-aux (1+ t) u (inr no) g (inl p) =
@@ -343,25 +343,30 @@ A few basic observations about `divby`:
     divby-<-smallest-divisible-aux (1+ t) u (inr no) v =
       divby-<-smallest-divisible t (S<-< u) (S<-< v)
 
-    divby-smallest-divisible : divby t₀ u₀ == #[ O ] j h O<homjh
-    divby-smallest-divisible = ≼[O] O<homjh _ (≼-cancel-r _ _ _ w')
+    divby-smallest-divisible-aux :
+      ∀ u d → divby-aux t₀ u d == #[ O ] j h O<homjh
+    divby-smallest-divisible-aux u (inr no) = ⊥-rec $ no (∣#[]= t₀-divisible)
+    divby-smallest-divisible-aux u (inl (g , p)) =
+      ≼[O]-=[O] O<homjh _ (≼-cancel-r _ _ _ w')
       where
       [O]◦f = #[ O ] j h O<homjh ◦ f
-      [t₀] = #[ t₀ ] i h u₀
-
       i₀ = idx [O]◦f
       v₀ = idx<hom-size [O]◦f
 
-      p : divby t₀ u₀ ◦ f == [t₀]
-      p = divby-divisible-◦ t₀ u₀ t₀-divisible
-
-      -- Wouldn't need all this idx/hom# wrangling with
-      -- a more definitional representation of arrows.
-      w : [t₀] ≼ [O]◦f
+      -- Wouldn't need all this idx/hom# wrangling with a more definitional
+      -- representation of arrows.
+      w : #[ t₀ ] i h u ≼ [O]◦f
       w = t₀-smallest i₀ v₀ (∣◦hom#-idx f _) ◂$ transp! (_≤ i₀) (idx-hom# _)
 
-      w' : divby t₀ u₀ ◦ f ≼ [O]◦f
-      w' = ≼-trans (=-≼ p) w
+      w' : g ◦ f ≼ [O]◦f
+      w' = w ◂$ transp! (_≼ [O]◦f) p
+
+    divby-smallest-divisible : ∀ u → divby t₀ u == #[ O ] j h O<homjh
+    divby-smallest-divisible u = divby-smallest-divisible-aux u yes
+      where
+      yes = inl (divby-aux t₀ u (discrim i h t₀ u f)
+                , divby-divisible-◦ t₀ u (∣#[]= t₀-divisible))
+      -- (discrim i h t₀ u f) in place of (yes) also works, but is less specific.
 
     divby-◦-ub :
       ∀ t u → t₀ ≤ t → divby t u ◦ f ≼ #[ t ] i h u
@@ -433,10 +438,10 @@ Upper bound on idx([t+1]/f).
 
 \begin{code}
 
-    idx-divby-S-upper-bound :
+    idx-divby-S-ub :
       (t : ℕ) (u : 1+ t < hom-size i h)
       → idx (divby (1+ t) u) ≤ 1+ (idx (divby t (S<-< u)))
-    idx-divby-S-upper-bound t u =
+    idx-divby-S-ub t u =
       case (<-S≤ m<homjh) case[m+1=homjh] case[m+1<homjh]
       where
       [t]/f = divby t (S<-< u)
@@ -476,71 +481,90 @@ Upper bound on idx([t+1]/f).
 
 \end{code}
 
-    divby-1+≼-divby-to-= :
+The upper bound is sharp when f divides [t+1].
+
+\begin{code}
+
+    divby-S-≼-divby-equal :
       ∀ {t} {u} {v}
       → divby (1+ t) u ≼ divby t v
       → divby (1+ t) u == divby t v
-    divby-1+≼-divby-to-= (inl p) = idx=-hom= p
-    divby-1+≼-divby-to-= (inr w) = ⊥-rec $ S≮ $ divby-reflects-monotone _ _ w
+    divby-S-≼-divby-equal (inl p) = idx=-hom= p
+    divby-S-≼-divby-equal (inr w) = ⊥-rec $ S≮ $ divby-reflects-<-monotone w
 
-    idx-divby-1+-divisible :
+    idx-divby-S-divisible :
       (t : ℕ) (u : 1+ t < hom-size i h)
       → t₀ ≤ t
       → f ∣ #[ 1+ t ] i h u
       → idx (divby (1+ t) u) == 1+ (idx (divby t (S<-< u)))
-    idx-divby-1+-divisible t u v d with f ∣? #[ 1+ t ] i h u
-    ... | inr no = ⊥-rec $ no d
-    ... | inl (g , p)
-          with idx-divby-1+-upper-bound t u
-    ...   | inl q = (ap idx $ ! (divby-value p)) ∙ q
-    ...   | inr w = ⊥-rec $ S≰ contra
-            where
-            r : divby (1+ t) u == divby t (S<-< u)
-            r = divby-1+≼-divby-to-= (<S-≤ w)
+    idx-divby-S-divisible t u v yes =
+      case (idx-divby-S-ub t u) case[n=m+1] case[n<m+1]
+      where
+      [t]/f = divby t (S<-< u)
+      m = idx [t]/f
 
-            c : #[ 1+ t ] i h u ≼ #[ t ] i h (S<-< u)
-            c = divby-◦-ub t _ v
-                ◂$ transp! (λ ◻ → ◻ ◦ f ≼ #[ t ] i h _) r
-                ◂$ transp (_≼ #[ t ] i h (S<-< u)) (divby-divisible-◦ _ _ d)
+      [t+1]/f = divby (1+ t) u
+      n = idx [t+1]/f
 
-            contra : 1+ t ≤ t
-            contra = c ◂$ transp (idx (#[ 1+ t ] i h _) ≤_) (idx-hom# t)
-                       ◂$ transp (_≤ t) (idx-hom# (1+ t))
+      case[n=m+1] = λ p → p
+      case[n<m+1] = ⊥-rec ∘ S≰ ∘ d
+        where module _ (w : n < 1+ m) where
+        p : divby t (S<-< u) ◦ f == #[ 1+ t ] i h u
+        p = (! $ ap (_◦ f) (divby-S-≼-divby-equal (<S-≤ w)))
+            ∙ divby-divisible-◦ (1+ t) u yes
 
-    -- 6.32
-    abstract
-      count-factors-idx-divby :
-        (t : ℕ) (u : t < hom-size i h) (s : shape i h (1+ t))
-        → t₀ ≤ t
-        → count-factors i h (1+ t) s f == 1+ (idx (divby t u))
-      count-factors-idx-divby t u s (inl idp) = p ∙ ap 1+ (q ∙ ! r)
-        where
-        p : count-factors i h (1+ t₀) s f
-            == 1+ (count-factors i h t₀ (prev-shape s) f)
-        p = count-factors-divisible t₀ s (∣#[]= t₀-divisible)
+        c : #[ 1+ t ] i h u ≼ #[ t ] i h (S<-< u)
+        c = divby-◦-ub t (S<-< u) v ◂$ transp (_≼ #[ t ] i h (S<-< u)) p
 
-        q : count-factors i h t₀ (prev-shape s) f == O
-        q = count-factors-O-below-first-divisible t₀ lteE
+        d : 1+ t ≤ t
+        d = #≼#-idx≤ c
 
-        r : idx (divby t₀ u) == O
-        r = hom=-idx= (ap (divby t₀) (<-has-all-paths _ _) ∙ divby-smallest-divisible)
-            ∙ idx-hom# _
-      count-factors-idx-divby (1+ t) u s (inr w)
-       with count-factors-discrim i h (1+ t) (S≤-< s) f
-          | divby-discrim (1+ t) u
-      ... | inl yes | inl yes'@(g , p)
-            =
-            q ∙ ap 1+ (! (idx-divby-1+-divisible t u (<S-≤ w) yes')
-                       ∙ ap idx (divby-value p))
-            where
-            q : count-factors-aux i h (1+ t) (S≤-< s) f (inl yes)
-                == 2+ (idx (divby t (S<-< u)))
-            q = ap 1+
-                  (count-factors-idx-divby t (S<-< u) (prev-shape s) (<S-≤ w))
-      ... | inr no | inr no' =
-              count-factors-idx-divby t (S<-< u) (prev-shape s) (<S-≤ w)
-      ... | inl yes | inr no' = ⊥-rec $ no' (∣#[]= yes)
-      ... | inr no | inl yes' = ⊥-rec $ no (∣#[]= yes')
+\end{code}
+
+* Lemma 6.32 (04.02.2024)
+
+\begin{code}
+
+    count-factors-idx-divby :
+      (t : ℕ) (s : shape i h (1+ t))
+      → t₀ ≤ t
+      → count-factors i h (1+ t) s f == 1+ (idx $ divby t (<-from-shape s))
+
+    count-factors-idx-divby-aux :
+      ∀ t u d
+      → t₀ ≤ t
+      → count-factors-aux i h t u f d
+        == 1+ (idx $ (divby-aux t u d))
+
+    count-factors-idx-divby-aux t u d (inl idp)
+      =
+      p ∙ ap 1+ (! q)
+      where
+      cf-t₀ = count-factors-below-first-divisible
+                i h f (t₀ , u₀) t₀-divisible t₀-smallest
+
+      p : count-factors-aux i h t₀ u f d == 1
+      p = count-factors-divisible-aux i h t₀ u f d (∣#[]= t₀-divisible)
+          ∙ (ap 1+ $ cf-t₀ t₀ (<-to-shape u) lteE)
+
+      q : idx (divby-aux t₀ u d) == O
+      q = ap idx (divby-smallest-divisible-aux u d) ∙ idx-hom# O
+    count-factors-idx-divby-aux (1+ t) u (inl yes@(g , p)) (inr w)
+      =
+      ap 1+ (count-factors-idx-divby t (<-to-shape u) (<S-≤ w) ∙ q)
+      where
+      q : 1+ (idx $ divby t (S<-< u)) == idx g
+      q = ! (idx-divby-S-divisible t u (<S-≤ w) yes)
+          ∙ ap idx (divby-value (1+ t) u g p)
+    count-factors-idx-divby-aux (1+ t) u (inr no) (inr w)
+      =
+      count-factors-idx-divby t (<-to-shape u) (<S-≤ w)
+
+    count-factors-idx-divby t s =
+      let u = <-from-shape s in
+      count-factors-idx-divby-aux t u $ discrim i h t u f
+
+\end{code}
 
   -- module 6∙33 where -- paper version 26.01.24
   --   -- Deviates slightly from paper proof.

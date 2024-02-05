@@ -14,11 +14,12 @@ _>_ : ℕ → ℕ → Type₀
 m > n = n < m
 
 module Nat-trichotomy where
-  ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
-  ℕ-trichotomy' m n with ℕ-trichotomy m n
-  ... | inl m=n = inl (inl m=n)
-  ... | inr (inl m<n) = inl (inr m<n)
-  ... | inr (inr n<m) = inr n<m
+  abstract
+    ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
+    ℕ-trichotomy' m n with ℕ-trichotomy m n
+    ... | inl m=n = inl (inl m=n)
+    ... | inr (inl m<n) = inl (inr m<n)
+    ... | inr (inr n<m) = inr n<m
 
 open Nat-trichotomy public
 
@@ -32,6 +33,9 @@ module Nat-ad-hoc-lemmas where
 
     <1-=O : n < 1 → n == O
     <1-=O ltS = idp
+
+    ≤O-=O : n ≤ O → n == O
+    ≤O-=O (inl idp) = idp
 
   S≮ : ∀ {n} → ¬ (S n < n)
   S≮ {O} ()
@@ -80,23 +84,24 @@ module Nat-ad-hoc-lemmas where
     S≤-≤ : 1+ m ≤ n → m ≤ n
     S≤-≤ = inr ∘ S≤-< -- ≤-trans lteS
 
-    no-between : m < n → n < 1+ m → ⊥
-    no-between u v with <-S≤ u
-    ... | inl idp = ¬<-self v
-    ... | inr w = ¬<-self (<-trans v w)
-
     <-witness' : m < n → Σ ℕ (λ k → k + m == n)
     <-witness' u = let w = <-witness u in 1+ (fst w) , snd w
 
-    ≰-to-> : ¬ (m ≤ n) → n < m
-    ≰-to-> ¬m≤n with ℕ-trichotomy' m n
-    ... | inl m≤n = ⊥-rec $ ¬m≤n m≤n
-    ... | inr n<m = n<m
+    abstract
+      no-between : m < n → n < 1+ m → ⊥
+      no-between u v with <-S≤ u
+      ... | inl idp = ¬<-self v
+      ... | inr w = ¬<-self (<-trans v w)
 
-    ≮-to-≥ : ¬ (m < n) → n ≤ m
-    ≮-to-≥ m≮n with ℕ-trichotomy' n m
-    ... | inl n≤m = n≤m
-    ... | inr m<n = ⊥-rec $ m≮n m<n
+      ≰-to-> : ¬ (m ≤ n) → n < m
+      ≰-to-> ¬m≤n with ℕ-trichotomy' m n
+      ... | inl m≤n = ⊥-rec $ ¬m≤n m≤n
+      ... | inr n<m = n<m
+
+      ≮-to-≥ : ¬ (m < n) → n ≤ m
+      ≮-to-≥ m≮n with ℕ-trichotomy' n m
+      ... | inl n≤m = n≤m
+      ... | inr m<n = ⊥-rec $ m≮n m<n
 
     ≤-to-≯ : m ≤ n → ¬ (n < m)
     ≤-to-≯ (inl idp) n<m = ¬<-self n<m
