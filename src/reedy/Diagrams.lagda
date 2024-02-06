@@ -24,7 +24,7 @@ module reedy.Diagrams {ℓₘᴵ ℓₒ ℓₘ}
 
 open SimpleSemicategory I
 open import reedy.Cosieves I
-open Cosieves-IsStrictlyOriented I-strictly-oriented
+open Cosieves-StrictlyOriented I-strictly-oriented
 
 open CwFStructure cwfstr renaming (_◦_ to _◦ˢᵘᵇ_)
 open PiStructure pistr
@@ -117,7 +117,7 @@ M⃗◦ :
   → let cf = count-factors i h t s f
         sh = count-factors-shape i h t s f  -- Abstract over this too?
         p  = count-factors-comp i h t s f g -- And this too?
-    in M⃗ j h cf sh g ◦ˢᵘᵇ M⃗ i h t s f == idd (M= k h p) ◦ˢᵘᵇ M⃗ i h t s (g ◦ f)
+    in M⃗ j h cf sh g ◦ˢᵘᵇ M⃗ i h t s f == {!idd (M= k h p) ◦ˢᵘᵇ {!M⃗ i h t s (g ◦ f)!}!}
 
 \end{code}
 
@@ -230,8 +230,8 @@ M⃗[_,_,1+_]-deptype :
   → Type _
 M⃗[ i , h ,1+ t ]-deptype s {j} f d =
   Sub (M i h (1+ t) s)
-      (M j h (count-factors[ i , h ,1+ t ] u f d)
-        (count-factors-shape[ i , h ,1+ t ] u f d))
+      (M j h (count-factors-aux i h t u f d)
+        (count-factors-shape-aux i h t u f d))
   where u = S≤-< s
 
 \end{code}
@@ -250,7 +250,7 @@ M⃗[ i , h ,1+ t ] s f (inl (g , _)) =
   where
   prev = prev-shape s
   shp = count-factors-shape i h t prev f
-M⃗[ i , h ,1+ t ] s f (inr no) = M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
+M⃗[ i , h ,1+ t ] s f (inr no) = {!M⃗ i h t prev f!} ◦ˢᵘᵇ π (A h [ _ ])
   where prev = prev-shape s
 
 \end{code}
@@ -260,7 +260,7 @@ Now we can wrap the above up into a definition of M⃗. We also define the
 
 \begin{code}
 
-M⃗ i h (1+ t) s f = M⃗[ i , h ,1+ t ] s f (f ∣? #[ t ] i h u)
+M⃗ i h (1+ t) s f = {!M⃗[ i , h ,1+ t ] s f (f ∣? #[ t ] i h u)!}
   where u = S≤-< s
 
 M⃗ i (1+ h) O s {j} f =
@@ -279,7 +279,7 @@ M⃗ i (1+ h) O s {j} f =
   shpⱼ = full-shape j h
 
   eq : M j h cf sh == M j h fullⱼ shpⱼ
-  eq = M= j h (count-factors-full i h shpᵢ f)
+  eq = M= j h {!count-factors-full i h shpᵢ f!}
 
 M⃗ i O O s f = id
 
@@ -305,11 +305,11 @@ M⃗◦ i h (1+ t) s {j} f {k} g =
 
   M⃗◦-deptype : Dec (g ◦ f ∣ #[ t ] i h u) → Type _
   M⃗◦-deptype d =
-    M⃗ j h (count-factors[ i , h ,1+ t ] u f {!!})
-      (count-factors-shape[ i , h ,1+ t ] u f {!!}) g
+    M⃗ j h (count-factors-aux i h t u f {!!})
+      (count-factors-shape-aux i h t u f {!!}) g
     ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f {!!} -- M⃗ i h (1+ t) s f
     ==
-    idd (M= k h (count-factors-comp[ i , h ,1+ t ] u f g d))
+    idd (M= k h (count-factors-comp-aux i h t u f g d))
              -- (count-factors-comp i h (1+ t) s f g))
     ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s (g ◦ f) d
          -- i h (1+ t) s (g ◦ f)

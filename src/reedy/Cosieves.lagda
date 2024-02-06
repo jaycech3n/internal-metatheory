@@ -3,7 +3,7 @@ Cosieves in countably simple semicategories
 
 \begin{code}
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
 
 open import reedy.SimpleSemicategories
 
@@ -434,7 +434,8 @@ Morphism division is surjective.
 
 * Corollary 6.30 (01.02.2024)
 
-Upper bound on idx([t+1]/f).
+Upper bound on idx([t+1]/f). The upper bound is sharp when f divides [t+1] for
+large enough t.
 
 \begin{code}
 
@@ -478,12 +479,6 @@ Upper bound on idx([t+1]/f).
 
         bot : ⊥
         bot = no-between w w'
-
-\end{code}
-
-The upper bound is sharp when f divides [t+1].
-
-\begin{code}
 
     divby-S-≼-divby-equal :
       ∀ {t} {u} {v}
@@ -536,8 +531,7 @@ The upper bound is sharp when f divides [t+1].
       → count-factors-aux i h t u f d
         == 1+ (idx $ (divby-aux t u d))
 
-    count-factors-idx-divby-aux t u d (inl idp)
-      =
+    count-factors-idx-divby-aux t u d (inl idp) =
       p ∙ ap 1+ (! q)
       where
       cf-t₀ = count-factors-below-first-divisible
@@ -549,15 +543,15 @@ The upper bound is sharp when f divides [t+1].
 
       q : idx (divby-aux t₀ u d) == O
       q = ap idx (divby-smallest-divisible-aux u d) ∙ idx-hom# O
-    count-factors-idx-divby-aux (1+ t) u (inl yes@(g , p)) (inr w)
-      =
+
+    count-factors-idx-divby-aux (1+ t) u (inl yes@(g , p)) (inr w) =
       ap 1+ (count-factors-idx-divby t (<-to-shape u) (<S-≤ w) ∙ q)
       where
       q : 1+ (idx $ divby t (S<-< u)) == idx g
       q = ! (idx-divby-S-divisible t u (<S-≤ w) yes)
           ∙ ap idx (divby-value (1+ t) u g p)
-    count-factors-idx-divby-aux (1+ t) u (inr no) (inr w)
-      =
+
+    count-factors-idx-divby-aux (1+ t) u (inr no) (inr w) =
       count-factors-idx-divby t (<-to-shape u) (<S-≤ w)
 
     count-factors-idx-divby t s =
@@ -566,40 +560,92 @@ The upper bound is sharp when f divides [t+1].
 
 \end{code}
 
-  -- module 6∙33 where -- paper version 26.01.24
-  --   -- Deviates slightly from paper proof.
-  --   count-factors-shape :
-  --     ∀ i h t s {j} (f : hom i j)
-  --     → count-factors i h t s f ≤ hom-size j h
-  --   count-factors-shape[_,_,1+_] :
-  --     ∀ i h t u {j} (f : hom i j) d
-  --     → count-factors[ i , h ,1+ t ] u f d ≤ hom-size j h
+* Lemma 6.33 (06.02.2024)
 
-  --   count-factors-shape i h O s f = O≤ _
-  --   count-factors-shape i h (1+ t) s f =
-  --     let u = S≤-< s in
-  --     count-factors-shape[ i , h ,1+ t ] u f (count-factors-discrim[1+ t ] u f)
+\begin{code}
 
-  --   count-factors-shape[ i , h ,1+ t ] u f (inl yes) = {!!}
-  --   count-factors-shape[ i , h ,1+ t ] u f (inr no) =
-  --     count-factors-shape i h t (<-shape u) f
+  count-factors-shape :
+    ∀ i h t s {j} (f : hom i j)
+    → count-factors i h t s f ≤ hom-size j h
+  count-factors-shape-aux :
+    ∀ i h t u {j} (f : hom i j) d
+    → count-factors-aux i h t u f d ≤ hom-size j h
 
-  --   private -- experimental; unused
-  --     record Shape-helper (i h t : ℕ) ⦃ s : shape i h t ⦄ : Type₀  where
-  --       constructor _,_
-  --       field
-  --         dt : ℕ
-  --         eq : dt == hom-size i h − t
+  count-factors-shape i h O s f = {!!}
+  count-factors-shape i h (1+ t) s f = {!!}
 
-  -- open 6∙33 public
+  count-factors-shape-aux i h t u f d = {!!}
 
-  -- module 6∙23 where -- version 17.01.24
-  --   count-factors-full :
-  --     ∀ i h s {j} (f : hom i j)
-  --     → count-factors i h (hom-size i h) s f == hom-size j h
-  --   count-factors-full = {!!}
+\end{code}
 
-  -- open 6∙23 public
+---
+Some old stuff to port:
+
+  module 6∙33 where -- paper version 26.01.24
+    -- Deviates slightly from paper proof.
+    count-factors-shape :
+      ∀ i h t s {j} (f : hom i j)
+      → count-factors i h t s f ≤ hom-size j h
+    count-factors-shape[_,_,1+_] :
+      ∀ i h t u {j} (f : hom i j) d
+      → count-factors[ i , h ,1+ t ] u f d ≤ hom-size j h
+
+    count-factors-shape i h O s f = O≤ _
+    count-factors-shape i h (1+ t) s f =
+      let u = S≤-< s in
+      count-factors-shape[ i , h ,1+ t ] u f (count-factors-discrim[1+ t ] u f)
+
+    count-factors-shape[ i , h ,1+ t ] u f (inl yes) = {!!}
+    count-factors-shape[ i , h ,1+ t ] u f (inr no) =
+      count-factors-shape i h t (<-shape u) f
+
+    private -- experimental; unused
+      record Shape-helper (i h t : ℕ) ⦃ s : shape i h t ⦄ : Type₀  where
+        constructor _,_
+        field
+          dt : ℕ
+          eq : dt == hom-size i h − t
+
+  open 6∙33 public
+
+  module 6∙23 where -- version 17.01.24
+    count-factors-full :
+      ∀ i h s {j} (f : hom i j)
+      → count-factors i h (hom-size i h) s f == hom-size j h
+    count-factors-full = {!!}
+
+  open 6∙23 public
+
+---
+
+**Lemma**
+
+Let i, h : I₀ and f : I(i, j), g : I(j, k). If (g ◦ f) divides [t]ⁱₕ then f
+divides [t]ⁱₕ and g divides [count-factors i h t f]ʲₕ.
+
+\begin{code}
+  -- placeholder
+\end{code}
+
+**Lemma**
+
+\begin{code}
+
+  count-factors-comp :
+    ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
+    → count-factors i h t s (g ◦ f)
+      == count-factors j h (count-factors i h t s f) ? g
+  count-factors-comp-aux :
+    ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
+    → (d : Dec (g ◦ f ∣ #[ t ] i h u))
+    → count-factors-aux i h t u (g ◦ f) d
+      ==
+      let r = count-factors-aux i h t u f {!!} in
+      count-factors-aux j h r {!!} g {!!}
+
+  count-factors-comp = ?
+
+  count-factors-comp-aux = {!!}
 
   -- -- Need this too; prove it on paper:
   -- count-factors-comp :
@@ -621,3 +667,5 @@ The upper bound is sharp when f divides [t+1].
 
   -- count-factors-comp[ i , h ,1+ t ] u f g (inl yes) = {!!}
   -- count-factors-comp[ i , h ,1+ t ] u f g (inr no) = {!!}
+
+\end{code}
