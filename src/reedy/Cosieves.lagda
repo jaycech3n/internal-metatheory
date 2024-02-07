@@ -3,7 +3,7 @@ Cosieves in countably simple semicategories
 
 \begin{code}
 
-{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import reedy.SimpleSemicategories
 
@@ -239,7 +239,7 @@ module Cosieves-StrictlyOriented
 
   open SimpleSemicategories-IsStrictlyOriented I I-strictly-oriented
 
-  module _ (i h j : ℕ) (f : hom i j) (O<homjh : O < hom-size j h) where
+  module _ (i h : ℕ) {j : ℕ} (f : hom i j) (O<homjh : O < hom-size j h) where
 
     O<homih : O < hom-size i h
     O<homih = hom[ i , h ]-inhab (#[ O ] j h O<homjh ◦ f)
@@ -562,6 +562,9 @@ large enough t.
 
 * Lemma 6.33 (06.02.2024)
 
+Proof differs slightly from the paper version, for diagram construction
+typechecking reasons.
+
 \begin{code}
 
   count-factors-shape :
@@ -571,42 +574,29 @@ large enough t.
     ∀ i h t u {j} (f : hom i j) d
     → count-factors-aux i h t u f d ≤ hom-size j h
 
-  count-factors-shape i h O s f = {!!}
-  count-factors-shape i h (1+ t) s f = {!!}
+  count-factors-shape i h O s f = O≤ _
+  count-factors-shape i h (1+ t) s f =
+    let u = <-from-shape s in
+    count-factors-shape-aux i h t u f $ discrim i h t u f
 
-  count-factors-shape-aux i h t u f d = {!!}
+  count-factors-shape-aux i h t u {j} f d@(inl yes@(g , _)) =
+    case (O≤ $ hom-size j h) case[O=homjh] case[O<homjh]
+    where
+    case[O=homjh] = λ p →
+      ⊥-rec $ hom-size-O-no-divisible i h f (! p) t u yes
+    case[O<homjh] = λ w →
+      <-S≤ (idx<hom-size g) ◂$ transp! (_≤ hom-size j h) (p w)
+      where module _ (w : O < hom-size j h) where
+      p : count-factors-aux i h t u f d == 1+ (idx g)
+      p = count-factors-idx-divby-aux i h f w t u d
+            $ t₀-smallest _ _ f w _ u yes
+  count-factors-shape-aux i h t u f (inr no) =
+    count-factors-shape i h t (<-to-shape u) f
 
 \end{code}
 
 ---
 Some old stuff to port:
-
-  module 6∙33 where -- paper version 26.01.24
-    -- Deviates slightly from paper proof.
-    count-factors-shape :
-      ∀ i h t s {j} (f : hom i j)
-      → count-factors i h t s f ≤ hom-size j h
-    count-factors-shape[_,_,1+_] :
-      ∀ i h t u {j} (f : hom i j) d
-      → count-factors[ i , h ,1+ t ] u f d ≤ hom-size j h
-
-    count-factors-shape i h O s f = O≤ _
-    count-factors-shape i h (1+ t) s f =
-      let u = S≤-< s in
-      count-factors-shape[ i , h ,1+ t ] u f (count-factors-discrim[1+ t ] u f)
-
-    count-factors-shape[ i , h ,1+ t ] u f (inl yes) = {!!}
-    count-factors-shape[ i , h ,1+ t ] u f (inr no) =
-      count-factors-shape i h t (<-shape u) f
-
-    private -- experimental; unused
-      record Shape-helper (i h t : ℕ) ⦃ s : shape i h t ⦄ : Type₀  where
-        constructor _,_
-        field
-          dt : ℕ
-          eq : dt == hom-size i h − t
-
-  open 6∙33 public
 
   module 6∙23 where -- version 17.01.24
     count-factors-full :
@@ -634,16 +624,18 @@ divides [t]ⁱₕ and g divides [count-factors i h t f]ʲₕ.
   count-factors-comp :
     ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
     → count-factors i h t s (g ◦ f)
-      == count-factors j h (count-factors i h t s f) ? g
+      ==
+      let r = count-factors i h t s f in
+      count-factors j h r (count-factors-shape i h t s f) g
   count-factors-comp-aux :
     ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
     → (d : Dec (g ◦ f ∣ #[ t ] i h u))
     → count-factors-aux i h t u (g ◦ f) d
       ==
       let r = count-factors-aux i h t u f {!!} in
-      count-factors-aux j h r {!!} g {!!}
+      count-factors-aux j h r {!count-factors-shape-aux i h t u f ?!} g {!!}
 
-  count-factors-comp = ?
+  count-factors-comp = {!!}
 
   count-factors-comp-aux = {!!}
 
