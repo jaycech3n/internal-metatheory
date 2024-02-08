@@ -140,7 +140,7 @@ count-factors-divisible i h t s f yes =
 
 module _
   (i h : ℕ) {j : ℕ} (f : hom i j)
-  ((t₀ , u₀) : Fin (hom-size i h))
+  (t₀ : ℕ) (u₀ : t₀ < hom-size i h)
   (divisible : f ∣ #[ t₀ ] i h u₀)
   (smallest : (∀ t u → f ∣ #[ t ] i h u → t₀ ≤ t))
   where
@@ -518,6 +518,10 @@ large enough t.
 
 * Lemma 6.32 (04.02.2024)
 
+The Agda proof differs from the paper: we're still in the module context where
+we assume O < hom-size j h and derive the existence of t₀, as opposed to the
+paper version where we assume t₀ and get the inequality.
+
 \begin{code}
 
     count-factors-idx-divby :
@@ -528,14 +532,17 @@ large enough t.
     count-factors-idx-divby-aux :
       ∀ t u d
       → t₀ ≤ t
-      → count-factors-aux i h t u f d
-        == 1+ (idx $ (divby-aux t u d))
+      → count-factors-aux i h t u f d == 1+ (idx $ (divby-aux t u d))
+
+    count-factors-idx-divby t s =
+      let u = <-from-shape s in
+      count-factors-idx-divby-aux t u $ discrim i h t u f
 
     count-factors-idx-divby-aux t u d (inl idp) =
       p ∙ ap 1+ (! q)
       where
       cf-t₀ = count-factors-below-first-divisible
-                i h f (t₀ , u₀) t₀-divisible t₀-smallest
+                i h f t₀ u₀ t₀-divisible t₀-smallest
 
       p : count-factors-aux i h t₀ u f d == 1
       p = count-factors-divisible-aux i h t₀ u f d (∣#[]= t₀-divisible)
@@ -543,20 +550,14 @@ large enough t.
 
       q : idx (divby-aux t₀ u d) == O
       q = ap idx (divby-smallest-divisible-aux u d) ∙ idx-hom# O
-
     count-factors-idx-divby-aux (1+ t) u (inl yes@(g , p)) (inr w) =
       ap 1+ (count-factors-idx-divby t (<-to-shape u) (<S-≤ w) ∙ q)
       where
       q : 1+ (idx $ divby t (S<-< u)) == idx g
       q = ! (idx-divby-S-divisible t u (<S-≤ w) yes)
           ∙ ap idx (divby-value (1+ t) u g p)
-
     count-factors-idx-divby-aux (1+ t) u (inr no) (inr w) =
       count-factors-idx-divby t (<-to-shape u) (<S-≤ w)
-
-    count-factors-idx-divby t s =
-      let u = <-from-shape s in
-      count-factors-idx-divby-aux t u $ discrim i h t u f
 
 \end{code}
 
@@ -613,11 +614,17 @@ Some old stuff to port:
 Let i, h : I₀ and f : I(i, j), g : I(j, k). If (g ◦ f) divides [t]ⁱₕ then f
 divides [t]ⁱₕ and g divides [count-factors i h t f]ʲₕ.
 
+(Refer also to paper Lemma 6.34 (08.02.2024)).
+
 \begin{code}
+
   -- placeholder
+
 \end{code}
 
 **Lemma**
+
+How to do this one?...
 
 \begin{code}
 
@@ -625,19 +632,31 @@ divides [t]ⁱₕ and g divides [count-factors i h t f]ʲₕ.
     ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
     → count-factors i h t s (g ◦ f)
       ==
-      let r = count-factors i h t s f in
-      count-factors j h r (count-factors-shape i h t s f) g
+      let r = count-factors i h t s f
+          rs = count-factors-shape i h t s f
+      in
+      count-factors j h r rs g
+
   count-factors-comp-aux :
     ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
-    → (d : Dec (g ◦ f ∣ #[ t ] i h u))
-    → count-factors-aux i h t u (g ◦ f) d
+    → (dgf : Dec (g ◦ f ∣ #[ t ] i h u))
+    → (df : Dec (f ∣ #[ t ] i h u))
+    → count-factors-aux i h t u (g ◦ f) dgf
       ==
-      let r = count-factors-aux i h t u f {!!} in
-      count-factors-aux j h r {!count-factors-shape-aux i h t u f ?!} g {!!}
+      let r = count-factors-aux i h t u f df
+          rs = count-factors-shape-aux i h t u f df
+      in
+      count-factors j h r rs g
 
-  count-factors-comp = {!!}
+  count-factors-comp i h O s f g = idp
+  count-factors-comp i h (1+ t) s f g =
+    let u = <-from-shape s in
+    count-factors-comp-aux i h t u f g
+      (discrim i h t u (g ◦ f))
+      (discrim i h t u f)
 
-  count-factors-comp-aux = {!!}
+  count-factors-comp-aux i h t u f g (inl yesgf) df = {!!}
+  count-factors-comp-aux i h t u f g (inr nogf) df = {!!}
 
   -- -- Need this too; prove it on paper:
   -- count-factors-comp :
