@@ -11,3 +11,5 @@ to-Bool (inr _) = false
 is-true : Bool → Type₀
 is-true true = ⊤
 is-true false = ⊥
+
+is-false = ¬ ∘ is-true

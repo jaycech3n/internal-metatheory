@@ -9,6 +9,12 @@ open import hott.Sigma public
 private
   variable ℓ ℓ₁ ℓ₂ : ULevel
 
+⊤-dec : Dec ⊤
+⊤-dec = inl _
+
+⊥-dec : Dec ⊥
+⊥-dec = inr ⊥-rec
+
 module _ {A : Type ℓ₁} {B : Type ℓ₂} where
   ×-dec : Dec A → Dec B → Dec (A × B)
   ×-dec (inl a) (inl b) = inl (a , b)
@@ -59,6 +65,10 @@ True D = is-true ⌞ D ⌟
 by : {A : Type ℓ} {D : Dec A} → A → True D
 by {D = inl a} a' = tt
 by {D = inr ¬a} a = ⊥-rec (¬a a)
+
+is-true-dec : {b : Bool} → Dec (is-true b)
+is-true-dec {inl _} = ⊤-dec
+is-true-dec {inr _} = ⊥-dec
 
 module Dec-reasoning {A : Type ℓ₁} where
   contrapos' : {B : Type ℓ₂} → Dec B → (¬ B → ¬ A) → A → B
