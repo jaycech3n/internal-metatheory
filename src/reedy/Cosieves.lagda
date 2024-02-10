@@ -618,7 +618,8 @@ divides [t]ⁱₕ and g divides [count-factors i h t f]ʲₕ.
 
 \begin{code}
 
-  -- placeholder
+  -- what's the -aux version?
+  
 
 \end{code}
 
@@ -655,8 +656,8 @@ How to do this one?...
       (discrim i h t u (g ◦ f))
       (discrim i h t u f)
 
-  count-factors-comp-aux i h t u f g (inl yesgf) df = {!!}
-  count-factors-comp-aux i h t u f g (inr nogf) df = {!!}
+  count-factors-comp-aux i h t u f g (inl g◦f∣[t]) df = {!!}
+  count-factors-comp-aux i h t u f g (inr g◦f∤[t]) df = {!!}
 
   -- -- Need this too; prove it on paper:
   -- count-factors-comp :
