@@ -611,15 +611,19 @@ Some old stuff to port:
 
 **Lemma**
 
-Let i, h : I₀ and f : I(i, j), g : I(j, k). If (g ◦ f) divides [t]ⁱₕ then f
+Let i, h : I₀ and f : I(i, j), g : I(j, k). Then (g ◦ f) divides [t]ⁱₕ iff f
 divides [t]ⁱₕ and g divides [count-factors i h t f]ʲₕ.
 
-(Refer also to paper Lemma 6.34 (08.02.2024)).
+Split this into a few parts:
+1. If g ◦ f ∣ [t]ⁱₕ then f ∣ [t]ⁱₕ.
+2. If f ∣ [t]ⁱₕ, then count-factors i h t f < |I(j, h)|.
+3. If g ◦ f ∤ [t]ⁱₕ and f ∣ [t]ⁱₕ then g ∤ [count-factors i h t f]
+
+(Refer also to paper Lemma 6.35 (11.02.2024)).
 
 \begin{code}
 
-  -- what's the -aux version?
-  
+
 
 \end{code}
 
@@ -656,8 +660,11 @@ How to do this one?...
       (discrim i h t u (g ◦ f))
       (discrim i h t u f)
 
-  count-factors-comp-aux i h t u f g (inl g◦f∣[t]) df = {!!}
-  count-factors-comp-aux i h t u f g (inr g◦f∤[t]) df = {!!}
+  count-factors-comp-aux i h t u f g (inl yes[gf]) (inl yes[f]) = {!!}
+  count-factors-comp-aux i h t u f g (inl yes[gf]) (inr no[f]) = {!!}
+  count-factors-comp-aux i h t u f g (inr no[gf]) (inl yes[f]) = {!!}
+  count-factors-comp-aux i h t u f g (inr no[gf]) (inr no[f]) =
+    count-factors-comp i h t (<-to-shape u) f g
 
   -- -- Need this too; prove it on paper:
   -- count-factors-comp :
