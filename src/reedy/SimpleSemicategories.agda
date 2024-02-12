@@ -10,11 +10,11 @@ record SimpleSemicategory ℓₘ : Type (lsuc ℓₘ) where
   field
     wildsemicatstr : WildSemicategoryStructure lzero ℓₘ ℕ
     inversestr : InverseWildSemicategoryStructure (idf ℕ) wildsemicatstr
-    locfinstr : LocallyFiniteWildSemicategoryStructure wildsemicatstr
+    locfinstr : LocallyFiniteSemicategoryStructure wildsemicatstr
 
   open WildSemicategoryStructure wildsemicatstr public
   open InverseWildSemicategoryStructure inversestr public
-  open LocallyFiniteWildSemicategoryStructure locfinstr public
+  open LocallyFiniteSemicategoryStructure locfinstr public
 
   private
     module definitions where

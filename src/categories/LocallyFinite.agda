@@ -5,7 +5,7 @@ module categories.LocallyFinite where
 open import categories.Semicategories public
 
 -- Untruncatedly finite hom sets
-record LocallyFiniteWildSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
+record LocallyFiniteSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
   (C : WildSemicategoryStructure ℓₒ ℓₘ Ob)
   : Type (lsuc (ℓₒ ∪ ℓₘ)) where
   open WildSemicategoryStructure C
