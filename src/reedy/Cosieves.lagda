@@ -120,14 +120,18 @@ Basic properties of `count-factors`.
 count-factors-divisible-aux :
   ∀ i h t u {j} (f : hom i j) d
   → f ∣ #[ t ] i h u
-  → count-factors-aux i h t u f d == 1+ (count-factors i h t (<-to-shape u) f)
-count-factors-divisible-aux i h t u f (inl _) yes = idp
-count-factors-divisible-aux i h t u f (inr no) yes = ⊥-rec $ no yes
+  → ∀ {s}
+  → count-factors-aux i h t u f d == 1+ (count-factors i h t s f)
+count-factors-divisible-aux i h t u f (inl _) yes =
+  ap (λ ◻ → 1+ (count-factors i h t ◻ f)) (shape-path _ _)
+count-factors-divisible-aux i h t u f (inr no) yes =
+  ⊥-rec $ no yes
 
 count-factors-divisible :
   ∀ i h t s {j} (f : hom i j)
   → f ∣ #[ t ] i h (<-from-shape s)
-  → count-factors i h (1+ t) s f == 1+ (count-factors i h t (prev-shape s) f)
+  → ∀ {s'}
+  → count-factors i h (1+ t) s f == 1+ (count-factors i h t s' f)
 count-factors-divisible i h t s f yes =
   let u = <-from-shape s in
   count-factors-divisible-aux i h t u f (discrim i h t u f) yes
@@ -177,7 +181,8 @@ module _ (i h : ℕ) {j} (f : hom i j) where
       u₀  = idx<hom-size ([O] ◦ f)
       s₀ = <-S≤ u₀
 
-      p : count-factors i h (1+ t₀) s₀ f == 1+ (count-factors i h t₀ _ f)
+      p : count-factors i h (1+ t₀) s₀ f ==
+          1+ (count-factors i h t₀ (prev-shape s₀) f)
       p = count-factors-divisible i h t₀ s₀ f (∣◦hom#-idx f [O])
 
       bot : ⊥
@@ -205,6 +210,13 @@ module _ (i h : ℕ) {j} (f : hom i j) where
     ⊥-rec $ no-div _ _ yes
   no-divisible-count-factors-all-O-aux no-div t u (inr no) =
     no-divisible-count-factors-all-O no-div t (<-to-shape u)
+
+  exists-divisible-hom-size>O :
+    ∀ t u
+    → f ∣ #[ t ] i h u
+    → O < hom-size j h
+  exists-divisible-hom-size>O t u yes =
+    ¬=O-O< _ (λ p → hom-size-O-no-divisible p t u yes)
 
   -- Lots of annoying finagling to the right form in this.
   -- Could probably do it more concisely.
@@ -561,7 +573,7 @@ paper version where we assume t₀ and get the inequality.
 
 \end{code}
 
-* Lemma 6.33 (06.02.2024)
+* Corollary 6.33 (12.02.2024)
 
 Proof differs slightly from the paper version, for diagram construction
 typechecking reasons.
@@ -596,34 +608,78 @@ typechecking reasons.
 
 \end{code}
 
----
-Some old stuff to port:
+* Lemma 6.34 (12.02.2024)
 
-  module 6∙23 where -- version 17.01.24
-    count-factors-full :
-      ∀ i h s {j} (f : hom i j)
-      → count-factors i h (hom-size i h) s f == hom-size j h
-    count-factors-full = {!!}
+\begin{code}
 
-  open 6∙23 public
+  count-factors-full :
+    ∀ i h s {j} (f : hom i j)
+    → count-factors i h (hom-size i h) s f == hom-size j h
+  count-factors-full = {!!}
 
----
+\end{code}
 
-**Lemma**
+* Lemma 6.35 (12.02.2024)
+
+\begin{code}
+
+  divisible-factor-idx-count-factors :
+    ∀ i h t u {j} (f : hom i j)
+    → (m : hom j h)
+    → m ◦ f == #[ t ] i h u
+    → ∀ {s} → idx m == count-factors i h t s f
+  divisible-factor-idx-count-factors i h t u f m p =
+    =-cancel-S $
+      ( ! (divby-value _ _ f O<homjh _ _ m p)
+        ∙ ap (divby i h f _ t) (<-has-all-paths _ _)
+      |in-ctx (1+ ∘ idx) )
+      ∙ ! (count-factors-idx-divby i h f O<homjh t v t₀≤t)
+      ∙ count-factors-divisible _ _ _ v f (∣#[]= (m , p))
+    where
+    O<homjh = hom[ _ , _ ]-inhab m
+    t₀≤t = t₀-smallest _ _ _ O<homjh _ _ (m , p)
+    v = <-S≤ u
+
+  count-factors-<-hom-size :
+    ∀ i h t u {j} (f : hom i j)
+    → f ∣ #[ t ] i h u
+    → ∀ {s} → count-factors i h t s f < hom-size j h
+  count-factors-<-hom-size i h t u f (m , p) =
+    idx<hom-size _
+      ◂$ transp (_< _) (divisible-factor-idx-count-factors _ _ _ u f m p)
+
+\end{code}
+
+* Lemma 6.36 (12.02.2024)
 
 Let i, h : I₀ and f : I(i, j), g : I(j, k). Then (g ◦ f) divides [t]ⁱₕ iff f
 divides [t]ⁱₕ and g divides [count-factors i h t f]ʲₕ.
 
-Split this into a few parts:
+Split this into parts:
 1. If g ◦ f ∣ [t]ⁱₕ then f ∣ [t]ⁱₕ.
-2. If f ∣ [t]ⁱₕ, then count-factors i h t f < |I(j, h)|.
+2. If g ◦ f ∣ [t]ⁱₕ then g ∣ [count-factors...]ʲₕ.
 3. If g ◦ f ∤ [t]ⁱₕ and f ∣ [t]ⁱₕ then g ∤ [count-factors i h t f]
-
-(Refer also to paper Lemma 6.35 (11.02.2024)).
 
 \begin{code}
 
+  comp-divides-first-divides :
+    ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
+    → g ◦ f ∣ #[ t ] i h u
+    → f ∣ #[ t ] i h u
+  comp-divides-first-divides i h t u f g (m , p) = (m ◦ g) , ass ∙ p
 
+  comp-divides-second-divides :
+    ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
+    → g ◦ f ∣ #[ t ] i h u
+    → ∀ {s} {v}
+    → g ∣ #[ count-factors i h t s f ] j h v
+  comp-divides-second-divides i h t u f g (m , p) =
+    m ,
+    (idx=-hom= $
+      divisible-factor-idx-count-factors i h t u f (m ◦ g) (ass ∙ p)
+      ∙ ! (idx-hom# _))
+
+  -- both-divide-comp-divides :
 
 \end{code}
 
@@ -660,7 +716,17 @@ How to do this one?...
       (discrim i h t u (g ◦ f))
       (discrim i h t u f)
 
-  count-factors-comp-aux i h t u f g (inl yes[gf]) (inl yes[f]) = {!!}
+  count-factors-comp-aux i h t u {j} f g (inl yes[gf]) df@(inl yes[f]) = {!!}
+    where
+    r = count-factors i h t (<-to-shape u) f
+    rs = count-factors-shape-aux i h t u f df
+
+    g∣[r] : g ∣ #[ r ] j h (<-from-shape rs)
+    g∣[r] = {!count-factors-<-hom-size!}
+
+    p : count-factors j h (1+ r) rs g ==
+        1+ (count-factors j h r (prev-shape rs) g)
+    p = count-factors-divisible j h r rs g g∣[r]
   count-factors-comp-aux i h t u f g (inl yes[gf]) (inr no[f]) = {!!}
   count-factors-comp-aux i h t u f g (inr no[gf]) (inl yes[f]) = {!!}
   count-factors-comp-aux i h t u f g (inr no[gf]) (inr no[f]) =

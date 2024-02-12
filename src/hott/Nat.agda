@@ -66,13 +66,13 @@ module Nat-ad-hoc-lemmas where
     <-O< ltS = O<S m
     <-O< (ltSR u) = O<S _
 
-    <-S≤ : m < n → 1+ m ≤ n
-    <-S≤ ltS = lteE
-    <-S≤ (ltSR u) = inr (<-ap-S u)
-
     <S-≤ : m < 1+ n → m ≤ n
     <S-≤ ltS = lteE
     <S-≤ (ltSR u) = inr u
+
+    <-S≤ : m < n → 1+ m ≤ n
+    <-S≤ ltS = lteE
+    <-S≤ (ltSR u) = inr (<-ap-S u)
 
     S≤-< : 1+ m ≤ n → m < n
     S≤-< (inl idp) = ltS
