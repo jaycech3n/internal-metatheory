@@ -627,7 +627,8 @@ typechecking reasons.
     ∀ i h t u {j} (f : hom i j)
     → (m : hom j h)
     → m ◦ f == #[ t ] i h u
-    → ∀ {s} → idx m == count-factors i h t s f
+    → ∀ {s}
+    → idx m == count-factors i h t s f
   divisible-factor-idx-count-factors i h t u f m p =
     =-cancel-S $
       ( ! (divby-value _ _ f O<homjh _ _ m p)
@@ -643,10 +644,21 @@ typechecking reasons.
   count-factors-<-hom-size :
     ∀ i h t u {j} (f : hom i j)
     → f ∣ #[ t ] i h u
-    → ∀ {s} → count-factors i h t s f < hom-size j h
+    → ∀ {s}
+    → count-factors i h t s f < hom-size j h
   count-factors-<-hom-size i h t u f (m , p) =
     idx<hom-size _
       ◂$ transp (_< _) (divisible-factor-idx-count-factors _ _ _ u f m p)
+
+  divisible-factor-count-factors :
+    ∀ i h t u {j} (f : hom i j)
+    → (m : hom j h)
+    → m ◦ f == #[ t ] i h u
+    → ∀ {s} {v}
+    → m == #[ count-factors i h t s f ] j h v
+  divisible-factor-count-factors i h t u f m p =
+    idx=-hom= $
+      divisible-factor-idx-count-factors i h t u f m p ∙ ! (idx-hom# _)
 
 \end{code}
 
@@ -679,7 +691,26 @@ Split this into parts:
       divisible-factor-idx-count-factors i h t u f (m ◦ g) (ass ∙ p)
       ∙ ! (idx-hom# _))
 
-  -- both-divide-comp-divides :
+  both-divide-comp-divides :
+    ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
+    → f ∣ #[ t ] i h u
+    → ∀ {s} {v}
+    → g ∣ #[ count-factors i h t s f ] j h v
+    → g ◦ f ∣ #[ t ] i h u
+  both-divide-comp-divides i h t u {j} f g (m , p) {s} {v} (m' , p') =
+    m' , ! ass ∙ ap (_◦ f) (p' ∙ ! q) ∙ p
+    where
+    q : m == #[ count-factors i h t s f ] j h v
+    q = divisible-factor-count-factors _ _ _ _ f m p
+
+  comp-divides-contra :
+    ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
+    → f ∣ #[ t ] i h u
+    → ¬ (g ◦ f ∣ #[ t ] i h u)
+    → ∀ {s} {v}
+    → ¬ (g ∣ #[ count-factors i h t s f ] j h v)
+  comp-divides-contra i h t u f g w c =
+    (contrapos $ both-divide-comp-divides i h t u f g w) c
 
 \end{code}
 
@@ -716,19 +747,25 @@ How to do this one?...
       (discrim i h t u (g ◦ f))
       (discrim i h t u f)
 
-  count-factors-comp-aux i h t u {j} f g (inl yes[gf]) df@(inl yes[f]) = {!!}
+  count-factors-comp-aux i h t u {j} f g (inl yes[gf]) df@(inl yes[f]) =
+    ap 1+ (count-factors-comp i h t (<-to-shape u) f g) ∙ ! p
     where
     r = count-factors i h t (<-to-shape u) f
     rs = count-factors-shape-aux i h t u f df
-
-    g∣[r] : g ∣ #[ r ] j h (<-from-shape rs)
-    g∣[r] = {!count-factors-<-hom-size!}
+    ps = count-factors-shape i h t (<-to-shape u) f
+      -- need this value of ps definitionally
+    g∣[r] = comp-divides-second-divides i h t u f g yes[gf]
 
     p : count-factors j h (1+ r) rs g ==
-        1+ (count-factors j h r (prev-shape rs) g)
+        1+ (count-factors j h r ps g)
     p = count-factors-divisible j h r rs g g∣[r]
-  count-factors-comp-aux i h t u f g (inl yes[gf]) (inr no[f]) = {!!}
-  count-factors-comp-aux i h t u f g (inr no[gf]) (inl yes[f]) = {!!}
+
+  count-factors-comp-aux i h t u f g (inl yes[gf]) (inr no[f]) =
+    ⊥-rec $ no[f] $ comp-divides-first-divides i h t u f g yes[gf]
+
+  count-factors-comp-aux i h t u f g (inr no[gf]) (inl yes[f]) =
+    {!!}
+
   count-factors-comp-aux i h t u f g (inr no[gf]) (inr no[f]) =
     count-factors-comp i h t (<-to-shape u) f g
 
