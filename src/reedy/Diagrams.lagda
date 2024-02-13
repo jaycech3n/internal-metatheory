@@ -296,31 +296,7 @@ OR on g ◦ f ∣ [t]ⁱₕ?...
 
 \begin{code}
 
-M⃗◦ i h (1+ t) s {j} f {k} g =
-  depcase M⃗◦-deptype (g ◦ f ∣? #[ t ] i h u)
-    (λ (h , _) → {!!})
-    (λ no → {!!})
-  where
-  u = S≤-< s
-
-  M⃗◦-deptype : Dec (g ◦ f ∣ #[ t ] i h u) → Type _
-  M⃗◦-deptype d =
-    M⃗ j h (count-factors-aux i h t u f {!!})
-      (count-factors-shape-aux i h t u f {!!}) g
-    ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f {!!} -- M⃗ i h (1+ t) s f
-    ==
-    idd (M= k h (count-factors-comp-aux i h t u f g d))
-             -- (count-factors-comp i h (1+ t) s f g))
-    ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s (g ◦ f) d
-         -- i h (1+ t) s (g ◦ f)
-  {-
-  M⃗ j h (count-factors i h (1+ t) s f)
-       (count-factors-shape i h (1+ t) s f) g
-       ◦ˢᵘᵇ M⃗ i h (1+ t) s f
-       ==
-       idd (M= k h (count-factors-comp i h (1+ t) s f g)) ◦ˢᵘᵇ
-       M⃗ i h (1+ t) s (g ◦ f)
-  -}
+M⃗◦ i h (1+ t) s {j} f {k} g = ?
 
 \end{code}
 

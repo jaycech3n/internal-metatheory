@@ -3,7 +3,7 @@ Cosieves in countably simple semicategories
 
 \begin{code}
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
 
 open import reedy.SimpleSemicategories
 
@@ -92,28 +92,7 @@ count-factors-aux i h t u f (inl yes) =
 
 \end{code}
 
-* The following is Lemma 6.22 of the paper (as of 31.01.2024).
-
-\begin{code}
-
-count-factors-top-level :
-  ∀ i h t s (f : hom i h) → count-factors i h t s f == O
-count-factors-top-level-aux :
-  ∀ i h t u f d → count-factors-aux i h t u f d == O
-
-count-factors-top-level i h O s f = idp
-count-factors-top-level i h (1+ t) s f =
-  let u = <-from-shape s in
-  count-factors-top-level-aux i h t u f $ discrim i h t u f
-
-count-factors-top-level-aux i h t u f (inl (g , _)) =
-  ⊥-rec (endo-hom-empty g)
-count-factors-top-level-aux i h t u f (inr no) =
-  count-factors-top-level i h t (<-to-shape u) f
-
-\end{code}
-
-Basic properties of `count-factors`.
+Reflect the computation rules because we need them later.
 
 \begin{code}
 
@@ -135,6 +114,46 @@ count-factors-divisible :
 count-factors-divisible i h t s f yes =
   let u = <-from-shape s in
   count-factors-divisible-aux i h t u f (discrim i h t u f) yes
+
+count-factors-not-divisible-aux :
+  ∀ i h t u {j} (f : hom i j) d
+  → ¬ (f ∣ #[ t ] i h u)
+  → ∀ {s}
+  → count-factors-aux i h t u f d == count-factors i h t s f
+count-factors-not-divisible-aux i h t u f (inl yes) no =
+  ⊥-rec $ no yes
+count-factors-not-divisible-aux i h t u f (inr _) no =
+  ap (λ ◻ → count-factors i h t ◻ f) (shape-path _ _)
+
+count-factors-not-divisible :
+  ∀ i h t s {j} (f : hom i j)
+  → ¬ (f ∣ #[ t ] i h (<-from-shape s))
+  → ∀ {s'}
+  → count-factors i h (1+ t) s f == count-factors i h t s' f
+count-factors-not-divisible i h t s f no =
+  let u = <-from-shape s in
+  count-factors-not-divisible-aux i h t u f (discrim i h t u f) no
+
+\end{code}
+
+* The following is Lemma 6.22 of the paper (as of 31.01.2024).
+
+\begin{code}
+
+count-factors-top-level :
+  ∀ i h t s (f : hom i h) → count-factors i h t s f == O
+count-factors-top-level-aux :
+  ∀ i h t u f d → count-factors-aux i h t u f d == O
+
+count-factors-top-level i h O s f = idp
+count-factors-top-level i h (1+ t) s f =
+  let u = <-from-shape s in
+  count-factors-top-level-aux i h t u f $ discrim i h t u f
+
+count-factors-top-level-aux i h t u f (inl (g , _)) =
+  ⊥-rec (endo-hom-empty g)
+count-factors-top-level-aux i h t u f (inr no) =
+  count-factors-top-level i h t (<-to-shape u) f
 
 \end{code}
 
@@ -763,31 +782,19 @@ How to do this one?...
   count-factors-comp-aux i h t u f g (inl yes[gf]) (inr no[f]) =
     ⊥-rec $ no[f] $ comp-divides-first-divides i h t u f g yes[gf]
 
-  count-factors-comp-aux i h t u f g (inr no[gf]) (inl yes[f]) =
-    {!!}
+  count-factors-comp-aux i h t u {j} f g (inr no[gf]) df@(inl yes[f]) =
+    count-factors-comp i h t (<-to-shape u) f g ∙ ! p
+    where
+    r = count-factors i h t (<-to-shape u) f
+    rs = count-factors-shape-aux i h t u f df
+    ps = count-factors-shape i h t (<-to-shape u) f
+    g∤[r] = comp-divides-contra i h t u f g yes[f] no[gf]
+
+    p : count-factors j h (1+ r) rs g ==
+        count-factors j h r ps g
+    p = count-factors-not-divisible j h r rs g g∤[r]
 
   count-factors-comp-aux i h t u f g (inr no[gf]) (inr no[f]) =
     count-factors-comp i h t (<-to-shape u) f g
-
-  -- -- Need this too; prove it on paper:
-  -- count-factors-comp :
-  --   ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
-  --   → ∀ {s'}
-  --   → count-factors i h t s (g ◦ f)
-  --     == count-factors j h (count-factors i h t s f) s' g
-  -- count-factors-comp[_,_,1+_] :
-  --   ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
-  --   → (d : Dec (g ◦ f ∣ #[ t ] i h u))
-  --   → ∀ {s'}
-  --   → count-factors[ i , h ,1+ t ] u (g ◦ f) d
-  --     == count-factors j h (count-factors[ i , h ,1+ t ] u f {!!}) s' g
-
-  -- count-factors-comp i h O s f g = idp
-  -- count-factors-comp i h (1+ t) s f g =
-  --   count-factors-comp[ i , h ,1+ t ] u f g (g ◦ f ∣? #[ t ] i h u)
-  --   where u = S≤-< s
-
-  -- count-factors-comp[ i , h ,1+ t ] u f g (inl yes) = {!!}
-  -- count-factors-comp[ i , h ,1+ t ] u f g (inr no) = {!!}
 
 \end{code}
