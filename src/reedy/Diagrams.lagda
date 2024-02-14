@@ -26,7 +26,7 @@ open SimpleSemicategory I
 open import reedy.Cosieves I
 open Cosieves-StrictlyOriented I-strictly-oriented
 
-open CwFStructure cwfstr renaming (_◦_ to _◦ˢᵘᵇ_)
+open CwFStructure cwfstr renaming (_◦_ to _◦ˢᵘᵇ_ ; ass to assˢᵘᵇ)
 open PiStructure pistr
 open UniverseStructure univstr
 open import cwfs.Telescopes cwfstr
@@ -101,7 +101,7 @@ Then we can write down the definition of 𝔻:
 
 Note that we have not yet given the definition of Mᵒ. This definition uses the
 functoriality of the partial matching object functor, which is given by the
-additional components M⃗ (for the action on morphisms) and M⃗∘ (for functoriality
+additional components M⃗ (for the action on morphisms) and M⃗◦ (for functoriality
 of M⃗).
 
 \begin{code}
@@ -117,7 +117,7 @@ M⃗◦ :
   → let cf = count-factors i h t s f
         sh = count-factors-shape i h t s f  -- Abstract over this too?
         p  = count-factors-comp i h t s f g -- And this too?
-    in M⃗ j h cf sh g ◦ˢᵘᵇ M⃗ i h t s f == {!idd (M= k h p) ◦ˢᵘᵇ {!M⃗ i h t s (g ◦ f)!}!}
+    in M⃗ j h cf sh g ◦ˢᵘᵇ M⃗ i h t s f == idd (M= k h p) ◦ˢᵘᵇ M⃗ i h t s (g ◦ f)
 
 \end{code}
 
@@ -226,13 +226,13 @@ of type (Dec (f ∣ #[ t ] i h u)).
 
 M⃗[_,_,1+_]-deptype :
   ∀ i h t (s : shape i h (1+ t)) {j} (f : hom i j)
-  → Dec (f ∣ #[ t ] i h (S≤-< s))
+  → Dec (f ∣ #[ t ] i h (<-from-shape s))
   → Type _
 M⃗[ i , h ,1+ t ]-deptype s {j} f d =
   Sub (M i h (1+ t) s)
       (M j h (count-factors-aux i h t u f d)
         (count-factors-shape-aux i h t u f d))
-  where u = S≤-< s
+  where u = <-from-shape s
 
 \end{code}
 
@@ -250,7 +250,7 @@ M⃗[ i , h ,1+ t ] s f (inl (g , _)) =
   where
   prev = prev-shape s
   shp = count-factors-shape i h t prev f
-M⃗[ i , h ,1+ t ] s f (inr no) = {!M⃗ i h t prev f!} ◦ˢᵘᵇ π (A h [ _ ])
+M⃗[ i , h ,1+ t ] s f (inr no) = M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
   where prev = prev-shape s
 
 \end{code}
@@ -260,7 +260,7 @@ Now we can wrap the above up into a definition of M⃗. We also define the
 
 \begin{code}
 
-M⃗ i h (1+ t) s f = {!M⃗[ i , h ,1+ t ] s f (f ∣? #[ t ] i h u)!}
+M⃗ i h (1+ t) s f = M⃗[ i , h ,1+ t ] s f (f ∣? #[ t ] i h u)
   where u = S≤-< s
 
 M⃗ i (1+ h) O s {j} f =
@@ -279,24 +279,57 @@ M⃗ i (1+ h) O s {j} f =
   shpⱼ = full-shape j h
 
   eq : M j h cf sh == M j h fullⱼ shpⱼ
-  eq = M= j h {!count-factors-full i h shpᵢ f!}
+  eq = M= j h (count-factors-full i h shpᵢ f)
 
 M⃗ i O O s f = id
 
 \end{code}
 
 
-Partial matching objects: M⃗∘ (anafunctoriality)
+Partial matching objects: M⃗◦ (anafunctoriality)
 ------------------------------------------------
 
-As before, for the (i, h, t+1) case we need to compute on whether or not
-(f ∣ [t]ⁱₕ).
-
-OR on g ◦ f ∣ [t]ⁱₕ?...
+Again, in the (i, h, t+1) case we need the type of M⃗◦ to compute on whether or
+not certain morphisms divide [t]ⁱₕ.
 
 \begin{code}
 
-M⃗◦ i h (1+ t) s {j} f {k} g = ?
+M⃗◦[_,_,1+_]-deptype :
+  ∀ i h t (s : shape i h (1+ t))
+    {j} (f : hom i j) {k} (g : hom j k)
+  → let u = <-from-shape s in
+    Dec (g ◦ f ∣ #[ t ] i h u)
+  → Dec (f ∣ #[ t ] i h u)
+  → Type _
+M⃗◦[ i , h ,1+ t ]-deptype s {j} f {k} g dgf df =
+  M⃗ j h (count-factors-aux i h t u f df)
+    (count-factors-shape-aux i h t u f df) g
+  ◦ˢᵘᵇ
+  M⃗[ i , h ,1+ t ] s f df
+  ==
+  idd (M= k h (count-factors-comp-aux i h t u f g dgf df))
+  ◦ˢᵘᵇ
+  M⃗[ i , h ,1+ t ] s (g ◦ f) dgf
+  where u = <-from-shape s
+
+M⃗◦[_,_,1+_] :
+  ∀ i h t (s : shape i h (1+ t))
+    {j} (f : hom i j) {k} (g : hom j k)
+  → let u = <-from-shape s in
+    (dgf : Dec (g ◦ f ∣ #[ t ] i h u))
+  → (df : Dec (f ∣ #[ t ] i h u))
+  → M⃗◦[ i , h ,1+ t ]-deptype s f g dgf df
+M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inl yes[f]) = {!!}
+M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inr no[f]) =
+  ⊥-rec $ no[f] $ comp-divides-first-divides i h t _ f g yes[gf]
+M⃗◦[ i , h ,1+ t ] s f g (inr no[gf]) (inl yes[f]) = {!!}
+M⃗◦[ i , h ,1+ t ] s f g (inr no[gf]) (inr no[f]) =
+  ! assˢᵘᵇ ∙ ap (_◦ˢᵘᵇ π (A h [ _ ])) (M⃗◦ i h t (prev-shape s) f g) ∙ assˢᵘᵇ
+
+M⃗◦ i h (1+ t) s {j} f {k} g =
+  M⃗◦[ i , h ,1+ t ] s f g
+    (discrim i h t _ (g ◦ f))
+    (discrim i h t _ f)
 
 \end{code}
 
