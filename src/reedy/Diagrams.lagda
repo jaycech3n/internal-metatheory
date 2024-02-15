@@ -109,15 +109,22 @@ of M⃗).
 M⃗ :
   ∀ i h t s {j} (f : hom i j)
   → let cf = count-factors i h t s f
-        sh = count-factors-shape i h t s f
-    in Sub (M i h t s) (M j h cf sh)
+        -- sh = count-factors-shape i h t s f
+    in
+    {cfs : shape j h cf}
+  → Sub (M i h t s) (M j h cf cfs)
 
 M⃗◦ :
   ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
-  → let cf = count-factors i h t s f
-        sh = count-factors-shape i h t s f  -- Abstract over this too?
-        p  = count-factors-comp i h t s f g -- And this too?
-    in M⃗ j h cf sh g ◦ˢᵘᵇ M⃗ i h t s f == idd (M= k h p) ◦ˢᵘᵇ M⃗ i h t s (g ◦ f)
+  → let cf   = count-factors i h t s f
+        p    = count-factors-comp i h t s f g -- Abstract over this too?
+        cfs  = count-factors-shape i h t s f  -- And this too?
+        cgs  = count-factors-shape j h cf cfs g
+        cgfs = count-factors-shape i h t s (g ◦ f)
+    in
+    M⃗ j h cf cfs g {cgs} ◦ˢᵘᵇ M⃗ i h t s f
+    ==
+    idd (M= k h {s = cgfs} p) ◦ˢᵘᵇ M⃗ i h t s (g ◦ f)
 
 \end{code}
 
@@ -132,7 +139,7 @@ the other diagram components.
 M⁼= :
   ∀ i h t (s : shape i h (1+ t))
   → let prev = prev-shape s
-        u = S≤-< s
+        u = <-from-shape s
         [t] = #[ t ] i h u
         cf = count-factors i h t prev [t]
         sh = count-factors-shape i h t prev [t]
@@ -162,8 +169,7 @@ Mᵒ i h (1+ t) s =
   Mᵒ i h t prev ‣ A h [ idd eq ◦ˢᵘᵇ M⃗ i h t prev (#[ t ] i h u) ]
   where
   prev = prev-shape s
-  u : t < hom-size i h
-  u = S≤-< s
+  u = <-from-shape s
 
   cfp = count-factors i h t prev (#[ t ] i h u)
   shp = count-factors-shape i h t prev (#[ t ] i h u)
@@ -187,7 +193,7 @@ M⁼= i O t s =
   close (Mᵒᵗᵒᵗ O [ π (𝔸 O) ]ₜₑₗ) =∎
   where
   prev = prev-shape s
-  u = S≤-< s
+  u = <-from-shape s
   [t] = #[ t ] i O u
   cf = count-factors i O t prev [t]
   sh = count-factors-shape i O t prev [t]
@@ -201,7 +207,7 @@ M⁼= i (1+ h) t s =
   close (Mᵒᵗᵒᵗ (1+ h) [ π (𝔸 (1+ h)) ]ₜₑₗ) =∎
   where
   prev = prev-shape s
-  u = S≤-< s
+  u = <-from-shape s
   [t] = #[ t ] i (1+ h) u
   cf = count-factors i (1+ h) t prev [t]
   sh = count-factors-shape i (1+ h) t prev [t]
@@ -226,13 +232,12 @@ of type (Dec (f ∣ #[ t ] i h u)).
 
 M⃗[_,_,1+_]-deptype :
   ∀ i h t (s : shape i h (1+ t)) {j} (f : hom i j)
-  → Dec (f ∣ #[ t ] i h (<-from-shape s))
+  → (d : Dec (f ∣ #[ t ] i h (<-from-shape s)))
+  → {cfs : shape j h (count-factors-aux i h t (<-from-shape s) f d)}
   → Type _
-M⃗[ i , h ,1+ t ]-deptype s {j} f d =
+M⃗[ i , h ,1+ t ]-deptype s {j} f d {cfs} =
   Sub (M i h (1+ t) s)
-      (M j h (count-factors-aux i h t u f d)
-        (count-factors-shape-aux i h t u f d))
-  where u = <-from-shape s
+      (M j h (count-factors-aux i h t (<-from-shape s) f d) cfs)
 
 \end{code}
 
@@ -243,10 +248,12 @@ this will be needed later.
 
 M⃗[_,_,1+_] :
   ∀ i h t s {j} (f : hom i j)
-  → (d : Dec (f ∣ #[ t ] i h (S≤-< s)))
-  → M⃗[ i , h ,1+ t ]-deptype s f d
+  → let u = <-from-shape s in
+    (d : Dec (f ∣ #[ t ] i h u))
+  → {cfs : shape j h (count-factors-aux i h t u f d)}
+  → M⃗[ i , h ,1+ t ]-deptype s f d {cfs}
 M⃗[ i , h ,1+ t ] s f (inl (g , _)) =
-  idd (M=shape shp _) ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, {!!}
+  {-idd (M=shape shp _) ◦ˢᵘᵇ-} M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, {!!}
   where
   prev = prev-shape s
   shp = count-factors-shape i h t prev f
@@ -261,7 +268,7 @@ Now we can wrap the above up into a definition of M⃗. We also define the
 \begin{code}
 
 M⃗ i h (1+ t) s f = M⃗[ i , h ,1+ t ] s f (f ∣? #[ t ] i h u)
-  where u = S≤-< s
+  where u = <-from-shape s
 
 M⃗ i (1+ h) O s {j} f =
   wkn-sub (Mᵒᶠᵘˡˡ i h) (Mᵒᶠᵘˡˡ j h)
@@ -302,15 +309,16 @@ M⃗◦[_,_,1+_]-deptype :
   → Dec (f ∣ #[ t ] i h u)
   → Type _
 M⃗◦[ i , h ,1+ t ]-deptype s {j} f {k} g dgf df =
-  M⃗ j h (count-factors-aux i h t u f df)
-    (count-factors-shape-aux i h t u f df) g
-  ◦ˢᵘᵇ
-  M⃗[ i , h ,1+ t ] s f df
+  let u    = <-from-shape s
+      cf   = count-factors-aux i h t u f df
+      p    = count-factors-comp-aux i h t u f g dgf df
+      cfs  = count-factors-shape-aux i h t u f df
+      cgs  = count-factors-shape j h cf cfs g
+      cgfs = count-factors-shape-aux i h t u (g ◦ f) dgf
+  in
+  M⃗ j h cf cfs g {cgs} ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f df {cfs}
   ==
-  idd (M= k h (count-factors-comp-aux i h t u f g dgf df))
-  ◦ˢᵘᵇ
-  M⃗[ i , h ,1+ t ] s (g ◦ f) dgf
-  where u = <-from-shape s
+  idd (M= k h {s = cgfs} p) ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s (g ◦ f) dgf
 
 M⃗◦[_,_,1+_] :
   ∀ i h t (s : shape i h (1+ t))
@@ -319,10 +327,31 @@ M⃗◦[_,_,1+_] :
     (dgf : Dec (g ◦ f ∣ #[ t ] i h u))
   → (df : Dec (f ∣ #[ t ] i h u))
   → M⃗◦[ i , h ,1+ t ]-deptype s f g dgf df
+
 M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inl yes[f]) = {!!}
+
 M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inr no[f]) =
   ⊥-rec $ no[f] $ comp-divides-first-divides i h t _ f g yes[gf]
-M⃗◦[ i , h ,1+ t ] s f g (inr no[gf]) (inl yes[f]) = {!!}
+
+M⃗◦[ i , h ,1+ t ] s {j} f {k} g dgf@(inr no[gf]) df@(inl yes[f]) =
+
+  M⃗ j h (1+ cf) _ g ◦ˢᵘᵇ (M⃗ i h t (prev-shape s) f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+
+  {-
+  =⟨ {!!} ⟩
+
+  (M⃗ j h {!cf!} {!!} g ◦ˢᵘᵇ π (A h [ _ ]))
+  ◦ˢᵘᵇ (M⃗ i h t (prev-shape s) f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+  -}
+
+  =⟨ {!!} ⟩
+
+  idd (M= k h p) ◦ˢᵘᵇ M⃗ i h t (prev-shape s) (g ◦ f) ◦ˢᵘᵇ π (A h [ _ ]) =∎
+
+  where
+  cf = count-factors i h t (prev-shape s) f
+  p = count-factors-comp-aux i h t (<-from-shape s) f g dgf df
+
 M⃗◦[ i , h ,1+ t ] s f g (inr no[gf]) (inr no[f]) =
   ! assˢᵘᵇ ∙ ap (_◦ˢᵘᵇ π (A h [ _ ])) (M⃗◦ i h t (prev-shape s) f g) ∙ assˢᵘᵇ
 
