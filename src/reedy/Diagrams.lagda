@@ -348,7 +348,9 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g dgf@(inr no[gf]) df@(inl yes[f]) =
 
   =⟨ {!!} ⟩
 
-  ({!M⃗ j h cf {!!} g!} ◦ˢᵘᵇ π (A h [ _ ]))
+  ({!M⃗ j h cf ? g
+    -- here, need to use the fact that g ∤ [cf] to transport.!}
+    ◦ˢᵘᵇ π (A h [ _ ]))
   ◦ˢᵘᵇ (M⃗ i h t (prev-shape s) f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
 
   =⟨ {!!} ⟩
