@@ -328,7 +328,16 @@ M⃗◦[_,_,1+_] :
   → (df : Dec (f ∣ #[ t ] i h u))
   → M⃗◦[ i , h ,1+ t ]-deptype s f g dgf df
 
-M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inl yes[f]) = {!!}
+M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) =
+
+  M⃗ j h (1+ cf) _ g ◦ˢᵘᵇ (M⃗ i h t (prev-shape s) f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+
+  =⟨ {!!} ⟩
+
+  idd (M= k h {!!}) ◦ˢᵘᵇ {!!} =∎
+
+  where
+  cf = count-factors i h t (prev-shape s) f
 
 M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inr no[f]) =
   ⊥-rec $ no[f] $ comp-divides-first-divides i h t _ f g yes[gf]
@@ -337,12 +346,10 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g dgf@(inr no[gf]) df@(inl yes[f]) =
 
   M⃗ j h (1+ cf) _ g ◦ˢᵘᵇ (M⃗ i h t (prev-shape s) f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
 
-  {-
   =⟨ {!!} ⟩
 
-  (M⃗ j h {!cf!} {!!} g ◦ˢᵘᵇ π (A h [ _ ]))
+  ({!M⃗ j h cf {!!} g!} ◦ˢᵘᵇ π (A h [ _ ]))
   ◦ˢᵘᵇ (M⃗ i h t (prev-shape s) f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
-  -}
 
   =⟨ {!!} ⟩
 
