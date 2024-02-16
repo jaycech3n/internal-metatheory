@@ -114,6 +114,7 @@ M⃗ :
     {cfs : shape j h cf}
   → Sub (M i h t s) (M j h cf cfs)
 
+-- Maybe split M⃗◦ into two separate functions M⃗◦[_,_,0] and M⃗◦[_,_,1+_] ?
 M⃗◦ :
   ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
   → let cf   = count-factors i h t s f
@@ -348,6 +349,7 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g dgf@(inr no[gf]) df@(inl yes[f]) =
 
   =⟨ {!!} ⟩
 
+  -- This value doesn't satisfy this hole definitionally. Can we make it do so?
   ({!M⃗ j h cf {!!} g!} ◦ˢᵘᵇ π (A h [ _ ]))
   ◦ˢᵘᵇ (M⃗ i h t (prev-shape s) f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
 
