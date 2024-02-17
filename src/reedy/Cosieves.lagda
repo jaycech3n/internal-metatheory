@@ -3,7 +3,7 @@ Cosieves in countably simple semicategories
 
 \begin{code}
 
-{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import reedy.SimpleSemicategories
 
@@ -89,6 +89,19 @@ count-factors-aux i h t u f (inr no) =
   count-factors i h t (<-to-shape u) f
 count-factors-aux i h t u f (inl yes) =
   1+ (count-factors i h t (<-to-shape u) f)
+
+\end{code}
+
+Equality.
+
+\begin{code}
+
+count-factors= :
+  ∀ i h {j} (f : hom i j) t {s} t' {s'}
+  → t == t'
+  → count-factors i h t s f == count-factors i h t' s' f
+count-factors= i h f t t' idp =
+  ap (λ ◻ → count-factors i h t ◻ f) (shape-path _ _)
 
 \end{code}
 
@@ -229,6 +242,12 @@ module _ (i h : ℕ) {j} (f : hom i j) where
     ⊥-rec $ no-div _ _ yes
   no-divisible-count-factors-all-O-aux no-div t u (inr no) =
     no-divisible-count-factors-all-O no-div t (<-to-shape u)
+
+  hom-size-O-count-factors-all-O :
+    hom-size j h == O
+    → ∀ t s → count-factors i h t s f == O
+  hom-size-O-count-factors-all-O =
+    no-divisible-count-factors-all-O ∘ hom-size-O-no-divisible
 
   exists-divisible-hom-size>O :
     ∀ t u
@@ -547,6 +566,34 @@ large enough t.
 
 \end{code}
 
+* Corollary 6.31
+
+\begin{code}
+
+    idx-divby-max :
+      ∀ T J {u : T < hom-size i h} {v : J < hom-size j h}
+      → hom-size i h == 1+ T
+      → hom-size j h == 1+ J
+      → idx (divby T u) == J
+    idx-divby-max T J {u} {v} p q = ≤-between-= ub lb
+      where
+      [T]/f = divby T u
+      [J] = #[ J ] j h v
+      [J]◦f = [J] ◦ f
+
+      ub : idx [T]/f ≤ J
+      ub = <S-≤ $ transp (idx [T]/f <_) q $ idx<hom-size [T]/f
+
+      w : idx ([J] ◦ f) ≤ T
+      w = <S-≤ $ transp (idx [J]◦f <_) p $ idx<hom-size [J]◦f
+
+      lb : J ≤ idx [T]/f
+      lb = divby-≤-monotone w
+           ◂$ transp (_≼ [T]/f) (divby-surj [J])
+           ◂$ transp (_≤ idx [T]/f) (idx-hom# _)
+
+\end{code}
+
 * Lemma 6.32 (04.02.2024)
 
 The Agda proof differs from the paper: we're still in the module context where
@@ -634,7 +681,46 @@ typechecking reasons.
   count-factors-full :
     ∀ i h s {j} (f : hom i j)
     → count-factors i h (hom-size i h) s f == hom-size j h
-  count-factors-full = {!!}
+  count-factors-full i h s {j} f =
+    case (O≤ $ hom-size j h) case[O=homjh] case[O<homjh]
+    where
+    case[O=homjh] = λ p →
+      hom-size-O-count-factors-all-O i h f (! p) _ s ∙ p
+    case[O<homjh] = r
+      where module _ (u : O < hom-size j h) where
+      v : O < hom-size i h
+      v = O<homih i h f u
+
+      w : Σ ℕ λ K → 1+ K == hom-size j h
+      w = O<-witness u
+
+      w' : Σ ℕ λ T → 1+ T == hom-size i h
+      w' = O<-witness v
+
+      K = fst w
+      p = snd w
+      T = fst w'
+      q = snd w'
+
+      s' : shape i h (1+ T)
+      s' = transp! (shape i h) q s
+
+      r : count-factors i h (hom-size i h) s f == hom-size j h
+      r =
+        count-factors i h (hom-size i h) s f
+          =⟨ count-factors= _ _ f _ _ {s' = s'} (! q) ⟩
+        count-factors i h (1+ T) s' f
+          =⟨ count-factors-idx-divby i h f u T s'
+               (<S-≤ (u₀ i h f u ◂$ transp! (t₀ i h f u <_) q)) ⟩
+        1+ (idx $ divby i h f u T (S≤-< s'))
+          =⟨ ap 1+ $
+              idx-divby-max i h f u T K
+                {v = transp (K <_) p ltS}
+                (! q) (! p) ⟩
+        1+ K
+          =⟨ p ⟩
+        hom-size j h
+          =∎
 
 \end{code}
 

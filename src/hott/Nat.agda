@@ -37,6 +37,10 @@ module Nat-ad-hoc-lemmas where
     ≤O-=O : n ≤ O → n == O
     ≤O-=O (inl idp) = idp
 
+  O<-witness : ∀ {n} → O < n → Σ ℕ λ m → 1+ m == n
+  O<-witness ltS = O , idp
+  O<-witness (ltSR u) = 1+ (fst $ O<-witness u) , (ap 1+ $ snd (O<-witness u))
+
   S≮ : ∀ {n} → ¬ (S n < n)
   S≮ {O} ()
   S≮ {1+ n} = S≮ ∘ <-cancel-S
@@ -106,6 +110,11 @@ module Nat-ad-hoc-lemmas where
     ≤-to-≯ : m ≤ n → ¬ (n < m)
     ≤-to-≯ (inl idp) n<m = ¬<-self n<m
     ≤-to-≯ (inr m<n) n<m = ¬<-self (<-trans m<n n<m)
+
+    ≤-between-= : m ≤ n → n ≤ m → m == n
+    ≤-between-= (inl idp) v = idp
+    ≤-between-= (inr u) (inl idp) = idp
+    ≤-between-= (inr u) (inr v) = ⊥-rec $ ¬<-self (<-trans u v)
 
   S≤-1≤ : ∀ {m n} → 1+ m ≤ n → 1 ≤ n
   S≤-1≤ {m} {O} u = ⊥-rec (S≰O m u)
@@ -214,7 +223,7 @@ open Nat-monus public
 
 module Nat-subtraction where
   infixl 80 _−_
-  _−_ : (m n : ℕ) → ⦃ n ≤ m ⦄ → ℕ
+  _−_ : (m n : ℕ) → ⦃ n ≤ m ⦄ → ℕ -- should make this use a decidable guard predicate
   (m − .m) ⦃ inl idp ⦄ = O
   (.(1+ n) − n) ⦃ inr ltS ⦄ = 1
   ((1+ m) − n) ⦃ inr (ltSR u) ⦄ = 1+ ((m − n) ⦃ inr u ⦄)
@@ -222,7 +231,7 @@ module Nat-subtraction where
 open Nat-subtraction public
 
 
-module Nat-induction where
+module Nat-reasoning where
   ℕ-ind-from : ∀ {ℓ} (n₀ : ℕ) (P : ℕ → Type ℓ)
     → P n₀
     → (∀ n → n₀ ≤ n → P n → P (1+ n))
@@ -233,7 +242,15 @@ module Nat-induction where
     Pₛ n n₀≤n (ℕ-ind-from n₀ P P₀ Pₛ n n₀≤n)
     -- definitionally equal to Pₛ "up to equality of <-witness"
 
-open Nat-induction public
+  ℕ-case : ∀ {ℓ} (P : ℕ → Type ℓ) (n : ℕ)
+    → (n == O → P O)
+    → (∀ m → n == 1+ m → P (1+ m))
+    → P n
+  ℕ-case P O P₀ Pₛ = P₀ idp
+  ℕ-case P (1+ n) P₀ Pₛ = Pₛ n idp
+
+open Nat-reasoning public
+
 
 module Nat-instances {n : ℕ} where
   -- All instance declarations here will be visible to any module that imports
