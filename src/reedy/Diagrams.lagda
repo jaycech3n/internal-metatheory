@@ -80,11 +80,11 @@ module Convenience where
   A : (i : ℕ) → Ty (𝔻 i ∷ 𝔸 i ++ₜₑₗ Mᵒᵗᵒᵗ i [ π (𝔸 i) ]ₜₑₗ)
   A i = generic[ Mᵒᵗᵒᵗ i ]type
 
-  M= : ∀ i h {t} {s} {t'} {s'} → t == t' → M i h t s == M i h t' s'
-  M= i h {t} {s} {.t} {s'} idp = ap (M i h t) (shape-path s s')
-
   M=shape : ∀ {i h t} s s' → M i h t s == M i h t s'
   M=shape {i} {h} {t} s s' = ap (M i h t) (shape-path s s')
+
+  M= : ∀ i h {t} s {t'} s' → t == t' → M i h t s == M i h t' s'
+  M= i h {t} s {.t} s' idp = M=shape s s'
 
 open Convenience
 
@@ -124,7 +124,7 @@ M⃗◦ :
     in
     M⃗ j h cf cfs g {cgs} ◦ˢᵘᵇ M⃗ i h t s f
     ==
-    idd (M= k h {s = cgfs} p) ◦ˢᵘᵇ M⃗ i h t s (g ◦ f)
+    idd (M= k h cgfs _ p) ◦ˢᵘᵇ M⃗ i h t s (g ◦ f)
 
 \end{code}
 
@@ -188,7 +188,7 @@ With the definition of Mᵒ in place we can prove M⁼=, by pattern matching on 
 \begin{code}
 
 M⁼= i O t s =
-  M O O cf sh =⟨ M= O O {s' = O≤ _} p ⟩
+  M O O cf sh =⟨ M= O O _ (O≤ _) p ⟩
   M O O O (O≤ _) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ O [ π (𝔸 O) ]ₜₑₗ) =∎
   where
@@ -202,7 +202,7 @@ M⁼= i O t s =
   p = count-factors-top-level i O t prev [t]
 
 M⁼= i (1+ h) t s =
-  M (1+ h) (1+ h) cf sh =⟨ M= (1+ h) (1+ h) {s' = O≤ _} p ⟩
+  M (1+ h) (1+ h) cf sh =⟨ M= (1+ h) (1+ h) _ (O≤ _) p ⟩
   M (1+ h) (1+ h) O (O≤ _) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ (1+ h) [ π (𝔸 (1+ h)) ]ₜₑₗ) =∎
   where
@@ -253,7 +253,7 @@ M⃗[_,_,1+_] :
   → {cfs : shape j h (count-factors-aux i h t u f d)}
   → M⃗[ i , h ,1+ t ]-deptype s f d {cfs}
 M⃗[ i , h ,1+ t ] s f (inl (g , _)) =
-  {-idd (M=shape shp _) ◦ˢᵘᵇ-} M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, {!!}
+  {-idd (M=shape shp _) ◦ˢᵘᵇ-} M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, {!υ _!}
   where
   prev = prev-shape s
   shp = count-factors-shape i h t prev f
@@ -286,7 +286,7 @@ M⃗ i (1+ h) O s {j} f =
   shpⱼ = full-shape j h
 
   eq : M j h cf sh == M j h fullⱼ shpⱼ
-  eq = M= j h (count-factors-full i h shpᵢ f)
+  eq = M= j h _ _ (count-factors-full i h shpᵢ f)
 
 M⃗ i O O s f = id
 
@@ -318,7 +318,7 @@ M⃗◦[ i , h ,1+ t ]-deptype s {j} f {k} g dgf df =
   in
   M⃗ j h cf cfs g {cgs} ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f df {cfs}
   ==
-  idd (M= k h {s = cgfs} p) ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s (g ◦ f) dgf
+  idd (M= k h cgfs _ p) ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s (g ◦ f) dgf
 
 M⃗◦[_,_,1+_] :
   ∀ i h t (s : shape i h (1+ t))
@@ -334,7 +334,7 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) =
 
   =⟨ {!!} ⟩
 
-  idd (M= k h {!!}) ◦ˢᵘᵇ {!!} =∎
+  idd (M= k h _ _ {!!}) ◦ˢᵘᵇ {!!} =∎
 
   where
   cf = count-factors i h t (prev-shape s) f
@@ -355,7 +355,7 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g dgf@(inr no[gf]) df@(inl yes[f]) =
 
   =⟨ {!!} ⟩
 
-  idd (M= k h p) ◦ˢᵘᵇ M⃗ i h t (prev-shape s) (g ◦ f) ◦ˢᵘᵇ π (A h [ _ ]) =∎
+  idd (M= k h _ _ p) ◦ˢᵘᵇ M⃗ i h t (prev-shape s) (g ◦ f) ◦ˢᵘᵇ π (A h [ _ ]) =∎
 
   where
   cf = count-factors i h t (prev-shape s) f
