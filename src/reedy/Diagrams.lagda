@@ -131,19 +131,28 @@ M⃗◦ :
 Our encoding of linear cosieves as shapes does not present some important
 equalities definitionally. Hence, when we define the functor M on shapes, we
 need to transport along certain propositional equalities. One of these is the
-following, used in the definition of Mᵒ, which needs to be defined mutually with
-the other diagram components.
+following equality M-improper=, which needs to be defined mutually with the
+other diagram components.
+
+We also define, for better abstraction, an abbreviation M⃗[ i , h ][ t ] for a
+substitution that will appear in the definition of Mᵒ.
 
 \begin{code}
 
-M⁼= :
+M-improper= :
   ∀ i h t (s : shape i h (1+ t))
   → let prev = prev-shape s
-        u = <-from-shape s
-        [t] = #[ t ] i h u
+        [t] = #[ t ] i h (<-from-shape s)
         cf = count-factors i h t prev [t]
         sh = count-factors-shape i h t prev [t]
     in M h h cf sh == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
+
+M⃗[_,_][_] :
+  ∀ i h t (s : shape i h (1+ t))
+  → Sub (M i h t (prev-shape s)) (close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ))
+M⃗[ i , h ][ t ] s =
+  idd (M-improper= i h t s)
+  ◦ˢᵘᵇ M⃗ i h t (prev-shape s) (#[ t ] i h (<-from-shape s))
 
 \end{code}
 
@@ -158,57 +167,42 @@ induction principle, we use pattern matching with the
 \begin{code}
 {-# TERMINATING #-}
 \end{code}
-pragma to (temporarily) circumvent when Agda doesn't see the well
-foundedness.
+pragma to (temporarily) circumvent when Agda doesn't see the well foundedness.
 
 The object part of the functor is Mᵒ.
 
 \begin{code}
 
-Mᵒ i h (1+ t) s =
-  Mᵒ i h t prev ‣ A h [ idd eq ◦ˢᵘᵇ M⃗ i h t prev (#[ t ] i h u) ]
-  where
-  prev = prev-shape s
-  u = <-from-shape s
-
-  cfp = count-factors i h t prev (#[ t ] i h u)
-  shp = count-factors-shape i h t prev (#[ t ] i h u)
-
-  eq : M h h cfp shp == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
-  eq = M⁼= i h t s
-
+Mᵒ i h (1+ t) s = Mᵒ i h t (prev-shape s) ‣ A h [ M⃗[ i , h ][ t ] s ]
 Mᵒ i (1+ h) O s = Mᵒᶠᵘˡˡ i h [ π (𝔸 (1+ h)) ]ₜₑₗ
-
 Mᵒ i O O s = •
 
 \end{code}
 
-With the definition of Mᵒ in place we can prove M⁼=, by pattern matching on h.
+With the definition of Mᵒ in place we can prove M-improper=, by pattern matching on h.
 
 \begin{code}
 
-M⁼= i O t s =
+M-improper= i O t s =
   M O O cf sh =⟨ M= O O _ (O≤ _) p ⟩
   M O O O (O≤ _) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ O [ π (𝔸 O) ]ₜₑₗ) =∎
   where
   prev = prev-shape s
-  u = <-from-shape s
-  [t] = #[ t ] i O u
+  [t] = #[ t ] i O (<-from-shape s)
   cf = count-factors i O t prev [t]
   sh = count-factors-shape i O t prev [t]
 
   p : cf == O
   p = count-factors-top-level i O t prev [t]
 
-M⁼= i (1+ h) t s =
+M-improper= i (1+ h) t s =
   M (1+ h) (1+ h) cf sh =⟨ M= (1+ h) (1+ h) _ (O≤ _) p ⟩
   M (1+ h) (1+ h) O (O≤ _) =⟨ idp ⟩
   close (Mᵒᵗᵒᵗ (1+ h) [ π (𝔸 (1+ h)) ]ₜₑₗ) =∎
   where
   prev = prev-shape s
-  u = <-from-shape s
-  [t] = #[ t ] i (1+ h) u
+  [t] = #[ t ] i (1+ h) (<-from-shape s)
   cf = count-factors i (1+ h) t prev [t]
   sh = count-factors-shape i (1+ h) t prev [t]
 
@@ -242,7 +236,7 @@ M⃗[ i , h ,1+ t ]-deptype s {j} f d {cfs} =
 \end{code}
 
 We also expose the discriminant in an auxiliary implementation of M⃗ (i, h, t+1);
-this will be needed later.
+this will be needed when defining M⃗◦.
 
 \begin{code}
 
@@ -252,11 +246,26 @@ M⃗[_,_,1+_] :
     (d : Dec (f ∣ #[ t ] i h u))
   → {cfs : shape j h (count-factors-aux i h t u f d)}
   → M⃗[ i , h ,1+ t ]-deptype s f d {cfs}
-M⃗[ i , h ,1+ t ] s f (inl (g , _)) =
-  {-idd (M=shape shp _) ◦ˢᵘᵇ-} M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, {!υ _!}
+
+M⃗[ i , h ,1+ t ] s {j} f (inl (g , _)) {cfs} =
+  M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, (υ _ ◂$ transp Tm {!!})
   where
   prev = prev-shape s
-  shp = count-factors-shape i h t prev f
+  cf = count-factors i h t prev f
+  prev-cfs = prev-shape cfs
+  u = <-from-shape cfs
+  [cf] = #[ cf ] j h u
+
+  eq : M⃗[ j , h ][ cf ] cfs ◦ˢᵘᵇ M⃗ i h t prev f == M⃗[ i , h ][ t ] s
+  eq =
+    M⃗[ j , h ][ cf ] cfs ◦ˢᵘᵇ M⃗ i h t prev f
+      =⟨ assˢᵘᵇ ⟩
+    idd (M-improper= j h cf _)
+    ◦ˢᵘᵇ (M⃗ j h cf _ (#[ cf ] j h _) ◦ˢᵘᵇ M⃗ i h t prev f)
+      =⟨ {!M⃗◦ i h t prev f [cf]!} ⟩
+    M⃗[ i , h ][ t ] s
+      =∎
+
 M⃗[ i , h ,1+ t ] s f (inr no) = M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
   where prev = prev-shape s
 
