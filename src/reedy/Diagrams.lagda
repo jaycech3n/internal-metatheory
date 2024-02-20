@@ -128,16 +128,19 @@ M⃗◦ :
 
 \end{code}
 
-Our encoding of linear cosieves as shapes does not present some important
+Our encoding of linear cosieves via shapes does not satisfy some important
 equalities definitionally. Hence, when we define the functor M on shapes, we
 need to transport along certain propositional equalities. One of these is the
-following equality M-improper=, which needs to be defined mutually with the
-other diagram components.
+following equality Mᵗᵒᵗ=. Morally this is just reflexivity, but for
+computational reasons it needs to be defined mutually with the other diagram
+components.
 
-We also define, for better abstraction, an abbreviation M⃗[ i , h ][ t ] for a
-substitution that will appear in the definition of Mᵒ.
+We also define, for better abstraction, abbreviations M-improper= and
+M⃗[ i , h ][ t ].
 
 \begin{code}
+
+Mᵗᵒᵗ= : ∀ i → M i i O (O≤ _) == close (Mᵒᵗᵒᵗ i [ π (𝔸 i) ]ₜₑₗ)
 
 M-improper= :
   ∀ i h t (s : shape i h (1+ t))
@@ -146,13 +149,22 @@ M-improper= :
         cf = count-factors i h t prev [t]
         sh = count-factors-shape i h t prev [t]
     in M h h cf sh == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
+M-improper= i h t s = M= h h _ _ p ∙ Mᵗᵒᵗ= h
+  where
+  prev = prev-shape s
+  [t] = #[ t ] i h (<-from-shape s)
+  cf = count-factors i h t prev [t]
+
+  p : cf == O
+  p = count-factors-top-level i h t prev [t]
 
 M⃗[_,_][_] :
   ∀ i h t (s : shape i h (1+ t))
   → Sub (M i h t (prev-shape s)) (close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ))
-M⃗[ i , h ][ t ] s =
-  idd (M-improper= i h t s)
-  ◦ˢᵘᵇ M⃗ i h t (prev-shape s) (#[ t ] i h (<-from-shape s))
+M⃗[ i , h ][ t ] s = idd (M-improper= i h t s) ◦ˢᵘᵇ M⃗ i h t prev [t]
+  where
+  prev = prev-shape s
+  [t] = #[ t ] i h (<-from-shape s)
 
 \end{code}
 
@@ -179,35 +191,19 @@ Mᵒ i O O s = •
 
 \end{code}
 
-With the definition of Mᵒ in place we can prove M-improper=, by pattern matching on h.
+With the definition of Mᵒ in place we can now prove Mᵗᵒᵗ= by induction on i.
 
 \begin{code}
 
-M-improper= i O t s =
-  M O O cf sh =⟨ M= O O _ (O≤ _) p ⟩
-  M O O O (O≤ _) =⟨ idp ⟩
-  close (Mᵒᵗᵒᵗ O [ π (𝔸 O) ]ₜₑₗ) =∎
-  where
-  prev = prev-shape s
-  [t] = #[ t ] i O (<-from-shape s)
-  cf = count-factors i O t prev [t]
-  sh = count-factors-shape i O t prev [t]
+Mᵗᵒᵗ= O = idp
+Mᵗᵒᵗ= (1+ _) = idp
 
-  p : cf == O
-  p = count-factors-top-level i O t prev [t]
-
-M-improper= i (1+ h) t s =
-  M (1+ h) (1+ h) cf sh =⟨ M= (1+ h) (1+ h) _ (O≤ _) p ⟩
-  M (1+ h) (1+ h) O (O≤ _) =⟨ idp ⟩
-  close (Mᵒᵗᵒᵗ (1+ h) [ π (𝔸 (1+ h)) ]ₜₑₗ) =∎
-  where
-  prev = prev-shape s
-  [t] = #[ t ] i (1+ h) (<-from-shape s)
-  cf = count-factors i (1+ h) t prev [t]
-  sh = count-factors-shape i (1+ h) t prev [t]
-
-  p : cf == O
-  p = count-factors-top-level i (1+ h) t prev [t]
+-- This works too, of course.
+-- Mᵗᵒᵗ= =
+--   ℕ-ind
+--     (λ i → M i i O (O≤ $ hom-size i i) == close (Mᵒᵗᵒᵗ i [ π (𝔸 i) ]ₜₑₗ))
+--     idp
+--     (λ _ _ → idp)
 
 \end{code}
 
@@ -260,8 +256,8 @@ M⃗[ i , h ,1+ t ] s {j} f (inl (g , _)) {cfs} =
   eq =
     M⃗[ j , h ][ cf ] cfs ◦ˢᵘᵇ M⃗ i h t prev f
       =⟨ assˢᵘᵇ ⟩
-    idd (M-improper= j h cf _)
-    ◦ˢᵘᵇ (M⃗ j h cf _ (#[ cf ] j h _) ◦ˢᵘᵇ M⃗ i h t prev f)
+    idd (M-improper= j h cf cfs)
+    ◦ˢᵘᵇ (M⃗ j h cf prev-cfs [cf] ◦ˢᵘᵇ M⃗ i h t prev f)
       =⟨ {!M⃗◦ i h t prev f [cf]!} ⟩
     M⃗[ i , h ][ t ] s
       =∎
@@ -302,8 +298,8 @@ M⃗ i O O s f = id
 \end{code}
 
 
-Partial matching objects: M⃗◦ (anafunctoriality)
-------------------------------------------------
+Partial matching objects: M⃗◦ (functoriality)
+---------------------------------------------
 
 Again, in the (i, h, t+1) case we need the type of M⃗◦ to compute on whether or
 not certain morphisms divide [t]ⁱₕ.

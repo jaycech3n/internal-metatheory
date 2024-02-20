@@ -232,6 +232,10 @@ open Nat-subtraction public
 
 
 module Nat-reasoning where
+  ℕ-ind : ∀ {ℓ} (P : ℕ → Type ℓ) → P O → (∀ n → P n → P (1+ n)) → ∀ n → P n
+  ℕ-ind P P₀ Pₛ O = P₀
+  ℕ-ind P P₀ Pₛ (1+ n) = Pₛ n (ℕ-ind P P₀ Pₛ n)
+
   ℕ-ind-from : ∀ {ℓ} (n₀ : ℕ) (P : ℕ → Type ℓ)
     → P n₀
     → (∀ n → n₀ ≤ n → P n → P (1+ n))
