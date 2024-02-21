@@ -36,8 +36,8 @@ open TelIndexedTypes univstr
 \end{code}
 
 
-Preliminaries, Overview, and 𝔻 (context of diagram fillers)
------------------------------------------------------------
+Preliminaries, Overview, and Declarations
+-----------------------------------------
 
 The construction is a large mutually inductive definition with a large number of
 components. The first two core ones are 𝔻 and Mᵒ:
@@ -108,9 +108,7 @@ of M⃗).
 
 M⃗ :
   ∀ i h t s {j} (f : hom i j)
-  → let cf = count-factors i h t s f
-        -- sh = count-factors-shape i h t s f
-    in
+  → let cf = count-factors i h t s f in
     {cfs : shape j h cf}
   → Sub (M i h t s) (M j h cf cfs)
 
@@ -128,43 +126,65 @@ M⃗◦ :
 
 \end{code}
 
-Our encoding of linear cosieves via shapes does not satisfy some important
-equalities definitionally. Hence, when we define the functor M on shapes, we
-need to transport along certain propositional equalities. One of these is the
-following equality Mᵗᵒᵗ=. Morally this is just reflexivity, but for
-computational reasons it needs to be defined mutually with the other diagram
-components.
+Our construction does not satisfy some desired equalities definitionally, so we
+need to transport along certain propositional equalities.
 
-We also define, for better abstraction, abbreviations M-improper= and
-M⃗[ i , h ][ t ].
+One of these is the following equality Mᵗᵒᵗ=. Morally this is just reflexivity,
+but for computational reasons it needs to be defined mutually with the other
+diagram components.
 
 \begin{code}
 
 Mᵗᵒᵗ= : ∀ i → M i i O (O≤ _) == close (Mᵒᵗᵒᵗ i [ π (𝔸 i) ]ₜₑₗ)
 
+\end{code}
+
+We also define, for better abstraction, abbreviations M-improper= and
+M⃗[ i , h ][ t ], and require them to satisfy a certain composition rule which
+also needs to be proved mutually with the other components.
+
+\begin{code}
+
 M-improper= :
   ∀ i h t (s : shape i h (1+ t))
-  → let prev = prev-shape s
-        [t] = #[ t ] i h (<-from-shape s)
-        cf = count-factors i h t prev [t]
-        sh = count-factors-shape i h t prev [t]
+  → let [t] = #[ t ] i h (<-from-shape s)
+        s' = prev-shape s
+        cf = count-factors i h t s' [t]
+        sh = count-factors-shape i h t s' [t]
     in M h h cf sh == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
-M-improper= i h t s = M= h h _ _ p ∙ Mᵗᵒᵗ= h
+M-improper= i h t s =
+  M= h h _ _ p ∙ Mᵗᵒᵗ= h
   where
-  prev = prev-shape s
+  s' = prev-shape s
   [t] = #[ t ] i h (<-from-shape s)
-  cf = count-factors i h t prev [t]
+  cf = count-factors i h t s' [t]
 
   p : cf == O
-  p = count-factors-top-level i h t prev [t]
+  p = count-factors-top-level i h t s' [t]
 
 M⃗[_,_][_] :
   ∀ i h t (s : shape i h (1+ t))
   → Sub (M i h t (prev-shape s)) (close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ))
-M⃗[ i , h ][ t ] s = idd (M-improper= i h t s) ◦ˢᵘᵇ M⃗ i h t prev [t]
+M⃗[ i , h ][ t ] s =
+  idd (M-improper= i h t s) ◦ˢᵘᵇ M⃗ i h t (prev-shape s) [t]
   where
-  prev = prev-shape s
   [t] = #[ t ] i h (<-from-shape s)
+
+need :
+  ∀ i h t (s : shape i h (1+ t)) {j} (f : hom i j)
+  → let s' = prev-shape s
+        u = <-from-shape s
+        cf = count-factors i h t s' f
+    in
+    (d : f ∣ #[ t ] i h u)
+    {cfs : shape j h (1+ cf)}
+  → idd (M-improper= j h cf cfs) ◦ˢᵘᵇ
+      M⃗ j h cf (prev-shape cfs) (#[ cf ] j h (<-from-shape cfs))
+        ◦ˢᵘᵇ M⃗ i h t s' f
+    == M⃗[ i , h ][ t ] s
+
+need i h O s f d = {!!}
+need i h (1+ t) s f d = {!!}
 
 \end{code}
 
