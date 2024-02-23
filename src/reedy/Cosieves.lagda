@@ -57,6 +57,10 @@ shape-is-prop = ≤-is-prop
 shape-path : ∀ {i h t} (s s' : shape i h t) → s == s'
 shape-path = prop-has-all-paths
 
+instance
+  shape-id-is-prop : ∀ {i h t} {s s' : shape i h t} → is-prop (s == s')
+  shape-id-is-prop = =-preserves-level shape-is-prop
+
 \end{code}
 
 

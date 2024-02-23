@@ -177,7 +177,7 @@ need :
         cf = count-factors i h t s' f
     in
     (d : f ∣ #[ t ] i h u)
-    {cfs : shape j h (1+ cf)}
+   → (cfs : shape j h (1+ cf))
   → idd (M-improper= j h cf cfs) ◦ˢᵘᵇ
       M⃗ j h cf (prev-shape cfs) (#[ cf ] j h (<-from-shape cfs))
         ◦ˢᵘᵇ M⃗ i h t s' f
@@ -263,8 +263,8 @@ M⃗[_,_,1+_] :
   → {cfs : shape j h (count-factors-aux i h t u f d)}
   → M⃗[ i , h ,1+ t ]-deptype s f d {cfs}
 
-M⃗[ i , h ,1+ t ] s {j} f (inl (g , _)) {cfs} =
-  M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, (υ _ ◂$ transp Tm {!!})
+M⃗[ i , h ,1+ t ] s {j} f d@(inl yes) {cfs} =
+  M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, (υ _ ◂$ transp Tm q)
   where
   prev = prev-shape s
   cf = count-factors i h t prev f
@@ -272,15 +272,20 @@ M⃗[ i , h ,1+ t ] s {j} f (inl (g , _)) {cfs} =
   u = <-from-shape cfs
   [cf] = #[ cf ] j h u
 
-  eq : M⃗[ j , h ][ cf ] cfs ◦ˢᵘᵇ M⃗ i h t prev f == M⃗[ i , h ][ t ] s
-  eq =
+  p : M⃗[ j , h ][ cf ] cfs ◦ˢᵘᵇ M⃗ i h t prev f == M⃗[ i , h ][ t ] s
+  p =
     M⃗[ j , h ][ cf ] cfs ◦ˢᵘᵇ M⃗ i h t prev f
       =⟨ assˢᵘᵇ ⟩
     idd (M-improper= j h cf cfs)
     ◦ˢᵘᵇ (M⃗ j h cf prev-cfs [cf] ◦ˢᵘᵇ M⃗ i h t prev f)
-      =⟨ {!M⃗◦ i h t prev f [cf]!} ⟩
+      =⟨ need i h t s f yes cfs ⟩
     M⃗[ i , h ][ t ] s
       =∎
+
+  q : A h [ M⃗[ i , h ][ t ] s ] [ π _ ]
+      ==
+      A h [ M⃗[ j , h ][ cf ] cfs ] [ M⃗ i h t prev f ◦ˢᵘᵇ π _ ]
+  q = ap (_[ π _ ]) ([= ! p ] ∙ [◦]) ∙ ! [◦]
 
 M⃗[ i , h ,1+ t ] s f (inr no) = M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
   where prev = prev-shape s
@@ -314,6 +319,63 @@ M⃗ i (1+ h) O s {j} f =
   eq = M= j h _ _ (count-factors-full i h shpᵢ f)
 
 M⃗ i O O s f = id
+
+\end{code}
+
+Another equality we need to use is M⃗rec=.
+
+\begin{code}
+
+idd◦M⃗= :
+  ∀ i h t (s : shape i h (1+ t))
+  → ∀ {j} (f : hom i j)
+  → (d : Dec (f ∣ #[ t ] i h (<-from-shape s)))
+  → let c = count-factors-aux i h t (<-from-shape s) f d in
+    (s₀ s₁ : shape j h c)
+  → (p q : c == c)
+  → idd (M= j h s₀ s₁ p) ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f d {s₀} ==
+    idd (M= j h s₁ s₁ q) ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f d {s₁}
+idd◦M⃗= i h t s {j} f d s₀ s₁ p q =
+  ap (λ (sₓ , e) → idd (M= j h sₓ s₁ e) ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f d {sₓ})
+     (pair×=
+       (prop-path shape-is-prop s₀ s₁)
+       (prop-path has-level-apply-instance p q))
+
+abstract
+  M⃗rec= :
+    ∀ i h t (s : shape i h (1+ t)) {j} (f : hom i j)
+    → (no : ¬ (f ∣ #[ t ] i h (<-from-shape s)))
+    → let prev = prev-shape s
+          cf = count-factors i h (1+ t) s f
+          cfp = count-factors i h t prev f
+          p = count-factors-not-divisible i h t s f no
+      in
+      {cfs : shape j h cf} {cfps : shape j h cfp}
+    → M⃗ i h (1+ t) s f {cfs} ==
+      idd (M= j h cfps cfs (! p)) ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
+  M⃗rec= i h t s {j} f no {cfs} {cfps} with discrim i h t (<-from-shape s) f
+  ... | inl yes = ⊥-rec $ no yes
+  ... | inr no' =
+        ! $
+        idd (M= j h cfps cfs p)
+          ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f (inr no') {cfps}
+        =⟨ idd◦M⃗= i h t s f (inr no') cfps cfs p idp ⟩
+        idd (M= j h cfs cfs idp) ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f (inr no') {cfs}
+        =⟨ ap
+            (λ ◻ →
+              idd (ap (M j h _) ◻) ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f (inr no') {cfs})
+            (prop-path shape-id-is-prop (shape-path cfs cfs) idp)
+        ⟩
+        id ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f (inr no') {cfs}
+        =⟨ idl _ ⟩
+        M⃗[ i , h ,1+ t ] s f (inr no') {cfs}
+        =∎
+        where
+        p : count-factors-aux i h t (<-from-shape s) f (inr no') ==
+            count-factors-aux i h t (<-from-shape s) f (inr no')
+        p = ! $ count-factors-not-divisible-aux i h t (<-from-shape s)
+                  f (inr no') no
+
 
 \end{code}
 
@@ -369,21 +431,20 @@ M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inr no[f]) =
 
 M⃗◦[ i , h ,1+ t ] s {j} f {k} g dgf@(inr no[gf]) df@(inl yes[f]) =
 
-  M⃗ j h (1+ cf) _ g ◦ˢᵘᵇ (M⃗ i h t (prev-shape s) f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+  M⃗ j h (1+ cf) _ g ◦ˢᵘᵇ (M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+
+  =⟨ ap (_◦ˢᵘᵇ (M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)) (M⃗rec= j h cf {!!} g {!!}) ⟩
+
+  (idd (M= k h {!!} {!!} {!!}) ◦ˢᵘᵇ M⃗ j h cf {!!} g ◦ˢᵘᵇ π (A h [ _ ]))
+  ◦ˢᵘᵇ (M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
 
   =⟨ {!!} ⟩
 
-  ({!M⃗ j h cf ? g
-    -- here, need to use the fact that g ∤ [cf] to transport.!}
-    ◦ˢᵘᵇ π (A h [ _ ]))
-  ◦ˢᵘᵇ (M⃗ i h t (prev-shape s) f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
-
-  =⟨ {!!} ⟩
-
-  idd (M= k h _ _ p) ◦ˢᵘᵇ M⃗ i h t (prev-shape s) (g ◦ f) ◦ˢᵘᵇ π (A h [ _ ]) =∎
+  idd (M= k h _ _ p) ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) ◦ˢᵘᵇ π (A h [ _ ]) =∎
 
   where
-  cf = count-factors i h t (prev-shape s) f
+  prev = prev-shape s
+  cf = count-factors i h t prev f
   p = count-factors-comp-aux i h t (<-from-shape s) f g dgf df
 
 M⃗◦[ i , h ,1+ t ] s f g (inr no[gf]) (inr no[f]) =

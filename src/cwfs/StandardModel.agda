@@ -11,8 +11,8 @@ WildCategoryStructure.wildsemicatstr (WildCategory.wildcatstr 𝒯) = record
   ; _◦_ = λ g f a → g (f a)
   ; ass = idp }
 WildCategoryStructure.id (WildCategory.wildcatstr 𝒯) {A} = idf A
-WildCategoryStructure.idl (WildCategory.wildcatstr 𝒯) = idp
-WildCategoryStructure.idr (WildCategory.wildcatstr 𝒯) = idp
+WildCategoryStructure.idl (WildCategory.wildcatstr 𝒯) f = idp
+WildCategoryStructure.idr (WildCategory.wildcatstr 𝒯) f = idp
 
 𝒯-ctxstr : ContextStructure 𝒯
 ContextStructure.◆ 𝒯-ctxstr = ⊤
