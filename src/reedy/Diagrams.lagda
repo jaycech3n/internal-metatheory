@@ -350,10 +350,10 @@ abstract
           cfp = count-factors i h t prev f
           p = count-factors-not-divisible i h t s f no
       in
-      {cfs : shape j h cf} {cfps : shape j h cfp}
+      (cfs : shape j h cf) (cfps : shape j h cfp)
     → M⃗ i h (1+ t) s f {cfs} ==
       idd (M= j h cfps cfs (! p)) ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
-  M⃗rec= i h t s {j} f no {cfs} {cfps} with discrim i h t (<-from-shape s) f
+  M⃗rec= i h t s {j} f no cfs cfps with discrim i h t (<-from-shape s) f
   ... | inl yes = ⊥-rec $ no yes
   ... | inr no' =
         ! $
@@ -398,10 +398,10 @@ M⃗◦[_,_,1+_]-deptype :
 M⃗◦[ i , h ,1+ t ]-deptype s {j} f {k} g dgf df =
   let u    = <-from-shape s
       cf   = count-factors-aux i h t u f df
-      p    = count-factors-comp-aux i h t u f g dgf df
       cfs  = count-factors-shape-aux i h t u f df
       cgs  = count-factors-shape j h cf cfs g
       cgfs = count-factors-shape-aux i h t u (g ◦ f) dgf
+      p    = count-factors-comp-aux i h t u f g dgf df
   in
   M⃗ j h cf cfs g {cgs} ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f df {cfs}
   ==
@@ -431,12 +431,46 @@ M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inr no[f]) =
 
 M⃗◦[ i , h ,1+ t ] s {j} f {k} g dgf@(inr no[gf]) df@(inl yes[f]) =
 
-  M⃗ j h (1+ cf) _ g ◦ˢᵘᵇ (M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+  M⃗ j h (1+ cf) cfs g ◦ˢᵘᵇ (M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
 
-  =⟨ ap (_◦ˢᵘᵇ (M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)) (M⃗rec= j h cf {!!} g {!!}) ⟩
+  =⟨ ap (_◦ˢᵘᵇ (M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, _))
+        (M⃗rec= j h cf cfs g no[g] cgs cgs') ⟩
 
-  (idd (M= k h {!!} {!!} {!!}) ◦ˢᵘᵇ M⃗ j h cf {!!} g ◦ˢᵘᵇ π (A h [ _ ]))
+  (idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ M⃗ j h cf (prev-shape cfs) g
+    ◦ˢᵘᵇ π (A h [ _ ]))
   ◦ˢᵘᵇ (M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+
+  =⟨ assˢᵘᵇ ∙ ap (idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ_) assˢᵘᵇ ⟩
+
+  idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ M⃗ j h cf (prev-shape cfs) g
+  ◦ˢᵘᵇ π (A h [ _ ]) ◦ˢᵘᵇ (M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+
+  =⟨ βπ
+   |in-ctx (λ ◻ →
+     idd (M= k h cgs' cgs (! q))
+     ◦ˢᵘᵇ M⃗ j h cf (prev-shape cfs) g
+     ◦ˢᵘᵇ ◻) ⟩
+
+  idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ M⃗ j h cf (prev-shape cfs) g
+  ◦ˢᵘᵇ M⃗ i h t prev f ◦ˢᵘᵇ π (A h [ _ ])
+
+  =⟨ ap (idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ_) (! assˢᵘᵇ) ∙ ! assˢᵘᵇ ⟩
+
+  (idd (M= k h cgs' cgs (! q))
+    ◦ˢᵘᵇ M⃗ j h cf (prev-shape cfs) g {cgs'} ◦ˢᵘᵇ M⃗ i h t prev f)
+  ◦ˢᵘᵇ π (A h [ _ ])
+
+  -- =⟨ M⃗◦ i h t prev f g
+  --  |in-ctx (λ ◻ →
+  --    (idd (M= k h cgs' cgs (! q))
+  --      ◦ˢᵘᵇ ◻)
+  --    ◦ˢᵘᵇ π (A h [ _ ])) ⟩
+
+  =⟨ {!!} ⟩
+
+  (idd (M= k h cgs' cgs (! q))
+    ◦ˢᵘᵇ idd (M= k h cgfs cgs' (r ∙ e)) ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) {cgfs})
+  ◦ˢᵘᵇ π (A h [ _ ])
 
   =⟨ {!!} ⟩
 
@@ -444,8 +478,22 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g dgf@(inr no[gf]) df@(inl yes[f]) =
 
   where
   prev = prev-shape s
+  u = <-from-shape s
+  no[g] = comp-divides-contra i h t u f g yes[f] no[gf]
+  dg = inr no[g]
+
   cf = count-factors i h t prev f
-  p = count-factors-comp-aux i h t (<-from-shape s) f g dgf df
+  cfs = count-factors-shape-aux i h t u f df
+
+  cgs = count-factors-shape j h (1+ cf) cfs g
+  cgs' = count-factors-shape-aux j h cf (<-from-shape cfs) g dg
+
+  cgfs = count-factors-shape i h t prev (g ◦ f)
+
+  q = count-factors-not-divisible j h cf cfs g no[g]
+  p = count-factors-comp-aux i h t u f g dgf df
+  r = count-factors-comp i h t prev f g
+  e = ap (λ ◻ → count-factors j h cf ◻ g) (shape-path _ _)
 
 M⃗◦[ i , h ,1+ t ] s f g (inr no[gf]) (inr no[f]) =
   ! assˢᵘᵇ ∙ ap (_◦ˢᵘᵇ π (A h [ _ ])) (M⃗◦ i h t (prev-shape s) f g) ∙ assˢᵘᵇ
