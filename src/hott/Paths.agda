@@ -28,3 +28,8 @@ from-over-lr : {A : Type ℓ₁} (B : A → Type ℓ₂)
   → u == v [ B ↓ p ∙ q ∙ r ]
   → transp B p u == transp! B r v [ B ↓ q ]
 from-over-lr B idp idp idp p = p
+
+ap-const :
+  {A : Type ℓ₁} {B : Type ℓ₂} {b : B} {x y : A} (p : x == y)
+  → ap (λ _ → b) p == idp
+ap-const idp = idp

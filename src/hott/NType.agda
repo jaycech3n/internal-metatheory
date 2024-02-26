@@ -14,6 +14,7 @@ module _ {A : Type ℓ} ⦃ w : is-prop A ⦄ (x y : A) where
   prop-paths-prop : is-prop (x == y)
   prop-paths-prop = contr-is-prop prop-paths-contr
 
-prop-has-all-paths-idp : {A : Type ℓ} ⦃ w : is-prop A ⦄ (x : A)
-                         → prop-has-all-paths x x == idp
+prop-has-all-paths-idp :
+  {A : Type ℓ} ⦃ w : is-prop A ⦄ (x : A)
+  → prop-has-all-paths x x == idp
 prop-has-all-paths-idp ⦃ w ⦄ x = prop-path (prop-paths-prop x x) _ _
