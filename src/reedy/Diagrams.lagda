@@ -421,7 +421,7 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) =
 
   =⟨ {!!} ⟩
 
-  idd (M= k h _ _ {!!}) ◦ˢᵘᵇ {!!} =∎
+  idd (M= k h ? ? {!!}) ◦ˢᵘᵇ {!!} =∎
 
   where
   cf = count-factors i h t (prev-shape s) f
