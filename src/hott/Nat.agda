@@ -10,6 +10,10 @@ pattern 2+ n = S (S n)
 <= : ∀ {m n} (u u' : m < n) → u == u'
 <= = prop-path <-is-prop
 
+instance
+  ℕ-id-is-prop : {m n : ℕ} → is-prop (m == n)
+  ℕ-id-is-prop = has-level-apply ℕ-is-set _ _
+
 _>_ : ℕ → ℕ → Type₀
 m > n = n < m
 

@@ -86,6 +86,14 @@ module Convenience where
   M= : ∀ i h {t} s {t'} s' → t == t' → M i h t s == M i h t' s'
   M= i h {t} s {.t} s' idp = M=shape s s'
 
+  M=-∙ :
+    ∀ i h {t} s {t'} s' {t''} s''
+    → (p : t == t') (q : t' == t'')
+    → M= i h s s' p ∙ M= i h s' s'' q == M= i h s s'' (p ∙ q)
+  M=-∙ i h s s' s'' idp idp =
+    ! (ap-∙ _ (shape-path s s') (shape-path s' s''))
+    ∙ ap (ap _) (prop-path shape-id-is-prop _ _)
+
 open Convenience
 
 \end{code}
@@ -149,50 +157,44 @@ also needs to be proved mutually with the other components.
 \begin{code}
 
 M-improper= :
-  ∀ i h t (s : shape i h (1+ t))
-  → let [t] = #[ t ] i h (<-from-shape s)
-        prev = prev-shape s
-        cf = count-factors i h t prev [t]
-        sh = count-factors-shape i h t prev [t]
+  ∀ i h t (s : shape i h t) (u : t < hom-size i h)
+  → let [t] = #[ t ] i h u
+        cf = count-factors i h t s [t]
+        sh = count-factors-shape i h t s [t]
     in M h h cf sh == close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ)
-M-improper= i h t s =
+M-improper= i h t s u =
   M= h h _ _ p ∙ Mᵗᵒᵗ= h
   where
-  prev = prev-shape s
-  [t] = #[ t ] i h (<-from-shape s)
-  cf = count-factors i h t prev [t]
+  [t] = #[ t ] i h u
 
-  p : cf == O
-  p = count-factors-top-level i h t prev [t]
+  p : count-factors i h t s [t] == O
+  p = count-factors-top-level i h t s [t]
 
 M⃗[_,_][_] :
-  ∀ i h t (s : shape i h (1+ t))
-  → Sub (M i h t (prev-shape s)) (close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ))
-M⃗[ i , h ][ t ] s =
-  idd (M-improper= i h t s) ◦ˢᵘᵇ M⃗ i h t prev [t] sh
+  ∀ i h t (s : shape i h t) (u : t < hom-size i h)
+  → Sub (M i h t s) (close (Mᵒᵗᵒᵗ h [ π (𝔸 h) ]ₜₑₗ))
+M⃗[ i , h ][ t ] s u =
+  idd (M-improper= i h t s u) ◦ˢᵘᵇ M⃗ i h t s [t] sh
   where
-  prev = prev-shape s
-  [t] = #[ t ] i h (<-from-shape s)
-  sh = count-factors-shape i h t prev [t]
+  [t] = #[ t ] i h u
+  sh = count-factors-shape i h t s [t]
 
 need :
-  ∀ i h t (s : shape i h (1+ t)) {j} (f : hom i j)
-  → let prev = prev-shape s
-        u = <-from-shape s
-        cf = count-factors i h t prev f
-    in
-    (d : f ∣ #[ t ] i h u)
-  → (cfs : shape j h (1+ cf))
-  → let prev-cfs = prev-shape cfs
-        v = <-from-shape cfs
-        [cf] = #[ cf ] j h v
-    in
-    idd (M-improper= j h cf cfs)
-      ◦ˢᵘᵇ M⃗ j h cf prev-cfs [cf] _ ◦ˢᵘᵇ M⃗ i h t prev f _
-    == M⃗[ i , h ][ t ] s
+  ∀ i h t (s : shape i h t) (u : t < hom-size i h)
+  → ∀ {j} (f : hom i j)
+  → let cf = count-factors i h t s f in
+    (yes : f ∣ #[ t ] i h u)
+    (cfs : shape j h cf)
+    (cfu : cf < hom-size j h)
+      -- Maybe the abstraction over cfu is not strictly required? But I'm not
+      -- sure, and in any case it's probably better to keep it.
+  → let [cf] = #[ cf ] j h cfu in
+    idd (M-improper= j h cf cfs cfu)
+      ◦ˢᵘᵇ M⃗ j h cf cfs [cf] _ ◦ˢᵘᵇ M⃗ i h t s f _
+    == M⃗[ i , h ][ t ] s u
 
-need i h O s f d = {!!}
-need i h (1+ t) s f d = {!!}
+need i h O s u f yes cfs cfu = {!!}
+need i h (1+ t) s u f yes cfs cfu = {!!}
 
 \end{code}
 
@@ -213,7 +215,10 @@ The object part of the functor is Mᵒ.
 
 \begin{code}
 
-Mᵒ i h (1+ t) s = Mᵒ i h t (prev-shape s) ‣ A h [ M⃗[ i , h ][ t ] s ]
+Mᵒ i h (1+ t) s = Mᵒ i h t prev ‣ A h [ M⃗[ i , h ][ t ] prev u ]
+  where
+  prev = prev-shape s
+  u = <-from-shape s
 Mᵒ i (1+ h) O s = Mᵒᶠᵘˡˡ i h [ π (𝔸 (1+ h)) ]ₜₑₗ
 Mᵒ i O O s = •
 
@@ -272,27 +277,27 @@ M⃗[_,_,1+_] :
   → M⃗[ i , h ,1+ t ]-deptype s f d {cfs}
 
 M⃗[ i , h ,1+ t ] s {j} f d@(inl yes) cfs =
-  M⃗ i h t prev f _ ◦ˢᵘᵇ π (A h [ _ ]) ,, (υ _ ◂$ transp Tm q)
+  M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, (υ _ ◂$ transp Tm q)
   where
   prev = prev-shape s
+  u = <-from-shape s
   cf = count-factors i h t prev f
   prev-cfs = prev-shape cfs
-  u = <-from-shape cfs
-  [cf] = #[ cf ] j h u
+  cfu = <-from-shape cfs
+  [cf] = #[ cf ] j h cfu
 
-  p : M⃗[ j , h ][ cf ] cfs ◦ˢᵘᵇ M⃗ i h t prev f _ == M⃗[ i , h ][ t ] s
+  p : M⃗[ j , h ][ cf ] prev-cfs cfu ◦ˢᵘᵇ M⃗ i h t prev f _ == M⃗[ i , h ][ t ] prev u
   p =
-    M⃗[ j , h ][ cf ] cfs ◦ˢᵘᵇ M⃗ i h t prev f _
+    M⃗[ j , h ][ cf ] prev-cfs cfu ◦ˢᵘᵇ M⃗ i h t prev f _
       =⟨ assˢᵘᵇ ⟩
-    idd (M-improper= j h cf cfs)
+    idd (M-improper= j h cf prev-cfs cfu)
     ◦ˢᵘᵇ (M⃗ j h cf prev-cfs [cf] _ ◦ˢᵘᵇ M⃗ i h t prev f _)
-      =⟨ need i h t s f yes cfs ⟩
-    M⃗[ i , h ][ t ] s
+      =⟨ need i h t prev u f yes prev-cfs cfu ⟩
+    M⃗[ i , h ][ t ] prev u
       =∎
 
-  q : A h [ M⃗[ i , h ][ t ] s ] [ π _ ]
-      ==
-      A h [ M⃗[ j , h ][ cf ] cfs ] [ M⃗ i h t prev f _ ◦ˢᵘᵇ π _ ]
+  q : A h [ M⃗[ i , h ][ t ] prev u ] [ π _ ] ==
+      A h [ M⃗[ j , h ][ cf ] prev-cfs cfu ] [ M⃗ i h t prev f _ ◦ˢᵘᵇ π _ ]
   q = ap (_[ π _ ]) ([= ! p ] ∙ [◦]) ∙ ! [◦]
 
 M⃗[ i , h ,1+ t ] s f (inr no) _ = M⃗ i h t prev f _ ◦ˢᵘᵇ π (A h [ _ ])
@@ -330,7 +335,9 @@ M⃗ i O O s f _ = id
 
 \end{code}
 
-Another equality we need to use is M⃗rec=.
+We also need to transport along equalities giving the values of
+  M⃗ (j, h, count-factors (i, h, t) f) g
+in each of the cases where g divides, or does not divide, [count-factors...]ʲₕ.
 
 \begin{code}
 
@@ -350,7 +357,27 @@ idd◦M⃗= i h t s {j} f d s₀ s₁ p q =
        (prop-path has-level-apply-instance p q))
 
 abstract
-  M⃗rec= :
+  M⃗rec=-yes :
+    ∀ i h t (s : shape i h (1+ t)) {j} (f : hom i j)
+    → let prev = prev-shape s
+          u = <-from-shape s
+          cf = count-factors i h (1+ t) s f
+          cfp = count-factors i h t prev f
+      in
+      (yes : f ∣ #[ t ] i h (<-from-shape s))
+      (cfs : shape j h cf) (cfps : shape j h cfp)
+    → let cfpu = count-factors-<-hom-size i h t u f yes
+          p = assˢᵘᵇ ∙ need i h t prev u f yes cfps cfpu
+          q = ap (_[ π _ ]) ([= ! p ] ∙ [◦]) ∙ ! [◦]
+      in
+      M⃗ i h (1+ t) s f cfs
+      ==
+      {!!} ◦ˢᵘᵇ
+        (M⃗ i h t prev f cfps ◦ˢᵘᵇ π (A h [ M⃗[ i , h ][ t ] prev u ])
+        ,, (υ _ ◂$ transp Tm q))
+  M⃗rec=-yes = {!!}
+
+  M⃗rec=-no :
     ∀ i h t (s : shape i h (1+ t)) {j} (f : hom i j)
     → (no : ¬ (f ∣ #[ t ] i h (<-from-shape s)))
     → let prev = prev-shape s
@@ -360,8 +387,8 @@ abstract
       in
       (cfs : shape j h cf) (cfps : shape j h cfp)
     → M⃗ i h (1+ t) s f cfs ==
-      idd (M= j h cfps cfs (! p)) ◦ˢᵘᵇ M⃗ i h t prev f _ ◦ˢᵘᵇ π (A h [ _ ])
-  M⃗rec= i h t s {j} f no cfs cfps with discrim i h t (<-from-shape s) f
+      idd (M= j h cfps cfs (! p)) ◦ˢᵘᵇ M⃗ i h t prev f cfps ◦ˢᵘᵇ π (A h [ _ ])
+  M⃗rec=-no i h t s {j} f no cfs cfps with discrim i h t (<-from-shape s) f
   ... | inl yes = ⊥-rec $ no yes
   ... | inr no' =
         ! $
@@ -403,8 +430,8 @@ M⃗◦[_,_,1+_]-deptype :
   → Dec (f ∣ #[ t ] i h u)
   → Type _
 M⃗◦[ i , h ,1+ t ]-deptype s {j} f {k} g dgf df =
-  let u    = <-from-shape s
-      cf   = count-factors-aux i h t u f df
+  let u = <-from-shape s
+      cf = count-factors-aux i h t u f df
   in
     (cfs : shape j h cf)
   → let cg = count-factors j h cf cfs g
@@ -426,50 +453,53 @@ M⃗◦[_,_,1+_] :
   → (df : Dec (f ∣ #[ t ] i h u))
   → M⃗◦[ i , h ,1+ t ]-deptype s f g dgf df
 
-M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) _ _ _ _ =
+M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) cfs cgs cgfs p =
 
-  M⃗ j h (1+ cf) _ g {!!} ◦ˢᵘᵇ (M⃗ i h t (prev-shape s) f {!!} ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+  M⃗ j h (1+ cfp) cfs g cgs ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
 
   =⟨ {!!} ⟩
 
-  idd (M= k h _ _ {!!}) ◦ˢᵘᵇ {!!} =∎
+  idd (M= k h cgfs cgs p)
+  ◦ˢᵘᵇ (M⃗ i h t prev (g ◦ f) prev-cgfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _) =∎
 
   where
-  cf = count-factors i h t (prev-shape s) f
+  prev = prev-shape s
+  prev-cfs = prev-shape cfs
+  prev-cgfs = prev-shape cgfs
+  cfp = count-factors i h t (prev-shape s) f
 
 M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inr no[f]) =
   ⊥-rec $ no[f] $ comp-divides-first-divides i h t _ f g yes[gf]
 
-M⃗◦[ i , h ,1+ t ] s {j} f {k} g dgf@(inr no[gf]) df@(inl yes[f]) cfs cgs cgfs p
-  =
+M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inr no[gf]) (inl yes[f]) cfs cgs cgfs p =
 
-  M⃗ j h (1+ cf) cfs g cgs ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+  M⃗ j h (1+ cfp) cfs g cgs ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
 
   =⟨ ap (_◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _))
-        (M⃗rec= j h cf cfs g no[g] cgs cgs') ⟩
+        (M⃗rec=-no j h cfp cfs g no[g] cgs cgs') ⟩
 
-  (idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ M⃗ j h cf prev-cfs g cgs'
+  (idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ M⃗ j h cfp prev-cfs g cgs'
     ◦ˢᵘᵇ π (A h [ _ ]))
   ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
 
   =⟨ assˢᵘᵇ ∙ ap (idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ_) assˢᵘᵇ ⟩
 
-  idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ M⃗ j h cf prev-cfs g cgs'
+  idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ M⃗ j h cfp prev-cfs g cgs'
   ◦ˢᵘᵇ π (A h [ _ ]) ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
 
   =⟨ βπ
    |in-ctx (λ ◻ →
      idd (M= k h cgs' cgs (! q))
-     ◦ˢᵘᵇ M⃗ j h cf prev-cfs g cgs'
+     ◦ˢᵘᵇ M⃗ j h cfp prev-cfs g cgs'
      ◦ˢᵘᵇ ◻) ⟩
 
-  idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ M⃗ j h cf prev-cfs g cgs'
+  idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ M⃗ j h cfp prev-cfs g cgs'
   ◦ˢᵘᵇ M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ])
 
   =⟨ ap (idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ_) (! assˢᵘᵇ) ∙ ! assˢᵘᵇ ⟩
 
   (idd (M= k h cgs' cgs (! q))
-    ◦ˢᵘᵇ M⃗ j h cf prev-cfs g cgs' ◦ˢᵘᵇ M⃗ i h t prev f prev-cfs)
+    ◦ˢᵘᵇ M⃗ j h cfp prev-cfs g cgs' ◦ˢᵘᵇ M⃗ i h t prev f prev-cfs)
   ◦ˢᵘᵇ π (A h [ _ ])
 
   =⟨ M⃗◦ i h t prev f g prev-cfs cgs' cgfs (r ∙ e)
@@ -482,7 +512,24 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g dgf@(inr no[gf]) df@(inl yes[f]) cfs cgs cg
     ◦ˢᵘᵇ idd (M= k h cgfs cgs' (r ∙ e)) ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) cgfs)
   ◦ˢᵘᵇ π (A h [ _ ])
 
-  =⟨ {!!} ⟩
+  =⟨ ap (_◦ˢᵘᵇ π (A h [ _ ])) (! assˢᵘᵇ) ⟩
+
+  ((idd (M= k h cgs' cgs (! q)) ◦ˢᵘᵇ idd (M= k h cgfs cgs' (r ∙ e)))
+    ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) cgfs)
+  ◦ˢᵘᵇ π (A h [ _ ])
+
+  =⟨ idd-◦ (M= k h cgfs cgs' (r ∙ e)) (M= k h cgs' cgs (! q))
+   ∙ ap idd
+       ( M=-∙ k h cgfs cgs' cgs (r ∙ e) (! q)
+       ∙ ap (M= k h cgfs cgs) (prop-path ℕ-id-is-prop ((r ∙ e) ∙ ! q) p) )
+   |in-ctx (λ ◻ →
+     (◻
+       ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) cgfs)
+     ◦ˢᵘᵇ π (A h [ _ ])) ⟩
+
+  (idd (M= k h cgfs cgs p) ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) cgfs) ◦ˢᵘᵇ π (A h [ _ ])
+
+  =⟨ assˢᵘᵇ ⟩
 
   idd (M= k h cgfs cgs p) ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) cgfs ◦ˢᵘᵇ π (A h [ _ ]) =∎
 
@@ -494,12 +541,12 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g dgf@(inr no[gf]) df@(inl yes[f]) cfs cgs cg
   prev = prev-shape s
   prev-cfs = prev-shape cfs
 
-  cf = count-factors i h t prev f
-  cgs' = count-factors-shape-aux j h cf (<-from-shape cfs) g dg
+  cfp = count-factors i h t prev f
+  cgs' = count-factors-shape-aux j h cfp (<-from-shape cfs) g dg
 
-  q = count-factors-not-divisible j h cf cfs g no[g]
+  q = count-factors-not-divisible j h cfp cfs g no[g]
   r = count-factors-comp i h t prev f g
-  e = ap (λ ◻ → count-factors j h cf ◻ g) (shape-path _ _)
+  e = ap (λ ◻ → count-factors j h cfp ◻ g) (shape-path _ _)
 
 M⃗◦[ i , h ,1+ t ] s f g (inr no[gf]) (inr no[f]) cfs cgs cgfs p =
   ! assˢᵘᵇ

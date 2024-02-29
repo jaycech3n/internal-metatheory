@@ -28,6 +28,10 @@ record WildCategoryStructure ℓₒ ℓₘ (Ob : Type ℓₒ) : Type (lsuc (ℓ�
              → σ ◦ idd p == transp! (λ x → hom x z) p σ
       iddr idp σ = idr σ
 
+      idd-◦ : ∀ {x y z} (p : x == y) (q : y == z)
+              → idd q ◦ idd p == idd (p ∙ q)
+      idd-◦ idp q = idr (idd q)
+
   open IdArrows public
 
 record WildCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ ∪ ℓₘ)) where
