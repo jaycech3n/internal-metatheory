@@ -834,7 +834,7 @@ How to do this one?...
     → count-factors i h t s (g ◦ f)
       ==
       let r = count-factors i h t s f
-          rs = count-factors-shape i h t s f
+          rs = count-factors-shape i h t s f -- Need to generalize over this too?
       in
       count-factors j h r rs g
 

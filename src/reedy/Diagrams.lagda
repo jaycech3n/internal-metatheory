@@ -277,7 +277,7 @@ M⃗[_,_,1+_] :
   → M⃗[ i , h ,1+ t ]-deptype s f d {cfs}
 
 M⃗[ i , h ,1+ t ] s {j} f d@(inl yes) cfs =
-  M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, (υ _ ◂$ transp Tm q)
+  M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, (υ _ ◂$ coeᵀᵐ q)
   where
   prev = prev-shape s
   u = <-from-shape s
@@ -378,7 +378,7 @@ abstract
       idd (M= j h cfs' cfs (! r))
       ◦ˢᵘᵇ
       (M⃗ i h t prev f cfps ◦ˢᵘᵇ π (A h [ M⃗[ i , h ][ t ] prev u ])
-        ,, (υ _ ◂$ transp Tm q))
+        ,, (υ _ ◂$ coeᵀᵐ q))
   M⃗rec=-yes i h t s f yes cfs cfs' = {!!}
 
   M⃗rec=-no :
@@ -459,7 +459,34 @@ M⃗◦[_,_,1+_] :
 
 M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) cfs cgs cgfs p =
 
-  M⃗ j h (1+ cfp) cfs g cgs ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+  M⃗ j h (1+ cfp) cfs g cgs
+  ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+
+  =⟨ M⃗rec=-yes j h cfp cfs g yes[g] cgs cgs'
+   |in-ctx (_◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)) ⟩
+
+  (idd (M= k h cgs' cgs (! r))
+    ◦ˢᵘᵇ
+    (M⃗ j h cfp prev-cfs g prev-cgs' ◦ˢᵘᵇ π (A h [ _ ])
+    ,, (υ _ ◂$ coeᵀᵐ q)))
+  ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+
+  =⟨ assˢᵘᵇ ⟩
+
+  idd (M= k h cgs' cgs (! r))
+  ◦ˢᵘᵇ
+  (M⃗ j h cfp prev-cfs g prev-cgs' ◦ˢᵘᵇ π (A h [ _ ]) ,, (υ _ ◂$ coeᵀᵐ q))
+    ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+
+  =⟨ ,,-◦
+   |in-ctx (idd (M= k h cgs' cgs (! r)) ◦ˢᵘᵇ_) ⟩
+
+  idd (M= k h cgs' cgs (! r))
+  ◦ˢᵘᵇ
+  ((M⃗ j h cfp prev-cfs g prev-cgs' ◦ˢᵘᵇ π (A h [ _ ]))
+    ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
+  ,,
+  (coe!ᵀᵐ [◦] (coeᵀᵐ q (υ _) [ M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _ ]ₜ)))
 
   =⟨ {!!} ⟩
 
@@ -470,7 +497,21 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) cfs cgs cgfs p =
   prev = prev-shape s
   prev-cfs = prev-shape cfs
   prev-cgfs = prev-shape cgfs
-  cfp = count-factors i h t (prev-shape s) f
+
+  u = <-from-shape s
+  cfp = count-factors i h t prev f
+
+  yes[g] = comp-divides-second-divides i h t u f g yes[gf]
+  dg = inl yes[g]
+
+  cfpu = <-from-shape cfs
+
+  cgs' = count-factors-shape-aux j h cfp cfpu g dg
+  prev-cgs' = prev-shape cgs'
+
+  e = assˢᵘᵇ ∙ need j h cfp prev-cfs cfpu g yes[g] prev-cgs' (<-from-shape cgs')
+  q = ap (_[ π _ ]) ([= ! e ] ∙ [◦]) ∙ ! [◦]
+  r = count-factors-divisible j h cfp cfs g yes[g]
 
 M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inr no[f]) =
   ⊥-rec $ no[f] $ comp-divides-first-divides i h t _ f g yes[gf]
@@ -538,14 +579,14 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inr no[gf]) (inl yes[f]) cfs cgs cgfs p =
   idd (M= k h cgfs cgs p) ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) cgfs ◦ˢᵘᵇ π (A h [ _ ]) =∎
 
   where
+  prev = prev-shape s
+  prev-cfs = prev-shape cfs
+  cfp = count-factors i h t prev f
+
   u = <-from-shape s
   no[g] = comp-divides-contra i h t u f g yes[f] no[gf]
   dg = inr no[g]
 
-  prev = prev-shape s
-  prev-cfs = prev-shape cfs
-
-  cfp = count-factors i h t prev f
   cgs' = count-factors-shape-aux j h cfp (<-from-shape cfs) g dg
 
   q = count-factors-not-divisible j h cfp cfs g no[g]
