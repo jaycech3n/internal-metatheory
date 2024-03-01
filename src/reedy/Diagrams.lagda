@@ -365,17 +365,21 @@ abstract
           cfp = count-factors i h t prev f
       in
       (yes : f ∣ #[ t ] i h (<-from-shape s))
-      (cfs : shape j h cf) (cfps : shape j h cfp)
-    → let cfpu = count-factors-<-hom-size i h t u f yes
+      (cfs : shape j h cf)
+      (cfs' : shape j h (1+ cfp))
+    → let cfps = prev-shape cfs'
+          cfpu = <-from-shape cfs'
           p = assˢᵘᵇ ∙ need i h t prev u f yes cfps cfpu
           q = ap (_[ π _ ]) ([= ! p ] ∙ [◦]) ∙ ! [◦]
+          r = count-factors-divisible i h t s f yes
       in
       M⃗ i h (1+ t) s f cfs
       ==
-      {!!} ◦ˢᵘᵇ
-        (M⃗ i h t prev f cfps ◦ˢᵘᵇ π (A h [ M⃗[ i , h ][ t ] prev u ])
+      idd (M= j h cfs' cfs (! r))
+      ◦ˢᵘᵇ
+      (M⃗ i h t prev f cfps ◦ˢᵘᵇ π (A h [ M⃗[ i , h ][ t ] prev u ])
         ,, (υ _ ◂$ transp Tm q))
-  M⃗rec=-yes = {!!}
+  M⃗rec=-yes i h t s f yes cfs cfs' = {!!}
 
   M⃗rec=-no :
     ∀ i h t (s : shape i h (1+ t)) {j} (f : hom i j)
