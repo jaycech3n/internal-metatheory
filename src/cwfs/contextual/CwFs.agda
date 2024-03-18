@@ -6,6 +6,7 @@ module cwfs.contextual.CwFs where
 
 open import categories.Categories public
 
+{-
 record ᵂContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ ∪ ℓₘ)) where
   infixl 31 _∷_
   infixl 35 _,,_
@@ -442,3 +443,4 @@ record ᵂContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ ∪ ℓₘ)) where
       coe-cod idp = idf _
 
   open substitutions public
+-}
