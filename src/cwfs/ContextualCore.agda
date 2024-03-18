@@ -47,7 +47,7 @@ module Sub
         → Subᶜ Γᶜ Δᶜ → Sub (con Γᶜ) (con Δᶜ)
 
   Subᶜ {n = O} _ _ = Lift ⊤
-  Subᶜ {n = 1+ n} Γᶜ (Δᶜ , A) = Σ[ σ ː Subᶜ Γᶜ Δᶜ ] Tm (A [ sub σ ])
+  Subᶜ {n = 1+ n} Γᶜ (Δᶜ , A) = Σ[ σ ﹕ Subᶜ Γᶜ Δᶜ ] Tm (A [ sub σ ])
 
   sub {n = 1+ n} (σ , b) = sub σ ,, b
   sub {m = 1+ m} {Γᶜ , A} {n = O} ✶ = (sub {Γᶜ = Γᶜ} ✶) ◦ π A
