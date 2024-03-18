@@ -48,6 +48,10 @@ record TyTmStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (ls
              → f == f' → A [ f ] == A [ f' ]
       [=_] {A = A} = ap (A [_])
 
+      ap[=] : ∀ {Γ Δ} {f f' : Sub Γ Δ} {A : Ty Δ} (p : f == f')
+              → ap Tm [= p ] == ap (Tm ∘ (A [_])) p
+      ap[=] idp = idp
+
       PathOver-Tm :
         ∀ {Γ} {A A' : Ty Γ} (p : A == A') (t : Tm A) (t' : Tm A') → Type ℓₘ
       PathOver-Tm = PathOver Tm

@@ -5,12 +5,22 @@ module hott.PathOver where
 open import hott.Base public
 
 module _ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} where
-  ↓-equal-paths : {x y : A} {u : B x } {v : B y} {p q : x == y}
-                  (α : p == q)
-                  → u == v [ B ↓ p ]
-                  → u == v [ B ↓ q ]
+
+  to-transp' :
+    {a a' : A} {p : a == a'}
+    {u : B a} {v : B a'}
+    → (u == v [ B ↓ p ])
+    → u == transp B (! p) v
+  to-transp' {p = idp} idp = idp
+
+  ↓-equal-paths :
+    {x y : A} {u : B x } {v : B y} {p q : x == y}
+    (α : p == q)
+    → u == v [ B ↓ p ]
+    → u == v [ B ↓ q ]
   ↓-equal-paths idp q = q
 
+  -- =⟨_⟩ notation
   infixl 40 ap↓2
   ap↓2 :
     ∀ {ℓ₃} {C : {a : A} → B a → Type ℓ₃}

@@ -1,3 +1,8 @@
+Telescopes in wild cwf's
+========================
+
+\begin{code}
+
 {-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
 
 open import cwfs.CwFs
@@ -7,8 +12,17 @@ module cwfs.Telescopes {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ}
 
 open CwFStructure cwfstr
 
-{- Small inductive-recursive definition of telescopes Θ in internal contexts Γ,
-and context extension by telescopes -}
+\end{code}
+
+
+Telescopes
+----------
+
+Small inductive-recursive definition of
+• telescopes Θ in internal contexts Γ, and
+• context extension by telescopes.
+
+\begin{code}
 
 data Tel (Γ : Con) : Type ℓₒ
 _++ₜₑₗ_ : (Γ : Con) → Tel Γ → Con
@@ -23,10 +37,20 @@ data Tel Γ where
 Γ ++ₜₑₗ • = Γ
 Γ ++ₜₑₗ (Θ ‣ A) = (Γ ++ₜₑₗ Θ) ∷ A
 
+\end{code}
+
+We "close" a telescope Θ by appending it to its context Γ.
+
+\begin{code}
+
 close : {Γ : Con} → Tel Γ → Con
 close {Γ} Θ = Γ ++ₜₑₗ Θ
 
-{- Substitution in telescopes
+\end{code}
+
+
+Substitution in telescopes
+--------------------------
 
 Consider a telescope Θ = (Δ ⊢ A₁, A₂, ..., Aₙ) in context Δ. For any
 substitution f : Sub Γ Δ we get the telescope Θ[f]ₜₑₗ given by the left hand
@@ -44,7 +68,8 @@ column of the diagram
                                f
 
 (see cwfs.CwFs for the definition of _∷ₛ_).
--}
+
+\begin{code}
 
 infixl 40 _[_]ₜₑₗ _++ₛ_
 
@@ -67,20 +92,29 @@ private
     _ : Θ [ f ]ₜₑₗ == • ‣ A₁ [ f ] ‣ A₂ [ f ∷ₛ A₁ ] ‣ A₃ [ f ∷ₛ A₁ ∷ₛ A₂ ]
     _ = idp
 
--- Projection
+\end{code}
+
+Projection, forgetting a telescope.
+
+\begin{code}
+
 πₜₑₗ : ∀ {Γ} (Θ : Tel Γ) → Sub (Γ ++ₜₑₗ Θ) Γ
 πₜₑₗ • = id
 πₜₑₗ (Θ ‣ A) = πₜₑₗ Θ ◦ π A
 
-{- The following diagram commutes:
+\end{code}
 
-                    σ ++ₛ Θ
-          Γ ++ Θ[σ] ------> Δ ++ Θ
+The following diagram commutes:
+
+                   σ ++ₛ Θ
+         Γ ++ Θ[σ] ------> Δ ++ Θ
     π (Θ[σ]) |                | π Θ
              ↓                ↓
              Γ -------------> Δ
-                      σ
--}
+                     σ
+
+\begin{code}
+
 ++ₛ-comm : ∀ {Γ Δ} (σ : Sub Γ Δ) (Θ : Tel Δ)
   → πₜₑₗ Θ ◦ (σ ++ₛ Θ) == σ ◦ πₜₑₗ (Θ [ σ ]ₜₑₗ)
 ++ₛ-comm σ • = idl _ ∙ ! (idr _)
@@ -88,27 +122,45 @@ private
   (πₜₑₗ Θ ◦ π A) ◦ (σ ++ₛ Θ ∷ₛ A)
     =⟨ ass ⟩
   πₜₑₗ Θ ◦ (π A ◦ (σ ++ₛ Θ ∷ₛ A))
-    =⟨ βπ |in-ctx (πₜₑₗ Θ ◦_) ⟩
+    =⟨ ap (πₜₑₗ Θ ◦_) βπ ⟩
   πₜₑₗ Θ ◦ (σ ++ₛ Θ) ◦ π (A [ σ ++ₛ Θ ])
-    =⟨ ! ass ∙ (++ₛ-comm σ Θ |in-ctx (_◦ π _)) ∙ ass ⟩
+    =⟨ ! ass ∙ (ap (_◦ π _) $ ++ₛ-comm σ Θ) ∙ ass ⟩
   σ ◦ πₜₑₗ (Θ [ σ ]ₜₑₗ) ◦ π (A [ σ ++ₛ Θ ])
     =∎
 
--- Weaken a *telescope* by a type
+\end{code}
+
+Weakening a telescope by a type.
+
+\begin{code}
+
 infix 32 wknₜₑₗ_by
+
 wknₜₑₗ_by : ∀ {Γ} → Tel Γ → (X : Ty Γ) → Tel (Γ ∷ X)
 wknₜₑₗ Θ by X = Θ [ π X ]ₜₑₗ
 
 wkₜₑₗ : ∀ {Γ} {X : Ty Γ} → Tel Γ → Tel (Γ ∷ X)
 wkₜₑₗ {X = X} Θ = wknₜₑₗ Θ by X
 
--- Weakening by a telescope
+\end{code}
+
+Weakening a type by a telescope (i.e. repeated weakening).
+
+\begin{code}
+
 infix 37 wkn_byₜₑₗ
+
 wkn_byₜₑₗ : ∀ {Γ} → Ty Γ → (Θ : Tel Γ) → Ty (Γ ++ₜₑₗ Θ)
 wkn X byₜₑₗ Θ = X [ πₜₑₗ Θ ]
 
 wknₜ_byₜₑₗ : ∀ {Γ} {X : Ty Γ} (x : Tm X) (Θ : Tel Γ) → Tm (wkn X byₜₑₗ Θ)
 wknₜ x byₜₑₗ Θ = x [ πₜₑₗ Θ ]ₜ
+
+\end{code}
+
+TODO: clean up the following.
+
+\begin{code}
 
 -- A particular version of a weakened variable υ that we need.
 υ⁺ : ∀ {Γ} (Θ : Tel Γ) (X : Ty Γ) → Tm (X [ πₜₑₗ Θ ◦ (π X ++ₛ Θ) ])
@@ -123,7 +175,7 @@ wkn-sub-lemma :
   → πₜₑₗ Θ' ◦ σ == πₜₑₗ Θ
   → Σ (Sub (Γ ∷ X ++ₜₑₗ wkₜₑₗ Θ) (Γ ∷ X ++ₜₑₗ wkₜₑₗ Θ'))
     λ σ↑X → (π X ++ₛ Θ') ◦ σ↑X == σ ◦ (π X ++ₛ Θ)
-wkn-sub-lemma = {!!}
+wkn-sub-lemma = {!-- This is Lemma 4.2 in the paper, version as of 18.03.2024!}
 
 wkn-sub :
   ∀ {Γ} (Θ Θ' : Tel Γ) (σ : Sub (Γ ++ₜₑₗ Θ) (Γ ++ₜₑₗ Θ'))
@@ -132,7 +184,9 @@ wkn-sub :
   → Sub (Γ ∷ X ++ₜₑₗ wkₜₑₗ Θ) (Γ ∷ X ++ₜₑₗ wkₜₑₗ Θ')
 wkn-sub Θ Θ' σ p X = fst (wkn-sub-lemma Θ Θ' X σ p)
 
-{-
+{- Previous version of wkn-sub-lemma had commuting squares instead of triangles,
+   which was unnecessary.
+
 -- Weaken a *substitution* between telescopes by a type
 wkn-sub-lemma : ∀ {Γ Δ} (Θ : Tel Γ) (X : Ty Δ) (σ₀ : Sub Γ Δ)
   (Θ' : Tel Δ)
@@ -273,3 +327,5 @@ module Πₜₑₗ (pistr : PiStructure cwfstr) where
 
       p : X [ π X ] == Πₜₑₗ (Θ [ π X ]ₜₑₗ) U
       p = Πₜₑₗ[] Θ U (π X) ∙ ap (Πₜₑₗ (Θ [ π X ]ₜₑₗ)) U[]
+
+\end{code}

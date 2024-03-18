@@ -23,7 +23,7 @@ record SigmaStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfstr :
 
     ηΣ′ : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} {ab : Tm (Σ′ A B)} → (fst′ ab ﹐ snd′ ab) == ab
 
-    Σ′[] : ∀ {Γ Δ} {A B} {f : Sub Γ Δ} → (Σ′ A B) [ f ] == Σ′ (A [ f ]) (B [ f ↑ A ])
+    Σ′[] : ∀ {Γ Δ} {A B} {f : Sub Γ Δ} → (Σ′ A B) [ f ] == Σ′ (A [ f ]) (B [ f ∷ₛ A ])
 
     ﹐[]ₜ : ∀ {Γ Δ} {A B} {f : Sub Γ Δ} {a : Tm A} {b : Tm (B ⟦ a ⟧)}
             → (a ﹐ b) [ f ]ₜ == (a [ f ]ₜ ﹐ coe!ᵀᵐ ([]-⟦⟧ B f a) (b [ f ]ₜ)) over⟨ Σ′[] ⟩

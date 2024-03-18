@@ -95,6 +95,14 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
 
   private
     module equalities where
+      βυ' : ∀ {Γ Δ} {f : Sub Γ Δ} {A : Ty Δ} {t : Tm (A [ f ])}
+            → υ A [ f ,, t ]ₜ == coeᵀᵐ (! [= βπ ] ∙ [◦]) t
+      βυ' {t = t} =
+        to-transp' βυ
+        ∙ ap (λ p → coeᵀᵐ p t)
+             (!-∙ ![◦] [= βπ ]
+             ∙ ap (! [= βπ ] ∙_) (!-! _))
+
       -- Important lemma; substitution of transported terms
       coeᵀᵐ-[]ₜ-stable :
         ∀ {Γ Δ} {A A' : Ty Δ} (p : A == A') (a : Tm A) (f : Sub Γ Δ)
@@ -140,11 +148,6 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         → (f ,, t) == (f' ,, coeᵀᵐ [= p ] t)
       ⟨= idp ,,=⟩ = idp
 
-      -- ⟨=_,,=⟩∙ :
-      --   ∀ {Γ Δ} {A : Ty Δ} {f f' : Sub Γ Δ} {t : Tm (A [ f ])}
-      --   → (p : f == f')
-      --   → (f ,, coeᵀᵐ t) == (f' ,, coeᵀᵐ [= p ] t)
-
       η-sub : ∀ {Γ Δ} {A : Ty Δ} (ϕ : Sub Γ (Δ ∷ A))
               → ϕ == (π A ◦ ϕ ,, coe!ᵀᵐ [◦] (υ A [ ϕ ]ₜ))
       η-sub {A = A} ϕ =
@@ -162,6 +165,30 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         → coe!ᵀᵐ [◦] (υ A [ f ]ₜ) == coe!ᵀᵐ [◦] (υ A [ g ]ₜ) over⟨ [= p ] ⟩
         → f == g
       sub= {A = A} f g p q = η-sub f ∙ ⟨= p ,, q =⟩ ∙ ! (η-sub g)
+
+      -- Characterization of substitutions into extended contexts
+      module _ {Γ Δ : Con} {A : Ty Δ} where
+        ext-sub-equiv :
+          Sub Γ (Δ ∷ A) ≃ (Σ[ σ ﹕ Sub Γ Δ ] Tm (A [ σ ]))
+        ext-sub-equiv =
+          equiv f g h1 h2
+          where
+          f = λ σ → (π A ◦ σ) , coe!ᵀᵐ [◦] (υ A [ σ ]ₜ)
+          g = uncurry _,,_
+          h2 = ! ∘ η-sub
+
+          lem : ∀ σ a
+              → transp (Tm ∘ (A [_])) βπ
+                  (coe!ᵀᵐ [◦] (υ A [ σ ,, a ]ₜ))
+                == a
+          lem σ a =
+            (! (ap[=] βπ)
+            |in-ctx (λ ◻ → coe ◻ (coe!ᵀᵐ [◦] (υ A [ σ ,, a ]ₜ)))
+            )
+            ∙ ! (transp-∙ ![◦] [= βπ ] (υ A [ σ ,, a ]ₜ))
+            ∙ to-transp βυ
+
+          h1 = λ{(σ , a) → pair= βπ (from-transp _ βπ (lem σ a))}
 
       ext-sub-elim : ∀ {ℓ} {Γ Δ} {A : Ty Δ} (P : Sub Γ (Δ ∷ A) → Type ℓ)
         → ((f : Sub Γ Δ) (t : Tm (A [ f ])) → P (f ,, t))

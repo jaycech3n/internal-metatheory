@@ -5,7 +5,7 @@ module hott.Sigma where
 open import hott.Base public
 
 Σ-syntax = Σ
-syntax Σ-syntax A (λ x → B) = Σ[ x ﹕ A ] B -- use \:3
+syntax Σ-syntax A (λ x → B) = Σ[ x ﹕ A ] B -- use \:9
 
 last-two : ∀ {ℓ₁ ℓ₂ ℓ₃} {A : Type ℓ₁} {B : Type ℓ₂} {C : Type ℓ₃}
   → A × B × C → B × C
