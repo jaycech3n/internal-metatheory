@@ -246,6 +246,32 @@ Partial matching objects: M⃗ (morphism part)
 
 Now, the action M⃗ of the partial matching object on morphisms f.
 
+We need the following commutation lemma in its definition.
+
+\begin{code}
+
+idd◦M⃗=' :
+  ∀ i h t s {j} (f : hom i j)
+  → let cf = count-factors i h t s f in
+    (s₀ s₁ : shape j h cf)
+  → (p q : cf == cf)
+  → idd (M= j h s₀ s₁ p) ◦ˢᵘᵇ M⃗ i h t s f s₀ ==
+    idd (M= j h s₁ s₁ q) ◦ˢᵘᵇ M⃗ i h t s f s₁
+idd◦M⃗=' i h t s {j} f s₀ s₁ p q =
+  ap (λ (sₓ , e) → idd (M= j h sₓ s₁ e) ◦ˢᵘᵇ M⃗ i h t s f sₓ)
+     (pair×=
+       (prop-path shape-is-prop s₀ s₁)
+       (prop-path has-level-apply-instance p q))
+
+comm :
+  ∀ i j h t t' s s' (f : hom i j)
+  → let cf = count-factors i h t s f in
+    (p : cf == t') {cfs : shape j h cf}
+  → πₜₑₗ (Mᵒ j h t' s') ◦ˢᵘᵇ idd (M= j h _ _ p) ◦ˢᵘᵇ M⃗ i h t s f cfs
+    == πₜₑₗ (Mᵒ i h t s)
+
+\end{code}
+
 The recursive definition of M⃗ in the (i, h, t+1) case requires its type to
 compute to the appropriate value depending on whether or not f divides [t]ⁱₕ. To
 actually allow this computation to occur, the type needs to expose an argument
@@ -316,7 +342,7 @@ M⃗ i h (1+ t) s f _ = M⃗[ i , h ,1+ t ] s f (f ∣? #[ t ] i h u) _
 M⃗ i (1+ h) O s {j} f _ =
   wkn-sub (Mᵒᶠᵘˡˡ i h) (Mᵒᶠᵘˡˡ j h)
     (idd eq ◦ˢᵘᵇ M⃗ i h fullᵢ shpᵢ f _)
-    {!commutation lemma; another component of the definition!}
+    (comm i j h fullᵢ fullⱼ shpᵢ shpⱼ f cf-fullⱼ)
     (𝔸 (1+ h))
   where
   fullᵢ = hom-size i h
@@ -328,10 +354,33 @@ M⃗ i (1+ h) O s {j} f _ =
   fullⱼ = hom-size j h
   shpⱼ = full-shape j h
 
+  cf-fullⱼ = count-factors-full i h shpᵢ f
+
   eq : M j h cf sh == M j h fullⱼ shpⱼ
-  eq = M= j h _ _ (count-factors-full i h shpᵢ f)
+  eq = M= j h _ _ cf-fullⱼ
 
 M⃗ i O O s f _ = id
+
+\end{code}
+
+Can this go here?
+
+\begin{code}
+
+comm i j h (1+ t) cf s s' f idp = {!!}
+comm i j (1+ h) O cf s s' f idp = {!!}
+comm i j O O cf s s' f idp {cfs} =
+  πₜₑₗ (Mᵒ j O (count-factors i O O s f) s')
+  ◦ˢᵘᵇ idd (M= j O cfs s' idp) ◦ˢᵘᵇ M⃗ i O O s f cfs
+  =⟨ {!idd◦M⃗='!} ⟩
+  πₜₑₗ (Mᵒ j O (count-factors i O O s f) s')
+  ◦ˢᵘᵇ idd (M= j O s' s' idp) ◦ˢᵘᵇ M⃗ i O O s f s'
+  =⟨ {!!} ⟩
+  πₜₑₗ (Mᵒ j O (count-factors i O O s f) s')
+  ◦ˢᵘᵇ idd idp ◦ˢᵘᵇ M⃗ i O O s f s'
+  =⟨ idl (id ◦ˢᵘᵇ id) ∙ idl id ⟩
+  πₜₑₗ (Mᵒ i O O s)
+  =∎
 
 \end{code}
 
@@ -403,7 +452,7 @@ abstract
         =⟨ ap
             (λ ◻ →
               idd (ap (M j h _) ◻) ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f (inr no') cfs)
-            (prop-path shape-id-is-prop (shape-path cfs cfs) idp)
+              (prop-path shape-id-is-prop (shape-path cfs cfs) idp)
         ⟩
         id ◦ˢᵘᵇ M⃗[ i , h ,1+ t ] s f (inr no') cfs
         =⟨ idl _ ⟩
