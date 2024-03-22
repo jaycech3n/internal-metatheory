@@ -86,6 +86,10 @@ module Convenience where
   M= : ∀ i h {t} s {t'} s' → t == t' → M i h t s == M i h t' s'
   M= i h {t} s {.t} s' idp = M=shape s s'
 
+  M=-idp : ∀ {i h t s} → M= i h {t} s s idp == idp
+  M=-idp {i} {h} {t} {s} =
+    ap (ap (M i h t)) (prop-path shape-id-is-prop (shape-path s s) idp)
+
   M=-∙ :
     ∀ i h {t} s {t'} s' {t''} s''
     → (p : t == t') (q : t' == t'')
@@ -250,19 +254,6 @@ We need the following commutation lemma in its definition.
 
 \begin{code}
 
-idd◦M⃗=' :
-  ∀ i h t s {j} (f : hom i j)
-  → let cf = count-factors i h t s f in
-    (s₀ s₁ : shape j h cf)
-  → (p q : cf == cf)
-  → idd (M= j h s₀ s₁ p) ◦ˢᵘᵇ M⃗ i h t s f s₀ ==
-    idd (M= j h s₁ s₁ q) ◦ˢᵘᵇ M⃗ i h t s f s₁
-idd◦M⃗=' i h t s {j} f s₀ s₁ p q =
-  ap (λ (sₓ , e) → idd (M= j h sₓ s₁ e) ◦ˢᵘᵇ M⃗ i h t s f sₓ)
-     (pair×=
-       (prop-path shape-is-prop s₀ s₁)
-       (prop-path has-level-apply-instance p q))
-
 comm :
   ∀ i j h t t' s s' (f : hom i j)
   → let cf = count-factors i h t s f in
@@ -367,19 +358,29 @@ Can this go here?
 
 \begin{code}
 
+idd◦M⃗=' :
+  ∀ i h t s {j} (f : hom i j)
+  → let cf = count-factors i h t s f in
+    (s₀ s₁ : shape j h cf)
+  → (p q : cf == cf)
+  → idd (M= j h s₀ s₁ p) ◦ˢᵘᵇ M⃗ i h t s f s₀ ==
+    idd (M= j h s₁ s₁ q) ◦ˢᵘᵇ M⃗ i h t s f s₁
+idd◦M⃗=' i h t s {j} f s₀ s₁ p q =
+  ap (λ (sₓ , e) → idd (M= j h sₓ s₁ e) ◦ˢᵘᵇ M⃗ i h t s f sₓ)
+     (pair×=
+       (prop-path shape-is-prop s₀ s₁)
+       (prop-path has-level-apply-instance p q))
+
 comm i j h (1+ t) cf s s' f idp = {!!}
 comm i j (1+ h) O cf s s' f idp = {!!}
 comm i j O O cf s s' f idp {cfs} =
-  πₜₑₗ (Mᵒ j O (count-factors i O O s f) s')
-  ◦ˢᵘᵇ idd (M= j O cfs s' idp) ◦ˢᵘᵇ M⃗ i O O s f cfs
-  =⟨ {!idd◦M⃗='!} ⟩
-  πₜₑₗ (Mᵒ j O (count-factors i O O s f) s')
-  ◦ˢᵘᵇ idd (M= j O s' s' idp) ◦ˢᵘᵇ M⃗ i O O s f s'
-  =⟨ {!!} ⟩
-  πₜₑₗ (Mᵒ j O (count-factors i O O s f) s')
-  ◦ˢᵘᵇ idd idp ◦ˢᵘᵇ M⃗ i O O s f s'
+  πₜₑₗ • ◦ˢᵘᵇ idd (M= j O cfs s' idp) ◦ˢᵘᵇ id
+  =⟨ (idd◦M⃗=' i O O s f cfs s' idp idp) |in-ctx (πₜₑₗ • ◦ˢᵘᵇ_) ⟩
+  πₜₑₗ • ◦ˢᵘᵇ idd (M= j O s' s' idp) ◦ˢᵘᵇ id
+  =⟨ M=-idp |in-ctx (λ ◻ → πₜₑₗ • ◦ˢᵘᵇ idd ◻ ◦ˢᵘᵇ id) ⟩
+  πₜₑₗ • ◦ˢᵘᵇ idd idp ◦ˢᵘᵇ id
   =⟨ idl (id ◦ˢᵘᵇ id) ∙ idl id ⟩
-  πₜₑₗ (Mᵒ i O O s)
+  πₜₑₗ •
   =∎
 
 \end{code}
@@ -527,15 +528,30 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) cfs cgs cgfs p =
   (M⃗ j h cfp prev-cfs g prev-cgs' ◦ˢᵘᵇ π (A h [ _ ]) ,, (υ _ ◂$ coeᵀᵐ q))
     ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
 
-  =⟨ ,,-◦
-   |in-ctx (idd (M= k h cgs' cgs (! r)) ◦ˢᵘᵇ_) ⟩
+  =⟨ ap (idd (M= k h cgs' cgs (! r)) ◦ˢᵘᵇ_)
+       ( ,,-◦ ∙ ⟨= assˢᵘᵇ ∙ e' ∙ ! assˢᵘᵇ ,,=⟩ ) ⟩
 
   idd (M= k h cgs' cgs (! r))
   ◦ˢᵘᵇ
-  ((M⃗ j h cfp prev-cfs g prev-cgs' ◦ˢᵘᵇ π (A h [ _ ]))
-    ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
-  ,,
-  (coe!ᵀᵐ [◦] (coeᵀᵐ q (υ _) [ M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _ ]ₜ)))
+  ( (M⃗ j h cfp prev-cfs g prev-cgs' ◦ˢᵘᵇ M⃗ i h t prev f prev-cfs)
+    ◦ˢᵘᵇ π (A h [ _ ])
+  ,, coeᵀᵐ [= assˢᵘᵇ ∙ e' ∙ ! assˢᵘᵇ ] (coe!ᵀᵐ [◦]
+       (coeᵀᵐ q (υ _) [ M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _ ]ₜ))
+  )
+
+  -- =⟨ ap (idd (M= k h cgs' cgs (! r)) ◦ˢᵘᵇ_)
+  --      {! M⃗ j h cfp prev-cfs g prev-cgs'
+  --         ◦ˢᵘᵇ M⃗ i h t prev f prev-cfs
+  --         == idd !} ⟩
+
+  -- idd (M= k h cgs' cgs (! r))
+  -- ◦ˢᵘᵇ
+  -- ( M⃗ j h cfp prev-cfs g prev-cgs'
+  --    ◦ˢᵘᵇ M⃗ i h t prev f prev-cfs
+  --    ◦ˢᵘᵇ π (A h [ _ ])
+  -- ,, coeᵀᵐ [= e' ] (coe!ᵀᵐ [◦]
+  --      (coeᵀᵐ q (υ _) [ M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _ ]ₜ))
+  -- )
 
   =⟨ {!!} ⟩
 
@@ -561,6 +577,8 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) cfs cgs cgfs p =
   e = assˢᵘᵇ ∙ need j h cfp prev-cfs cfpu g yes[g] prev-cgs' (<-from-shape cgs')
   q = ap (_[ π _ ]) ([= ! e ] ∙ [◦]) ∙ ! [◦]
   r = count-factors-divisible j h cfp cfs g yes[g]
+
+  e' = ap (M⃗ j h cfp prev-cfs g prev-cgs' ◦ˢᵘᵇ_) βπ
 
 M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inr no[f]) =
   ⊥-rec $ no[f] $ comp-divides-first-divides i h t _ f g yes[gf]
