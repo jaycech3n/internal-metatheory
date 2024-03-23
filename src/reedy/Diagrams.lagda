@@ -539,19 +539,15 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) cfs cgs cgfs p =
        (coeᵀᵐ q (υ _) [ M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _ ]ₜ))
   )
 
-  -- =⟨ ap (idd (M= k h cgs' cgs (! r)) ◦ˢᵘᵇ_)
-  --      {! M⃗ j h cfp prev-cfs g prev-cgs'
-  --         ◦ˢᵘᵇ M⃗ i h t prev f prev-cfs
-  --         == idd !} ⟩
+  =⟨ {!!} ⟩
 
-  -- idd (M= k h cgs' cgs (! r))
-  -- ◦ˢᵘᵇ
-  -- ( M⃗ j h cfp prev-cfs g prev-cgs'
-  --    ◦ˢᵘᵇ M⃗ i h t prev f prev-cfs
-  --    ◦ˢᵘᵇ π (A h [ _ ])
-  -- ,, coeᵀᵐ [= e' ] (coe!ᵀᵐ [◦]
-  --      (coeᵀᵐ q (υ _) [ M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _ ]ₜ))
-  -- )
+  idd (M= k h cgs' cgs (! r))
+  ◦ˢᵘᵇ
+  ( (idd (M= k h prev-cgfs prev-cgs' p') ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) prev-cgfs)
+    ◦ˢᵘᵇ π (A h [ _ ])
+  ,, coeᵀᵐ [= {!!} ] (coeᵀᵐ [= assˢᵘᵇ ∙ e' ∙ ! assˢᵘᵇ ] (coe!ᵀᵐ [◦]
+       (coeᵀᵐ q (υ _) [ M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _ ]ₜ)))
+  )
 
   =⟨ {!!} ⟩
 
@@ -579,6 +575,10 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) cfs cgs cgfs p =
   r = count-factors-divisible j h cfp cfs g yes[g]
 
   e' = ap (M⃗ j h cfp prev-cfs g prev-cgs' ◦ˢᵘᵇ_) βπ
+
+  p' : count-factors i h t prev (g ◦ f) ==
+       count-factors j h (count-factors i h t prev f) prev-cfs g
+  p' = count-factors-comp i h t prev f g prev-cfs
 
 M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inr no[f]) =
   ⊥-rec $ no[f] $ comp-divides-first-divides i h t _ f g yes[gf]
@@ -657,7 +657,7 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inr no[gf]) (inl yes[f]) cfs cgs cgfs p =
   cgs' = count-factors-shape-aux j h cfp (<-from-shape cfs) g dg
 
   q = count-factors-not-divisible j h cfp cfs g no[g]
-  r = count-factors-comp i h t prev f g
+  r = count-factors-comp i h t prev f g _
   e = ap (λ ◻ → count-factors j h cfp ◻ g) (shape-path _ _)
 
 M⃗◦[ i , h ,1+ t ] s f g (inr no[gf]) (inr no[f]) cfs cgs cgfs p =

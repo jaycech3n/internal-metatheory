@@ -831,6 +831,63 @@ How to do this one?...
 
   count-factors-comp :
     ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
+    → let cf = count-factors i h t s f in
+      (cfs : shape j h cf)
+    → count-factors i h t s (g ◦ f) ==
+      count-factors j h cf cfs g
+
+  count-factors-comp-aux :
+    ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
+    → (dgf : Dec (g ◦ f ∣ #[ t ] i h u))
+    → (df : Dec (f ∣ #[ t ] i h u))
+    → let cf = count-factors-aux i h t u f df in
+      (cfs : shape j h cf)
+    → count-factors-aux i h t u (g ◦ f) dgf ==
+      count-factors j h cf cfs g
+
+  count-factors-comp i h O s f g _ = idp
+  count-factors-comp i h (1+ t) s f g =
+    let u = <-from-shape s in
+    count-factors-comp-aux i h t u f g
+      (discrim i h t u (g ◦ f))
+      (discrim i h t u f)
+
+  count-factors-comp-aux i h t u {j} f g (inl yes[gf]) df@(inl yes[f]) cfs =
+    ap 1+ (count-factors-comp i h t (<-to-shape u) f g prev-cfs) ∙ ! p
+    where
+    cf = count-factors i h t (<-to-shape u) f
+    prev-cfs = prev-shape cfs
+
+    g∣[r] = comp-divides-second-divides i h t u f g yes[gf]
+
+    p : count-factors j h (1+ cf) cfs g ==
+        1+ (count-factors j h cf prev-cfs g)
+    p = count-factors-divisible j h cf cfs g g∣[r]
+
+  count-factors-comp-aux i h t u f g (inl yes[gf]) (inr no[f]) cfs =
+    ⊥-rec $ no[f] $ comp-divides-first-divides i h t u f g yes[gf]
+
+  count-factors-comp-aux i h t u {j} f g (inr no[gf]) df@(inl yes[f]) cfs =
+    count-factors-comp i h t (<-to-shape u) f g prev-cfs ∙ ! p
+    where
+    cf = count-factors i h t (<-to-shape u) f
+    prev-cfs = prev-shape cfs
+
+    g∤[r] = comp-divides-contra i h t u f g yes[f] no[gf]
+
+    p : count-factors j h (1+ cf) cfs g ==
+        count-factors j h cf prev-cfs g
+    p = count-factors-not-divisible j h cf cfs g g∤[r]
+
+  count-factors-comp-aux i h t u f g (inr no[gf]) (inr no[f]) =
+    count-factors-comp i h t (<-to-shape u) f g
+
+\end{code}
+
+Old version:
+
+  count-factors-comp :
+    ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
     → count-factors i h t s (g ◦ f)
       ==
       let r = count-factors i h t s f
@@ -886,5 +943,3 @@ How to do this one?...
 
   count-factors-comp-aux i h t u f g (inr no[gf]) (inr no[f]) =
     count-factors-comp i h t (<-to-shape u) f g
-
-\end{code}
