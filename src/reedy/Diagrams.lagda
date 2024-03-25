@@ -6,7 +6,8 @@ in contexts of a wild category with families
 
 \begin{code}
 
-{-# OPTIONS --without-K --rewriting --termination-depth=2 #-}
+{-# OPTIONS --without-K --rewriting #-}
+--termination-depth=2
 
 open import reedy.SimpleSemicategories
 open import cwfs.CwFs
@@ -529,7 +530,7 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) cfs cgs cgfs p =
     ◦ˢᵘᵇ (M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _)
 
   =⟨ ap (idd (M= k h cgs' cgs (! r)) ◦ˢᵘᵇ_)
-       ( ,,-◦ ∙ ⟨= assˢᵘᵇ ∙ e' ∙ ! assˢᵘᵇ ,,=⟩ ) ⟩
+      ( ,,-◦ ∙ ⟨= assˢᵘᵇ ∙ e' ∙ ! assˢᵘᵇ ,,=⟩ ) ⟩
 
   idd (M= k h cgs' cgs (! r))
   ◦ˢᵘᵇ
@@ -539,13 +540,14 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) cfs cgs cgfs p =
        (coeᵀᵐ q (υ _) [ M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _ ]ₜ))
   )
 
-  =⟨ {!!} ⟩
+  =⟨ ap (idd (M= k h cgs' cgs (! r)) ◦ˢᵘᵇ_)
+      ⟨= e'' ,,=⟩ ⟩
 
   idd (M= k h cgs' cgs (! r))
   ◦ˢᵘᵇ
   ( (idd (M= k h prev-cgfs prev-cgs' p') ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) prev-cgfs)
     ◦ˢᵘᵇ π (A h [ _ ])
-  ,, coeᵀᵐ [= {!!} ] (coeᵀᵐ [= assˢᵘᵇ ∙ e' ∙ ! assˢᵘᵇ ] (coe!ᵀᵐ [◦]
+  ,, coeᵀᵐ [= e'' ] (coeᵀᵐ [= assˢᵘᵇ ∙ e' ∙ ! assˢᵘᵇ ] (coe!ᵀᵐ [◦]
        (coeᵀᵐ q (υ _) [ M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _ ]ₜ)))
   )
 
@@ -579,6 +581,10 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) cfs cgs cgfs p =
   p' : count-factors i h t prev (g ◦ f) ==
        count-factors j h (count-factors i h t prev f) prev-cfs g
   p' = count-factors-comp i h t prev f g prev-cfs
+
+  e'' = ap (_◦ˢᵘᵇ π (A h [ _ ])) (M⃗◦ i h t prev f g prev-cfs prev-cgs' prev-cgfs p')
+  -- (M⃗ j h cfp prev-cfs g prev-cgs' ◦ˢᵘᵇ M⃗ i h t prev f prev-cfs)
+  -- ( (idd (M= k h prev-cgfs prev-cgs' p') ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) prev-cgfs)
 
 M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inr no[f]) =
   ⊥-rec $ no[f] $ comp-divides-first-divides i h t _ f g yes[gf]
