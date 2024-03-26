@@ -540,14 +540,16 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) cfs cgs cgfs p =
        (coeᵀᵐ q (υ _) [ M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _ ]ₜ))
   )
 
-  =⟨ ap (idd (M= k h cgs' cgs (! r)) ◦ˢᵘᵇ_)
-      ⟨= e'' ,,=⟩ ⟩
+  -- =⟨ ap (idd (M= k h cgs' cgs (! r)) ◦ˢᵘᵇ_)
+  --     ⟨= e'' ,,=⟩ ⟩
+
+  =⟨ {!!} ⟩
 
   idd (M= k h cgs' cgs (! r))
   ◦ˢᵘᵇ
-  ( (idd (M= k h prev-cgfs prev-cgs' p') ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) prev-cgfs)
+  ( (idd (M= k h prev-cgfs prev-cgs' p') ◦ˢᵘᵇ {!M⃗ i h t prev (g ◦ f) prev-cgfs!})
     ◦ˢᵘᵇ π (A h [ _ ])
-  ,, coeᵀᵐ [= e'' ] (coeᵀᵐ [= assˢᵘᵇ ∙ e' ∙ ! assˢᵘᵇ ] (coe!ᵀᵐ [◦]
+  ,, coeᵀᵐ [= {!e''!} ] (coeᵀᵐ [= assˢᵘᵇ ∙ e' ∙ ! assˢᵘᵇ ] (coe!ᵀᵐ [◦]
        (coeᵀᵐ q (υ _) [ M⃗ i h t prev f prev-cfs ◦ˢᵘᵇ π (A h [ _ ]) ,, _ ]ₜ)))
   )
 
@@ -582,9 +584,13 @@ M⃗◦[ i , h ,1+ t ] s {j} f {k} g (inl yes[gf]) (inl yes[f]) cfs cgs cgfs p =
        count-factors j h (count-factors i h t prev f) prev-cfs g
   p' = count-factors-comp i h t prev f g prev-cfs
 
-  e'' = ap (_◦ˢᵘᵇ π (A h [ _ ])) (M⃗◦ i h t prev f g prev-cfs prev-cgs' prev-cgfs p')
-  -- (M⃗ j h cfp prev-cfs g prev-cgs' ◦ˢᵘᵇ M⃗ i h t prev f prev-cfs)
-  -- ( (idd (M= k h prev-cgfs prev-cgs' p') ◦ˢᵘᵇ M⃗ i h t prev (g ◦ f) prev-cgfs)
+  -- e'' :
+  --   (M⃗ j h cfp prev-cfs g prev-cgs' ◦ˢᵘᵇ M⃗ i h t prev f prev-cfs)
+  --     ◦ˢᵘᵇ π (A h [ M⃗[ i , h ][ t ] prev u ])
+  --   ==
+  --   (idd (M= k h prev-cgfs prev-cgs' p') ◦ˢᵘᵇ ?)
+  --     ◦ˢᵘᵇ π (A h [ M⃗[ i , h ][ t ] prev u ])
+  -- e'' = {!ap (_◦ˢᵘᵇ π (A h [ _ ])) $ M⃗◦ i h t prev f g prev-cfs prev-cgs' prev-cgfs p'!}
 
 M⃗◦[ i , h ,1+ t ] s f g (inl yes[gf]) (inr no[f]) =
   ⊥-rec $ no[f] $ comp-divides-first-divides i h t _ f g yes[gf]
