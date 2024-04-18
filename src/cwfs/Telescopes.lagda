@@ -328,4 +328,8 @@ module Πₜₑₗ (pistr : PiStructure cwfstr) where
       p : X [ π X ] == Πₜₑₗ (Θ [ π X ]ₜₑₗ) U
       p = Πₜₑₗ[] Θ U (π X) ∙ ap (Πₜₑₗ (Θ [ π X ]ₜₑₗ)) U[]
 
+    generic[•]type= :
+      ∀ {Γ} → generic[ • :> Tel Γ ]type == el (transp Tm U[] (υ U))
+    generic[•]type= {Γ} = ap-idf U[] |in-ctx (λ p → el (transp Tm p (υ U)))
+
 \end{code}
