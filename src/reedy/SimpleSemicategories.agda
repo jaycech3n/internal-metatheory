@@ -24,6 +24,9 @@ record SimpleSemicategory ℓₘ : Type (lsuc ℓₘ) where
         → g ≺ h
         → g ◦ f ≺ h ◦ f
 
+      hom-downward : ∀ {n} {i j} → n < hom-size i j → j < i
+      hom-downward {n} {i} {j} u = hom-inverse i j (#[ n ] i j u)
+
   open definitions public
 
   private
@@ -35,6 +38,9 @@ record SimpleSemicategory ℓₘ : Type (lsuc ℓₘ) where
 
       ¬O<hom-size-O : ∀ i t → ¬ (t < hom-size 0 i)
       ¬O<hom-size-O i t u = ≮O i $ hom-inverse 0 i (#[ t ] 0 i u)
+
+      ¬_<endo-hom-size : ∀ {i} t → ¬ (t < hom-size i i)
+      ¬_<endo-hom-size {i} t u = endo-hom-empty (#[ t ] i i u)
 
   open lemmas public
 

@@ -18,12 +18,14 @@ _>_ : ℕ → ℕ → Type₀
 m > n = n < m
 
 module Nat-trichotomy where
-  abstract
-    ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
-    ℕ-trichotomy' m n with ℕ-trichotomy m n
-    ... | inl m=n = inl (inl m=n)
-    ... | inr (inl m<n) = inl (inr m<n)
-    ... | inr (inr n<m) = inr n<m
+  ℕ-Trich : (m n : ℕ) → Type₀
+  ℕ-Trich m n = (m ≤ n) ⊔ (n < m)
+
+  ℕ-trich : (m n : ℕ) → ℕ-Trich m n
+  ℕ-trich m n with ℕ-trichotomy m n
+  ... | inl m=n = inl (inl m=n)
+  ... | inr (inl m<n) = inl (inr m<n)
+  ... | inr (inr n<m) = inr n<m
 
 open Nat-trichotomy public
 
@@ -102,12 +104,12 @@ module Nat-ad-hoc-lemmas where
       ... | inr w = ¬<-self (<-trans v w)
 
       ≰-to-> : ¬ (m ≤ n) → n < m
-      ≰-to-> ¬m≤n with ℕ-trichotomy' m n
+      ≰-to-> ¬m≤n with ℕ-trich m n
       ... | inl m≤n = ⊥-rec $ ¬m≤n m≤n
       ... | inr n<m = n<m
 
       ≮-to-≥ : ¬ (m < n) → n ≤ m
-      ≮-to-≥ m≮n with ℕ-trichotomy' n m
+      ≮-to-≥ m≮n with ℕ-trich n m
       ... | inl n≤m = n≤m
       ... | inr m<n = ⊥-rec $ m≮n m<n
 

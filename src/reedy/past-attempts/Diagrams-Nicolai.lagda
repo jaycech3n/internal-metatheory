@@ -8,8 +8,8 @@ Nicolai suggests splitting the definition into two parts: depending on whether
 h < l-1, or h == l-1.
 
 This makes more explicit the point at which we have to weaken various things,
-but *does not* solve the termination issue, as the partial definition in this
-file shows.
+but does not on its own solve the termination issue, as the partial definition
+in this file shows.
 
 \begin{code}
 

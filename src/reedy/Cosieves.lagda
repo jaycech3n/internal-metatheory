@@ -448,7 +448,7 @@ Morphism division is monotone.
       ∀ {t t'} {u u'}
       → t < t' → divby t u ≼ divby t' u'
     divby-<-monotone {t} .{1+ t} {u} {u'} ltS =
-      case (ℕ-trichotomy' t₀ t) case[t₀≤t] case[t<t₀]
+      case (ℕ-trich t₀ t) case[t₀≤t] case[t<t₀]
       where
       case[t₀≤t] = λ t₀≤t →
         divby-is-lub (1+ t) _ _ $ ≼-≺-≼ (divby-◦-ub t _ t₀≤t) (#[ t ]≺S _ _)
@@ -884,62 +884,62 @@ How to do this one?...
 
 \end{code}
 
-Old version:
+Old version of the above:
 
-  count-factors-comp :
-    ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
-    → count-factors i h t s (g ◦ f)
-      ==
-      let r = count-factors i h t s f
-          rs = count-factors-shape i h t s f -- Need to generalize over this too?
-      in
-      count-factors j h r rs g
+  -- count-factors-comp :
+  --   ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
+  --   → count-factors i h t s (g ◦ f)
+  --     ==
+  --     let r = count-factors i h t s f
+  --         rs = count-factors-shape i h t s f -- Need to generalize over this too?
+  --     in
+  --     count-factors j h r rs g
 
-  count-factors-comp-aux :
-    ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
-    → (dgf : Dec (g ◦ f ∣ #[ t ] i h u))
-    → (df : Dec (f ∣ #[ t ] i h u))
-    → count-factors-aux i h t u (g ◦ f) dgf
-      ==
-      let r = count-factors-aux i h t u f df
-          rs = count-factors-shape-aux i h t u f df
-      in
-      count-factors j h r rs g
+  -- count-factors-comp-aux :
+  --   ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
+  --   → (dgf : Dec (g ◦ f ∣ #[ t ] i h u))
+  --   → (df : Dec (f ∣ #[ t ] i h u))
+  --   → count-factors-aux i h t u (g ◦ f) dgf
+  --     ==
+  --     let r = count-factors-aux i h t u f df
+  --         rs = count-factors-shape-aux i h t u f df
+  --     in
+  --     count-factors j h r rs g
 
-  count-factors-comp i h O s f g = idp
-  count-factors-comp i h (1+ t) s f g =
-    let u = <-from-shape s in
-    count-factors-comp-aux i h t u f g
-      (discrim i h t u (g ◦ f))
-      (discrim i h t u f)
+  -- count-factors-comp i h O s f g = idp
+  -- count-factors-comp i h (1+ t) s f g =
+  --   let u = <-from-shape s in
+  --   count-factors-comp-aux i h t u f g
+  --     (discrim i h t u (g ◦ f))
+  --     (discrim i h t u f)
 
-  count-factors-comp-aux i h t u {j} f g (inl yes[gf]) df@(inl yes[f]) =
-    ap 1+ (count-factors-comp i h t (<-to-shape u) f g) ∙ ! p
-    where
-    r = count-factors i h t (<-to-shape u) f
-    rs = count-factors-shape-aux i h t u f df
-    ps = count-factors-shape i h t (<-to-shape u) f
-      -- need this value of ps definitionally
-    g∣[r] = comp-divides-second-divides i h t u f g yes[gf]
+  -- count-factors-comp-aux i h t u {j} f g (inl yes[gf]) df@(inl yes[f]) =
+  --   ap 1+ (count-factors-comp i h t (<-to-shape u) f g) ∙ ! p
+  --   where
+  --   r = count-factors i h t (<-to-shape u) f
+  --   rs = count-factors-shape-aux i h t u f df
+  --   ps = count-factors-shape i h t (<-to-shape u) f
+  --     -- need this value of ps definitionally
+  --   g∣[r] = comp-divides-second-divides i h t u f g yes[gf]
 
-    p : count-factors j h (1+ r) rs g ==
-        1+ (count-factors j h r ps g)
-    p = count-factors-divisible j h r rs g g∣[r]
+  --   p : count-factors j h (1+ r) rs g ==
+  --       1+ (count-factors j h r ps g)
+  --   p = count-factors-divisible j h r rs g g∣[r]
 
-  count-factors-comp-aux i h t u f g (inl yes[gf]) (inr no[f]) =
-    ⊥-rec $ no[f] $ comp-divides-first-divides i h t u f g yes[gf]
+  -- count-factors-comp-aux i h t u f g (inl yes[gf]) (inr no[f]) =
+  --   ⊥-rec $ no[f] $ comp-divides-first-divides i h t u f g yes[gf]
 
-  count-factors-comp-aux i h t u {j} f g (inr no[gf]) df@(inl yes[f]) =
-    count-factors-comp i h t (<-to-shape u) f g ∙ ! p
-    where
-    r = count-factors i h t (<-to-shape u) f
-    rs = count-factors-shape-aux i h t u f df
-    ps = count-factors-shape i h t (<-to-shape u) f
-    g∤[r] = comp-divides-contra i h t u f g yes[f] no[gf]
+  -- count-factors-comp-aux i h t u {j} f g (inr no[gf]) df@(inl yes[f]) =
+  --   count-factors-comp i h t (<-to-shape u) f g ∙ ! p
+  --   where
+  --   r = count-factors i h t (<-to-shape u) f
+  --   rs = count-factors-shape-aux i h t u f df
+  --   ps = count-factors-shape i h t (<-to-shape u) f
+  --   g∤[r] = comp-divides-contra i h t u f g yes[f] no[gf]
 
-    p : count-factors j h (1+ r) rs g ==
-        count-factors j h r ps g
-    p = count-factors-not-divisible j h r rs g g∤[r]
+  --   p : count-factors j h (1+ r) rs g ==
+  --       count-factors j h r ps g
+  --   p = count-factors-not-divisible j h r rs g g∤[r]
 
-  count-factors-comp-aux i h t u f g (inr no[gf]) (inr no[f]) =
-    count-factors-comp i h t (<-to-shape u) f g
+  -- count-factors-comp-aux i h t u f g (inr no[gf]) (inr no[f]) =
+  --   count-factors-comp i h t (<-to-shape u) f g

@@ -204,7 +204,7 @@ module Fin-decidability where
                    (λ i<Sn → ¬ΣFin-n-P ((i , i<Sn) , (transp P (Fin= idp) Pi)))
                    i≤Sn)
                  (λ Sn<i → ¬<-self (≤-<-< (<-S≤ Sn<i) i<2+n))
-                 (ℕ-trichotomy' i (1+ n)) })
+                 (ℕ-trich i (1+ n)) })
 
   {- Negation -}
 
