@@ -12,6 +12,7 @@ open import reedy.SimpleSemicategories
 module reedy.ShapeCountFactors {ℓₘ} (I : SimpleSemicategory ℓₘ) where
 
 open import reedy.CosieveShapes I
+open import reedy.ShapeOrder I
 
 open SimpleSemicategory I
 
@@ -26,7 +27,7 @@ discrim i h t u f = f ∣? #[ t ] i h u
 
 count-factors :
   ∀ i h t
-  → shape i h t
+  → is-shape i h t
   → ∀ {j} → hom i j
   → ℕ
 count-factors-aux :
@@ -38,13 +39,13 @@ count-factors-aux :
 
 count-factors i h O s f = O
 count-factors i h (1+ t) s f =
-  let u = <-from-shape s in
+  let u = <-from-is-shape s in
   count-factors-aux i h t u f $ discrim i h t u f
 
 count-factors-aux i h t u f (inr no) =
-  count-factors i h t (<-to-shape u) f
+  count-factors i h t (<-to-is-shape u) f
 count-factors-aux i h t u f (inl yes) =
-  1+ (count-factors i h t (<-to-shape u) f)
+  1+ (count-factors i h t (<-to-is-shape u) f)
 
 \end{code}
 
@@ -57,7 +58,7 @@ count-factors= :
   → t == t'
   → count-factors i h t s f == count-factors i h t' s' f
 count-factors= i h f t t' idp =
-  ap (λ ◻ → count-factors i h t ◻ f) (shape-path _ _)
+  ap (λ ◻ → count-factors i h t ◻ f) (is-shape-path _ _)
 
 \end{code}
 
@@ -71,17 +72,17 @@ count-factors-divisible-aux :
   → ∀ {s}
   → count-factors-aux i h t u f d == 1+ (count-factors i h t s f)
 count-factors-divisible-aux i h t u f (inl _) yes =
-  ap (λ ◻ → 1+ (count-factors i h t ◻ f)) (shape-path _ _)
+  ap (λ ◻ → 1+ (count-factors i h t ◻ f)) (is-shape-path _ _)
 count-factors-divisible-aux i h t u f (inr no) yes =
   ⊥-rec $ no yes
 
 count-factors-divisible :
   ∀ i h t s {j} (f : hom i j)
-  → f ∣ #[ t ] i h (<-from-shape s)
+  → f ∣ #[ t ] i h (<-from-is-shape s)
   → ∀ {s'}
   → count-factors i h (1+ t) s f == 1+ (count-factors i h t s' f)
 count-factors-divisible i h t s f yes =
-  let u = <-from-shape s in
+  let u = <-from-is-shape s in
   count-factors-divisible-aux i h t u f (discrim i h t u f) yes
 
 count-factors-not-divisible-aux :
@@ -92,15 +93,15 @@ count-factors-not-divisible-aux :
 count-factors-not-divisible-aux i h t u f (inl yes) no =
   ⊥-rec $ no yes
 count-factors-not-divisible-aux i h t u f (inr _) no =
-  ap (λ ◻ → count-factors i h t ◻ f) (shape-path _ _)
+  ap (λ ◻ → count-factors i h t ◻ f) (is-shape-path _ _)
 
 count-factors-not-divisible :
   ∀ i h t s {j} (f : hom i j)
-  → ¬ (f ∣ #[ t ] i h (<-from-shape s))
+  → ¬ (f ∣ #[ t ] i h (<-from-is-shape s))
   → ∀ {s'}
   → count-factors i h (1+ t) s f == count-factors i h t s' f
 count-factors-not-divisible i h t s f no =
-  let u = <-from-shape s in
+  let u = <-from-is-shape s in
   count-factors-not-divisible-aux i h t u f (discrim i h t u f) no
 
 \end{code}
@@ -116,13 +117,13 @@ count-factors-top-level-aux :
 
 count-factors-top-level i h O s f = idp
 count-factors-top-level i h (1+ t) s f =
-  let u = <-from-shape s in
+  let u = <-from-is-shape s in
   count-factors-top-level-aux i h t u f $ discrim i h t u f
 
 count-factors-top-level-aux i h t u f (inl (g , _)) =
   ⊥-rec (endo-hom-empty g)
 count-factors-top-level-aux i h t u f (inr no) =
-  count-factors-top-level i h t (<-to-shape u) f
+  count-factors-top-level i h t (<-to-is-shape u) f
 
 \end{code}
 
@@ -144,13 +145,13 @@ module _
 
   count-factors-below-first-divisible O s w = idp
   count-factors-below-first-divisible (1+ t) s w =
-    let u = <-from-shape s in
+    let u = <-from-is-shape s in
     count-factors-below-first-divisible-aux t u (discrim i h t u f) w
 
   count-factors-below-first-divisible-aux t u (inl yes) w =
     ⊥-rec $ S≰ $ ≤-trans w $ smallest _ _ yes
   count-factors-below-first-divisible-aux t u (inr no) w =
-    count-factors-below-first-divisible t (<-to-shape u) (S≤-≤ w)
+    count-factors-below-first-divisible t (<-to-is-shape u) (S≤-≤ w)
 
 \end{code}
 
@@ -191,13 +192,13 @@ module _ (i h : ℕ) {j} (f : hom i j) where
 
   no-divisible-count-factors-all-O no-div O s = idp
   no-divisible-count-factors-all-O no-div (1+ t) s =
-    let u = <-from-shape s in
+    let u = <-from-is-shape s in
     no-divisible-count-factors-all-O-aux no-div t u $ discrim i h t u f
 
   no-divisible-count-factors-all-O-aux no-div t u (inl yes) =
     ⊥-rec $ no-div _ _ yes
   no-divisible-count-factors-all-O-aux no-div t u (inr no) =
-    no-divisible-count-factors-all-O no-div t (<-to-shape u)
+    no-divisible-count-factors-all-O no-div t (<-to-is-shape u)
 
   hom-size-O-count-factors-all-O :
     hom-size j h == O
@@ -239,7 +240,7 @@ such that f ∣ [t₀].
 
 \begin{code}
 
-module Cosieves-StrictlyOriented
+module ShapeCountFactors-StrictlyOriented
   (I-strictly-oriented : is-strictly-oriented I)
   where
 
@@ -559,9 +560,9 @@ paper version where we assume t₀ and get the inequality.
 \begin{code}
 
     count-factors-idx-divby :
-      (t : ℕ) (s : shape i h (1+ t))
+      (t : ℕ) (s : is-shape i h (1+ t))
       → t₀ ≤ t
-      → count-factors i h (1+ t) s f == 1+ (idx $ divby t (<-from-shape s))
+      → count-factors i h (1+ t) s f == 1+ (idx $ divby t (<-from-is-shape s))
 
     count-factors-idx-divby-aux :
       ∀ t u d
@@ -569,7 +570,7 @@ paper version where we assume t₀ and get the inequality.
       → count-factors-aux i h t u f d == 1+ (idx $ (divby-aux t u d))
 
     count-factors-idx-divby t s =
-      let u = <-from-shape s in
+      let u = <-from-is-shape s in
       count-factors-idx-divby-aux t u $ discrim i h t u f
 
     count-factors-idx-divby-aux t u d (inl idp) =
@@ -580,18 +581,18 @@ paper version where we assume t₀ and get the inequality.
 
       p : count-factors-aux i h t₀ u f d == 1
       p = count-factors-divisible-aux i h t₀ u f d (∣#[]= t₀-divisible)
-          ∙ (ap 1+ $ cf-t₀ t₀ (<-to-shape u) lteE)
+          ∙ (ap 1+ $ cf-t₀ t₀ (<-to-is-shape u) lteE)
 
       q : idx (divby-aux t₀ u d) == O
       q = ap idx (divby-smallest-divisible-aux u d) ∙ idx-hom# O
     count-factors-idx-divby-aux (1+ t) u (inl yes@(g , p)) (inr w) =
-      ap 1+ (count-factors-idx-divby t (<-to-shape u) (<S-≤ w) ∙ q)
+      ap 1+ (count-factors-idx-divby t (<-to-is-shape u) (<S-≤ w) ∙ q)
       where
       q : 1+ (idx $ divby t (S<-< u)) == idx g
       q = ! (idx-divby-S-divisible t u (<S-≤ w) yes)
           ∙ ap idx (divby-value (1+ t) u g p)
     count-factors-idx-divby-aux (1+ t) u (inr no) (inr w) =
-      count-factors-idx-divby t (<-to-shape u) (<S-≤ w)
+      count-factors-idx-divby t (<-to-is-shape u) (<S-≤ w)
 
 \end{code}
 
@@ -602,19 +603,19 @@ typechecking reasons.
 
 \begin{code}
 
-  count-factors-shape :
+  count-factors-is-shape :
     ∀ i h t s {j} (f : hom i j)
     → count-factors i h t s f ≤ hom-size j h
-  count-factors-shape-aux :
+  count-factors-is-shape-aux :
     ∀ i h t u {j} (f : hom i j) d
     → count-factors-aux i h t u f d ≤ hom-size j h
 
-  count-factors-shape i h O s f = O≤ _
-  count-factors-shape i h (1+ t) s f =
-    let u = <-from-shape s in
-    count-factors-shape-aux i h t u f $ discrim i h t u f
+  count-factors-is-shape i h O s f = O≤ _
+  count-factors-is-shape i h (1+ t) s f =
+    let u = <-from-is-shape s in
+    count-factors-is-shape-aux i h t u f $ discrim i h t u f
 
-  count-factors-shape-aux i h t u {j} f d@(inl yes@(g , _)) =
+  count-factors-is-shape-aux i h t u {j} f d@(inl yes@(g , _)) =
     case (O≤ $ hom-size j h) case[O=homjh] case[O<homjh]
     where
     case[O=homjh] = λ p →
@@ -625,8 +626,8 @@ typechecking reasons.
       p : count-factors-aux i h t u f d == 1+ (idx g)
       p = count-factors-idx-divby-aux i h f w t u d
             $ t₀-smallest _ _ f w _ u yes
-  count-factors-shape-aux i h t u f (inr no) =
-    count-factors-shape i h t (<-to-shape u) f
+  count-factors-is-shape-aux i h t u f (inr no) =
+    count-factors-is-shape i h t (<-to-is-shape u) f
 
 \end{code}
 
@@ -658,8 +659,8 @@ typechecking reasons.
       T = fst w'
       q = snd w'
 
-      s' : shape i h (1+ T)
-      s' = transp! (shape i h) q s
+      s' : is-shape i h (1+ T)
+      s' = transp! (is-shape i h) q s
 
       r : count-factors i h (hom-size i h) s f == hom-size j h
       r =
@@ -784,7 +785,7 @@ To be written up in the paper.
   count-factors-comp :
     ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
     → let cf = count-factors i h t s f in
-      (cfs : shape j h cf)
+      (cfs : is-shape j h cf)
     → count-factors i h t s (g ◦ f) ==
       count-factors j h cf cfs g
 
@@ -793,21 +794,21 @@ To be written up in the paper.
     → (dgf : Dec (g ◦ f ∣ #[ t ] i h u))
     → (df : Dec (f ∣ #[ t ] i h u))
     → let cf = count-factors-aux i h t u f df in
-      (cfs : shape j h cf)
+      (cfs : is-shape j h cf)
     → count-factors-aux i h t u (g ◦ f) dgf ==
       count-factors j h cf cfs g
 
   count-factors-comp i h O s f g _ = idp
   count-factors-comp i h (1+ t) s f g =
-    let u = <-from-shape s in
+    let u = <-from-is-shape s in
     count-factors-comp-aux i h t u f g
       (discrim i h t u (g ◦ f))
       (discrim i h t u f)
 
   count-factors-comp-aux i h t u {j} f g (inl yes[gf]) df@(inl yes[f]) cfs =
-    ap 1+ (count-factors-comp i h t (<-to-shape u) f g prev-cfs) ∙ ! p
+    ap 1+ (count-factors-comp i h t (<-to-is-shape u) f g prev-cfs) ∙ ! p
     where
-    cf = count-factors i h t (<-to-shape u) f
+    cf = count-factors i h t (<-to-is-shape u) f
     prev-cfs = prev-shape cfs
 
     g∣[r] = comp-divides-second-divides i h t u f g yes[gf]
@@ -820,9 +821,9 @@ To be written up in the paper.
     ⊥-rec $ no[f] $ comp-divides-first-divides i h t u f g yes[gf]
 
   count-factors-comp-aux i h t u {j} f g (inr no[gf]) df@(inl yes[f]) cfs =
-    count-factors-comp i h t (<-to-shape u) f g prev-cfs ∙ ! p
+    count-factors-comp i h t (<-to-is-shape u) f g prev-cfs ∙ ! p
     where
-    cf = count-factors i h t (<-to-shape u) f
+    cf = count-factors i h t (<-to-is-shape u) f
     prev-cfs = prev-shape cfs
 
     g∤[r] = comp-divides-contra i h t u f g yes[f] no[gf]
@@ -832,67 +833,24 @@ To be written up in the paper.
     p = count-factors-not-divisible j h cf cfs g g∤[r]
 
   count-factors-comp-aux i h t u f g (inr no[gf]) (inr no[f]) =
-    count-factors-comp i h t (<-to-shape u) f g
+    count-factors-comp i h t (<-to-is-shape u) f g
 
 \end{code}
 
+The restriction of a linear cosieve of shape (i, h, t) along
+  f : hom i j
+has shape
+  (j, h, count-factors (i, h, t) f).
 
-[For archival purposes] Old version of the above:
+This operation is decreasing with respect to ≤ₛ.
 
-  -- count-factors-comp :
-  --   ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
-  --   → count-factors i h t s (g ◦ f)
-  --     ==
-  --     let r = count-factors i h t s f
-  --         rs = count-factors-shape i h t s f -- Need to generalize over this too?
-  --     in
-  --     count-factors j h r rs g
+\begin{code}
 
-  -- count-factors-comp-aux :
-  --   ∀ i h t u {j} (f : hom i j) {k} (g : hom j k)
-  --   → (dgf : Dec (g ◦ f ∣ #[ t ] i h u))
-  --   → (df : Dec (f ∣ #[ t ] i h u))
-  --   → count-factors-aux i h t u (g ◦ f) dgf
-  --     ==
-  --     let r = count-factors-aux i h t u f df
-  --         rs = count-factors-shape-aux i h t u f df
-  --     in
-  --     count-factors j h r rs g
+restr-≤ₛ-decr :
+  (sh@(shape i h t s) : Shape) {j : ℕ} (f : hom i j)
+  → let cf = count-factors i h t s f in
+    (cfs : is-shape j h cf)
+  → shape j h cf cfs ≤ₛ sh
+restr-≤ₛ-decr sh f cfs = inr (on-𝑖 (hom-inverse _ _ f))
 
-  -- count-factors-comp i h O s f g = idp
-  -- count-factors-comp i h (1+ t) s f g =
-  --   let u = <-from-shape s in
-  --   count-factors-comp-aux i h t u f g
-  --     (discrim i h t u (g ◦ f))
-  --     (discrim i h t u f)
-
-  -- count-factors-comp-aux i h t u {j} f g (inl yes[gf]) df@(inl yes[f]) =
-  --   ap 1+ (count-factors-comp i h t (<-to-shape u) f g) ∙ ! p
-  --   where
-  --   r = count-factors i h t (<-to-shape u) f
-  --   rs = count-factors-shape-aux i h t u f df
-  --   ps = count-factors-shape i h t (<-to-shape u) f
-  --     -- need this value of ps definitionally
-  --   g∣[r] = comp-divides-second-divides i h t u f g yes[gf]
-
-  --   p : count-factors j h (1+ r) rs g ==
-  --       1+ (count-factors j h r ps g)
-  --   p = count-factors-divisible j h r rs g g∣[r]
-
-  -- count-factors-comp-aux i h t u f g (inl yes[gf]) (inr no[f]) =
-  --   ⊥-rec $ no[f] $ comp-divides-first-divides i h t u f g yes[gf]
-
-  -- count-factors-comp-aux i h t u {j} f g (inr no[gf]) df@(inl yes[f]) =
-  --   count-factors-comp i h t (<-to-shape u) f g ∙ ! p
-  --   where
-  --   r = count-factors i h t (<-to-shape u) f
-  --   rs = count-factors-shape-aux i h t u f df
-  --   ps = count-factors-shape i h t (<-to-shape u) f
-  --   g∤[r] = comp-divides-contra i h t u f g yes[f] no[gf]
-
-  --   p : count-factors j h (1+ r) rs g ==
-  --       count-factors j h r ps g
-  --   p = count-factors-not-divisible j h r rs g g∤[r]
-
-  -- count-factors-comp-aux i h t u f g (inr no[gf]) (inr no[f]) =
-  --   count-factors-comp i h t (<-to-shape u) f g
+\end{code}

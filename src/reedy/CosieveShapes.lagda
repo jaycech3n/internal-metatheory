@@ -64,25 +64,21 @@ instance
 The type of shapes
 ------------------
 
-This should really be a Sigma/record type, but for convenience of
-termination checking in Agda we implement it as an inductive type.
-
 \begin{code}
 
-data Shape : Type₀ where
-  shape : (i h t : ℕ) → is-shape i h t → Shape
+record Shape : Type₀ where
+  eta-equality
+  constructor shape
+  field
+    𝑖 : ℕ
+    ℎ : ℕ
+    𝑡 : ℕ
+    Shape-is-shape : is-shape 𝑖 ℎ 𝑡
 
-𝑖 : Shape → ℕ
-𝑖 (shape i h t s) = i
+open Shape public
 
-ℎ : Shape → ℕ
-ℎ (shape i h t s) = h
-
-𝑡 : Shape → ℕ
-𝑡 (shape i h t s) = t
-
-Shape-is-shape : (sh : Shape) → is-shape (𝑖 sh) (ℎ sh) (𝑡 sh)
-Shape-is-shape (shape i h t s) = s
+-- data Shape : Type₀ where
+--   shape : (i h t : ℕ) (s : is-shape i h t) → Shape
 
 \end{code}
 
