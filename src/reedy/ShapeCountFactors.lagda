@@ -1,5 +1,7 @@
-Cosieves in countably simple semicategories
-===========================================
+Counting factors of linear cosieves
+===================================
+
+Restriction of linear cosieves is implemented via "counting factors".
 
 \begin{code}
 
@@ -7,65 +9,15 @@ Cosieves in countably simple semicategories
 
 open import reedy.SimpleSemicategories
 
-module reedy.Cosieves {ℓₘ} (I : SimpleSemicategory ℓₘ) where
+module reedy.ShapeCountFactors {ℓₘ} (I : SimpleSemicategory ℓₘ) where
+
+open import reedy.CosieveShapes I
 
 open SimpleSemicategory I
 
 \end{code}
 
-
-Shapes of linear cosieves
--------------------------
-
-\begin{code}
-
-shape : ℕ → ℕ → ℕ → Type₀
-shape i h t = t ≤ hom-size i h
-
-prev-shape : ∀ {i h t} → shape i h (1+ t) → shape i h t
-prev-shape = S≤-≤
-
-full-shape : ∀ i h → shape i h (hom-size i h)
-full-shape i h = lteE
-
-total-shape-1+ : ∀ i → shape (1+ i) i (hom-size (1+ i) i)
-total-shape-1+ i = full-shape (1+ i) i
-
-<-to-shape : ∀ {i h t} → t < hom-size i h → shape i h t
-<-to-shape = inr
-
-<-from-shape : ∀ {i h t} → shape i h (1+ t) → t < hom-size i h
-<-from-shape = S≤-<
-
-Shape = Σ[ i ﹕ ℕ ] Σ[ h ﹕ ℕ ] Σ[ t ﹕ ℕ ] shape i h t
-
-𝑖 : Shape → ℕ
-𝑖 = fst
-
-ℎ : Shape → ℕ
-ℎ = fst ∘ snd
-
-𝑡 : Shape → ℕ
-𝑡 = 2nd ∘ snd
-
-is-shape : ((i , h , t , _) : Shape) → shape i h t
-is-shape = 3rd ∘ snd
-
-shape-is-prop : ∀ {i h t} → is-prop (shape i h t)
-shape-is-prop = ≤-is-prop
-
-shape-path : ∀ {i h t} (s s' : shape i h t) → s == s'
-shape-path = prop-has-all-paths
-
-instance
-  shape-id-is-prop : ∀ {i h t} {s s' : shape i h t} → is-prop (s == s')
-  shape-id-is-prop = =-preserves-level shape-is-prop
-
-\end{code}
-
-
-Counting factors
-----------------
+The basic definition.
 
 \begin{code}
 
@@ -825,7 +777,7 @@ Split this into parts:
 
 **Lemma**
 
-How to do this one?...
+To be written up in the paper.
 
 \begin{code}
 
@@ -884,7 +836,8 @@ How to do this one?...
 
 \end{code}
 
-Old version of the above:
+
+[For archival purposes] Old version of the above:
 
   -- count-factors-comp :
   --   ∀ i h t s {j} (f : hom i j) {k} (g : hom j k)
