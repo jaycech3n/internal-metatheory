@@ -44,7 +44,7 @@ The construction is a large mutually inductive definition with a large number of
 components. The first two core ones are 𝔻 and Mᵒ:
 
 • The context ( 𝔻 i ≡ A₀ : 𝔸₀, A₁ : 𝔸₁, ..., A(i - 1) : 𝔸(i - 1) ) consists of
-  the "diagram fillers" up to level i, where 𝔸 k are the types of the fillers.
+  the "diagram fillers" up to level i-1, where 𝔸 k are the types of the fillers.
 
 • Mᵒ (i, h, t) s : Tel 𝔻(h + 1) is the partial matching object of the diagram as
   a telescope.

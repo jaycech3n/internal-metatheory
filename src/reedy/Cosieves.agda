@@ -1,7 +1,7 @@
 {-# OPTIONS --without-K --rewriting --termination-depth=9 --allow-unsolved-metas #-}
 
 open import reedy.SimpleSemicategories
-open import hott.WellFounded
+-- open import hott.WellFounded
 open import lib.types.Coproduct
 
 module reedy.Cosieves {ℓₘ} (I : SimpleSemicategory ℓₘ) where

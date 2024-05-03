@@ -55,26 +55,31 @@ sh ≤ₛ sh' = (sh == sh') ⊔ (sh <ₛ sh')
 
 \end{code}
 
-Induction.
+Accessibilty predicate and induction.
 
 \begin{code}
 
-<ₛ-is-wf : ∀ i h t s → is-accessible Shape _<ₛ_ (shape i h t s)
-<ₛ-is-wf i h t s = acc _ (aux i h t s)
+<ₛ-Acc = Acc Shape _<ₛ_
+
+<ₛ-Accc : ∀ i h t s → Type₀
+<ₛ-Accc i h t s = <ₛ-Acc (shape i h t s)
+
+<ₛ-is-wf-aux : ∀ i h t s → <ₛ-Acc (shape i h t s)
+<ₛ-is-wf-aux i h t s = acc _ (aux i h t s)
   where
   -- By case distinction on the proof of <ₛ
-  aux : ∀ i h t s → ∀ sh' → sh' <ₛ shape i h t s → is-accessible Shape _<ₛ_ sh'
-  aux .(1+ i') h t s (shape i' h' t' s') (on-𝑖 ltS) = <ₛ-is-wf i' h' t' s'
-  aux (1+ i) h t s sh' (on-𝑖 (ltSR w)) = aux i O O (empty-shape i O) sh' (on-𝑖 w)
-  aux i h t s (shape .i h' t' s') (on-ℎ ltS) = <ₛ-is-wf i h' t' s'
-  aux i (1+ h) t s sh' (on-ℎ (ltSR w)) = aux i h O (empty-shape i h) sh' (on-ℎ w)
-  aux i h .(1+ _) s (shape i h t' s') (on-𝑡 ltS) = <ₛ-is-wf i h t' s'
-  aux i h (1+ t) s sh' (on-𝑡 (ltSR w)) = aux i h t (prev-shape s) sh' (on-𝑡 w)
+  aux : ∀ i h t s → ∀ sh' → sh' <ₛ shape i h t s → Acc Shape _<ₛ_ sh'
+  aux .(1+ i') h t s (shape i' h' t' s') (on-𝑖 ltS) = <ₛ-is-wf-aux i' h' t' s'
+  aux (1+ i) h t s sh' (on-𝑖 (ltSR w)) = aux i O O (O≤ _) sh' (on-𝑖 w)
+  aux i h t s (shape .i h' t' s') (on-ℎ ltS) = <ₛ-is-wf-aux i h' t' s'
+  aux i (1+ h) t s sh' (on-ℎ (ltSR w)) = aux i h O (O≤ _) sh' (on-ℎ w)
+  aux i h .(1+ _) s (shape i h t' s') (on-𝑡 ltS) = <ₛ-is-wf-aux i h t' s'
+  aux i h (1+ t) s sh' (on-𝑡 (ltSR w)) = aux i h t (prev-is-shape s) sh' (on-𝑡 w)
 
-Shape-accessible : all-accessible Shape _<ₛ_
-Shape-accessible (shape i h t s) = <ₛ-is-wf i h t s
+<ₛ-is-wf : ∀ {sh} → <ₛ-Acc sh
+<ₛ-is-wf {shape i h t s} = <ₛ-is-wf-aux i h t s
 
-open WellFoundedInduction Shape _<ₛ_ Shape-accessible
+open WellFoundedInduction Shape _<ₛ_ (λ sh → <ₛ-is-wf {sh})
   renaming (wf-ind to shape-ind)
   public
 

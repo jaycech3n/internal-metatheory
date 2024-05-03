@@ -24,17 +24,14 @@ Repeatedly used:
 
 \begin{code}
 
-prev-shape : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
-prev-shape = S≤-≤
+prev-is-shape : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
+prev-is-shape = S≤-≤
 
-full-shape : ∀ i h → is-shape i h (hom-size i h)
-full-shape i h = lteE
+full-is-shape : ∀ i h → is-shape i h (hom-size i h)
+full-is-shape i h = lteE
 
-total-shape-1+ : ∀ i → is-shape (1+ i) i (hom-size (1+ i) i)
-total-shape-1+ i = full-shape (1+ i) i
-
-empty-shape : ∀ i h → is-shape i h O
-empty-shape i h = O≤ _
+total-is-shape-1+ : ∀ i → is-shape (1+ i) i (hom-size (1+ i) i)
+total-is-shape-1+ i = full-is-shape (1+ i) i
 
 <-to-is-shape : ∀ {i h t} → t < hom-size i h → is-shape i h t
 <-to-is-shape = inr
@@ -77,24 +74,10 @@ record Shape : Type₀ where
 
 open Shape public
 
--- data Shape : Type₀ where
---   shape : (i h t : ℕ) (s : is-shape i h t) → Shape
+full-shape : ∀ i h → Shape
+full-shape i h = shape i h (hom-size i h) (full-is-shape i h)
+
+total-shape-1+ : ∀ i → Shape
+total-shape-1+ i = full-shape (1+ i) i
 
 \end{code}
-
-
-Old formulation of the above:
-
-Shape = Σ[ i ﹕ ℕ ] Σ[ h ﹕ ℕ ] Σ[ t ﹕ ℕ ] is-shape i h t
-
-𝑖 : Shape → ℕ
-𝑖 = fst
-
-ℎ : Shape → ℕ
-ℎ = fst ∘ snd
-
-𝑡 : Shape → ℕ
-𝑡 = 2nd ∘ snd
-
-Shape-is-shape : ((i , h , t , _) : Shape) → is-shape i h t
-Shape-is-shape = 3rd ∘ snd
