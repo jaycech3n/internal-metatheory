@@ -84,3 +84,16 @@ open WellFoundedInduction Shape _<ₛ_ (λ sh → <ₛ-is-wf {sh})
   public
 
 \end{code}
+
+<ₛ-Acc sh is a proposition for every sh.
+
+\begin{code}
+
+<ₛ-Acc-prop : ∀ sh → is-prop (<ₛ-Acc sh)
+<ₛ-Acc-prop = all-paths-is-prop ∘ aux
+  where
+  aux : (sh : Shape) (ac ac' : <ₛ-Acc sh) → ac == ac'
+  aux sh (acc .sh rec) (acc .sh rec') =
+    ap (acc sh) (λ=₂ (λ s w → aux _ (rec s w) (rec' s w)))
+
+\end{code}
