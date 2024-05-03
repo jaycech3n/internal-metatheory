@@ -317,22 +317,22 @@ module Πₜₑₗ (pistr : PiStructure cwfstr) where
   module TelIndexedTypes (univstr : UniverseStructure cwfstr) where
     open UniverseStructure univstr
 
-    generic[_;_]type :
-      (Γ : Con) (Θ : Tel Γ)
+    generic-_-indexed-type :
+      {Γ : Con} (Θ : Tel Γ)
       → let X = Πₜₑₗ Θ U in
         Ty (Γ ∷ X ++ₜₑₗ Θ [ π X ]ₜₑₗ)
-    generic[ Γ ; Θ ]type = el $ appₜₑₗ (Θ [ π X ]ₜₑₗ) $ transp Tm p (υ X)
+    generic-(Θ)-indexed-type = el $ appₜₑₗ (Θ [ π X ]ₜₑₗ) $ transp Tm p (υ X)
       where
       X = Πₜₑₗ Θ U
 
       p : X [ π X ] == Πₜₑₗ (Θ [ π X ]ₜₑₗ) U
       p = Πₜₑₗ[] Θ U (π X) ∙ ap (Πₜₑₗ (Θ [ π X ]ₜₑₗ)) U[]
 
-    generic[_]type : (Γ : Con) → Ty (Γ ∷ U)
-    generic[ Γ ]type = generic[ Γ ; • ]type
+    generic-closed-type-in : (Γ : Con) → Ty (Γ ∷ U)
+    generic-closed-type-in Γ = generic-_-indexed-type {Γ} •
 
-    generic[_]type= :
-      ∀ Γ → generic[ Γ ]type == el (transp Tm U[] (υ U))
-    generic[ Γ ]type= = ap-idf U[] |in-ctx (λ p → el (transp Tm p (υ U)))
+    generic-closed-type= :
+      ∀ Γ → generic-closed-type-in Γ == el (transp Tm U[] (υ U))
+    generic-closed-type= Γ = ap-idf U[] |in-ctx (λ p → el (transp Tm p (υ U)))
 
 \end{code}
