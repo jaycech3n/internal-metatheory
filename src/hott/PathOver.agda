@@ -20,9 +20,18 @@ module _ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} where
     → u == v [ B ↓ q ]
   ↓-equal-paths idp q = q
 
-  -- =⟨_⟩ notation
-  infixl 40 ap↓2
+  -- A variation of ap↓
   ap↓2 :
+    ∀ {ℓ₃} {C : Type ℓ₃}
+      (f : (a : A) → B a → C)
+      {a a' : A} {b : B a} {b' : B a'}
+    → (p : a == a')
+    → (q : b == b' [ B ↓ p ])
+    → f a b == f a' b'
+  ap↓2 f {a} idp q = ap (f a) q
+
+  infixl 40 ap↓² ap↓³
+  ap↓² :
     ∀ {ℓ₃} {C : {a : A} → B a → Type ℓ₃}
       {x y : A} {f : B x → B y}
       (g : {b : B x} → C b → C (f b))
@@ -30,11 +39,11 @@ module _ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} where
       {c : C b} {c' : C b'}
     → c == c' [ C ↓ p ]
     → g c == g c' [ C ↓ ap f p ]
-  ap↓2 g {p = idp} q = ap g q
+  ap↓² g {p = idp} q = ap g q
 
-  syntax ap↓2 g q = q |in-ctx↓ g
+  syntax ap↓² g q = q |in-ctx↓ g
 
-  ap↓3 : ∀ {ℓ₃ ℓ₄}
+  ap↓³ : ∀ {ℓ₃ ℓ₄}
     {C : {a : A} → B a → Type ℓ₃}
     {D : {a : A} {b : B a} → C b → Type ℓ₄}
     {a a' : A} {b : B a} {b' : B a'}
@@ -44,8 +53,9 @@ module _ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} where
     {d : D c} {d' : D c'}
     → d == d' [ D ↓ p ]
     → g d == g d' [ D ↓ ap f p ]
-  ap↓3 g {p = idp} q = ap g q
+  ap↓³ g {p = idp} q = ap g q
 
+  -- =⟨_⟩ notation
   infix 12 =⟨⟩ᵈ =⟨!⟩ᵈ =⟨↓⟩ᵈ
   infixr 11 =⟨⟩ᵈ-compr =⟨!⟩ᵈ-compr =⟨↓⟩ᵈ-compr
   infixl 11 =⟨⟩ᵈ-compl =⟨!⟩ᵈ-compl =⟨↓⟩ᵈ-compl

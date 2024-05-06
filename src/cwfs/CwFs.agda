@@ -20,7 +20,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
           {a : Tm A} {a' : Tm A'}
         → a == a' [ Tm ↓ p ]
         → g a == g a' [ Tm ↓ ap f p ]
-      ap↓-Tm g q = ap↓2 {A = Con} {B = Ty} {C = Tm} g q
+      ap↓-Tm g q = ap↓² {A = Con} {B = Ty} {C = Tm} g q
       syntax ap↓-Tm g q = q |in-ctx↓ᵀᵐ g
 
       Tm[_] : ∀ Γ → Ty Γ → Type ℓₘ

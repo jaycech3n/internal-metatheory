@@ -98,7 +98,7 @@ record ᵂContextualCwF ℓₒ ℓₘ : Type (lsuc (ℓₒ ∪ ℓₘ)) where
           {a : Tm A} {a' : Tm A'}
         → a == a' [ Tm ↓ p ]
         → g a == g a' [ Tm ↓ ap f p ]
-      ap↓-Tm = ap↓3 {A = ℕ} {B = Con} {C = Ty} {D = Tm}
+      ap↓-Tm = ap↓³ {A = ℕ} {B = Con} {C = Ty} {D = Tm}
 
       syntax ap↓-Tm g q = q |in-ctx↓ᵀᵐ g
 
