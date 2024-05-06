@@ -41,7 +41,7 @@ total-is-shape-1+ i = full-is-shape (1+ i) i
 
 \end{code}
 
-Being a shape is property:
+Equality of shapes:
 
 \begin{code}
 
@@ -54,6 +54,13 @@ is-shape-path = prop-has-all-paths
 instance
   is-shape-id-is-prop : ∀ {i h t} {s s' : is-shape i h t} → is-prop (s == s')
   is-shape-id-is-prop = =-preserves-level is-shape-is-prop
+
+shape=↓ :
+  ∀ i h {t t'}
+  → {s : is-shape i h t} {s' : is-shape i h t'}
+  → (p : t == t')
+  → s == s' [ is-shape i h ↓ p ]
+shape=↓ i h idp = prop-path is-shape-is-prop _ _
 
 \end{code}
 

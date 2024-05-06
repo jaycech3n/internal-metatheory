@@ -43,7 +43,9 @@ open TelIndexedTypes univstr
 
 Mᵒ : ∀ i h t s (ac : <ₛ-Accc i h t s) → Tel (𝔻 h)
 
-module Convenience where
+module Abbreviations where
+  -- None of these should be defined by pattern matching.
+
   M : ∀ i h t s → <ₛ-Accc i h t s → Con
   M i h t s ac = close (Mᵒ i h t s ac)
 
@@ -63,7 +65,17 @@ module Convenience where
   A₀ : Ty (◆ ∷ U)
   A₀ = generic-closed-type-in ◆
 
-open Convenience
+  M-𝑡= :
+    ∀ i h t t' {s s'} {ac ac'}
+    → (p : t == t')
+    → M i h t s ac == M i h t' s' ac'
+  M-𝑡= i h t t' p =
+    ap↓2 {A = Shape} {B = <ₛ-Acc}
+      (λ (shape i h t s) ac → M i h t s ac)
+      (ap↓2 (shape i h) p (shape=↓ i h _))
+      (<ₛ-Acc=↓ _)
+
+open Abbreviations
 
 \end{code}
 
@@ -74,6 +86,8 @@ open Convenience
 
 \end{code}
 
+Morphism action of the matching object.
+
 \begin{code}
 
 M⃗ :
@@ -81,10 +95,8 @@ M⃗ :
   → {j : ℕ} (f : hom i j)
   → let r = count-factors i h t s f in
     (rs : is-shape j h r)
-  → (·-ac : <ₛ-Accc j h r rs)
-  → Sub (M i h t s ac) (M j h r rs ·-ac)
-
--- M⃗◦ : ?
+  → (rac : <ₛ-Accc j h r rs)
+  → Sub (M i h t s ac) (M j h r rs rac)
 
 \end{code}
 
@@ -96,19 +108,19 @@ Mᵒ i (1+ h) O s ac = wkₜₑₗ $ Mᵒ i h (hom-size i h) (full-is-shape i h)
 Mᵒ i O (1+ t) s (acc _ rec) =
   let
     pac = rec _ (on-𝑡 ltS)
-    prev-Mᵒ = Mᵒ i O t ps pac
+    pMᵒ = Mᵒ i O t ps pac
   in
-    prev-Mᵒ ‣ A₀ [ πₜₑₗ prev-Mᵒ ]
+    pMᵒ ‣ A₀ [ πₜₑₗ pMᵒ ]
   where
     ps = prev-is-shape s
 
 Mᵒ i (1+ h) (1+ t) s (acc _ rec) =
   let
     pac = rec _ (on-𝑡 ltS)
-    ·-ac = rec _ (on-𝑖 (hom-inverse _ _ [t]))
+    rac = rec _ (on-𝑖 (hom-inverse _ _ [t]))
   in
     Mᵒ i (1+ h) t ps pac
-      ‣ A[1+ h ] [ idd {!!} ◦ˢᵘᵇ M⃗ i (1+ h) t ps pac [t] rs ·-ac ]
+      ‣ A[1+ h ] [ idd {!!} ◦ˢᵘᵇ M⃗ i (1+ h) t ps pac [t] rs rac ]
   where
     ps = prev-is-shape s
     u = <-from-is-shape s
@@ -116,7 +128,6 @@ Mᵒ i (1+ h) (1+ t) s (acc _ rec) =
     rs = count-factors-is-shape i (1+ h) t ps [t]
 
 \end{code}
-
 
 Morphism action of matching object:
 
@@ -133,11 +144,11 @@ M⃗[_,_,1+_]-deptype :
   → let u = <-from-is-shape s in
     (d : Dec (f ∣ #[ t ] i h u))
   → let r = count-factors-aux i h t u f d in
-    (rs : is-shape j h r) (·-ac : <ₛ-Accc j h r rs)
+    (rs : is-shape j h r) (rac : <ₛ-Accc j h r rs)
   → Type _
-M⃗[ i , h ,1+ t ]-deptype s ac {j} f d rs ·-ac =
+M⃗[ i , h ,1+ t ]-deptype s ac {j} f d rs rac =
   Sub (M i h (1+ t) s ac)
-      (M j h (count-factors-aux i h t (<-from-is-shape s) f d) rs ·-ac)
+      (M j h (count-factors-aux i h t (<-from-is-shape s) f d) rs rac)
 
 \end{code}
 
@@ -151,27 +162,108 @@ M⃗[_,_,1+_] :
   → let u = <-from-is-shape s in
     (d : Dec (f ∣ #[ t ] i h u))
   → let r = count-factors-aux i h t u f d in
-    (rs : is-shape j h r) (·-ac : <ₛ-Accc j h r rs)
-  → M⃗[ i , h ,1+ t ]-deptype s ac f d rs ·-ac
+    (rs : is-shape j h r) (rac : <ₛ-Accc j h r rs)
+  → M⃗[ i , h ,1+ t ]-deptype s ac f d rs rac
 
-M⃗[ i , O ,1+ t ] s (acc _ rec) f (inl yes) rs (acc _ ·-rec) =
-  let
-    pac = rec _ (on-𝑡 ltS)
-    p·-rec = ·-rec _ (on-𝑡 ltS)
-  in
-    M⃗ i O t ps pac f prs p·-rec  ◦ˢᵘᵇ π _ ,, (υ _ ◂$ coeᵀᵐ {!!})
-  where
-    ps = prev-is-shape s
-    prs = prev-is-shape rs
-M⃗[ i , O ,1+ t ] s (acc _ rec) f (inr no) rs (acc _ ·-rec) = {!!}
-M⃗[ i , 1+ h ,1+ t ] s ac f (inl yes) rs ·-ac = {!!}
-M⃗[ i , 1+ h ,1+ t ] s ac f (inr no) rs ·-ac = {!!}
+\end{code}
+
+We need a few equalities to hold. These must be proved simultaneously with the
+main components. Chief among them is functoriality of the matching object.
+
+\begin{code}
+
+M⃗◦ :
+  ∀ i h t s ac
+  → {j : ℕ} (f : hom i j) {k : ℕ} (g : hom j k)
+  → let rf = count-factors i h t s f in
+    (rfs : is-shape j h rf) (rfac : <ₛ-Accc j h rf rfs)
+  → let rg = count-factors j h rf rfs g in
+    (rgs : is-shape k h rg) (rgac : <ₛ-Accc k h rg rgs)
+  → let rgf = count-factors i h t s (g ◦ f) in
+    (rgfs : is-shape k h rgf) (rgfac : <ₛ-Accc k h rgf rgfs)
+  → idd (M-𝑡= k h _ _ (count-factors-comp i h t s f g rfs))
+      ◦ˢᵘᵇ M⃗ i h t s ac (g ◦ f) rgfs rgfac
+    == M⃗ j h rf rfs rfac g rgs rgac ◦ˢᵘᵇ M⃗ i h t s ac f rfs rfac
+
+\end{code}
+
+Also need the following commutation lemmas:
+
+     M (i, 0, t) -----> M (j, 0, count-factors (i, 0, t) f)
+              ╲           ╱
+               ╲  comm₀  ╱
+                ╲       ╱
+                 v     v  πₜₑₗ
+                   𝔻 0
+
+\begin{code}
+
+comm₀ :
+  ∀ i t {s} {ac} {j : ℕ} (f : hom i j)
+  → let rf = count-factors i O t s f in
+    (rfs : is-shape j O rf) (rfac : <ₛ-Accc j O rf rfs)
+  → πₜₑₗ (Mᵒ j O rf rfs rfac) ◦ˢᵘᵇ M⃗ i O t s ac f rfs rfac
+    == πₜₑₗ (Mᵒ i O t s ac)
 
 \end{code}
 
 \begin{code}
 
-M⃗ i O t s ac f rs ·-ac = {!!}
-M⃗ i (1+ h) t s ac f rs ·-ac = {!!}
+M⃗[ i , O ,1+ t ] s (acc _ rec) {j} f (inl yes) rs (acc _ rrec) =
+  let
+    pac = rec _ (on-𝑡 ltS)
+    pMᵒ = Mᵒ i O t ps pac
+
+    prac = rrec _ (on-𝑡 ltS)
+    prMᵒ = Mᵒ j O prf prs prac
+
+    {- For termination checking reasons pac and prac can't be in a where block,
+       so neither can any terms depending on them. But the type of p below is
+
+       p : A₀ [ πₜₑₗ pMᵒ ] [ π (A₀ [ πₜₑₗ pMᵒ ]) ]
+           ==
+           A₀ [ πₜₑₗ prMᵒ ] [ M⃗ i O t ps {!!} f prs {!!} ◦ˢᵘᵇ π (A₀ [ πₜₑₗ pMᵒ ]) ]
+    -}
+    p = ap _[ π (A₀ [ _ ])] ([= ! (comm₀ i t f prs prac) ] ∙ [◦]) ∙ ![◦]
+  in
+    M⃗ i O t ps pac f prs prac  ◦ˢᵘᵇ π _ ,, (υ _ ◂$ coeᵀᵐ p)
+  where
+    ps = prev-is-shape s
+    prs = prev-is-shape rs
+
+    prf = count-factors i O t ps f
+
+M⃗[ i , O ,1+ t ] s (acc _ rec) f (inr no) rs (acc _ rrec) = {!!}
+M⃗[ i , 1+ h ,1+ t ] s ac f (inl yes) rs rac = {!!}
+M⃗[ i , 1+ h ,1+ t ] s ac f (inr no) rs rac = {!!}
+
+\end{code}
+
+\begin{code}
+
+M⃗ i O O s ac f rs rac = id
+M⃗ i O (1+ t) s ac f rs rac =
+  M⃗[ i , O ,1+ t ] s ac f (discrim i O t u f) rs rac
+  where u = <-from-is-shape s
+M⃗ i (1+ h) O s ac f rs rac = {!!}
+M⃗ i (1+ h) (1+ t) s ac f rs rac = {!!}
+
+\end{code}
+
+Proof of equations:
+
+\begin{code}
+
+comm₀ i O f rfs rfac = idr (πₜₑₗ •)
+comm₀ i (1+ t) {s} {acc _ rec} f rfs (acc _ rrec)
+ with discrim i O t (<-from-is-shape s) f
+... | inl yes = {!!}
+... | inr no = {!!}
+
+\end{code}
+
+\begin{code}
+
+M⃗◦ = {!!}
 
 \end{code}

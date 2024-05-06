@@ -89,11 +89,24 @@ open WellFoundedInduction Shape _<ₛ_ (λ sh → <ₛ-is-wf {sh})
 
 \begin{code}
 
-<ₛ-Acc-prop : ∀ sh → is-prop (<ₛ-Acc sh)
-<ₛ-Acc-prop = all-paths-is-prop ∘ aux
+<ₛ-Acc-is-prop : ∀ sh → is-prop (<ₛ-Acc sh)
+<ₛ-Acc-is-prop = all-paths-is-prop ∘ aux
   where
   aux : (sh : Shape) (ac ac' : <ₛ-Acc sh) → ac == ac'
   aux sh (acc .sh rec) (acc .sh rec') =
     ap (acc sh) (λ=₂ (λ s w → aux _ (rec s w) (rec' s w)))
+
+\end{code}
+
+Other equalities.
+
+\begin{code}
+
+<ₛ-Acc=↓ :
+  ∀ {sh sh'}
+  → {ac : <ₛ-Acc sh} {ac' : <ₛ-Acc sh'}
+  → (p : sh == sh')
+  → ac == ac' [ <ₛ-Acc ↓ p ]
+<ₛ-Acc=↓ {sh} idp = prop-path (<ₛ-Acc-is-prop sh) _ _
 
 \end{code}
