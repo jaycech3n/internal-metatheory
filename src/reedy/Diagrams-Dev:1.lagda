@@ -35,7 +35,7 @@ open TelIndexedTypes univstr
 \begin{code}
 
 -- This definition is wrong.
-record DiagramDataType (bsh : Shape) : Type (ℓₒ ∪ ℓₘ ∪ ℓₘᴵ) where
+record DiagramDataType (b : ℕ) (sh : Shape) (u : ℎ sh ≤ b) : Type (ℓₒ ∪ ℓₘ ∪ ℓₘᴵ) where
   field
     𝔻 : Con -- Contains filler types up to what level?
             -- • bh, where bsh = (bi, bh, bt)? Can't be, because could have e.g.

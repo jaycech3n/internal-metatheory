@@ -88,3 +88,21 @@ total-shape-1+ : ∀ i → Shape
 total-shape-1+ i = full-shape (1+ i) i
 
 \end{code}
+
+
+Bounded shapes
+--------------
+
+\begin{code}
+
+record BoundedShape : Type₀ where
+  eta-equality
+  constructor bdd
+  field
+    𝑠ℎ : Shape
+    𝑏 : ℕ
+    𝑢 : ℎ 𝑠ℎ < 𝑏
+
+open BoundedShape public
+
+\end{code}

@@ -1,6 +1,6 @@
 \begin{code}
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --termination-depth=10 #-}
 
 open import reedy.SimpleSemicategories
 open import cwfs.CwFs
@@ -68,10 +68,10 @@ module Abbreviations where
   M-𝑡= :
     ∀ i h t t' {s s'} {ac ac'}
     → (p : t == t')
-    → M i h t s ac == M i h t' s' ac'
+    → close (Mᵒ i h t s ac) == close (Mᵒ i h t' s' ac')
   M-𝑡= i h t t' p =
     ap↓2 {A = Shape} {B = <ₛ-Acc}
-      (λ (shape i h t s) ac → M i h t s ac)
+      (λ (shape i h t s) ac → close (Mᵒ i h t s ac))
       (ap↓2 (shape i h) p (shape=↓ i h _))
       (<ₛ-Acc=↓ _)
 
@@ -96,7 +96,7 @@ M⃗ :
   → let r = count-factors i h t s f in
     (rs : is-shape j h r)
   → (rac : <ₛ-Accc j h r rs)
-  → Sub (M i h t s ac) (M j h r rs rac)
+  → Sub (close $ Mᵒ i h t s ac) (close $ Mᵒ j h r rs rac)
 
 \end{code}
 
@@ -107,12 +107,13 @@ Mᵒ i (1+ h) O s ac = wkₜₑₗ $ Mᵒ i h (hom-size i h) (full-is-shape i h)
 
 Mᵒ i O (1+ t) s (acc _ rec) =
   let
+    ps = prev-is-shape s
     pac = rec _ (on-𝑡 ltS)
     pMᵒ = Mᵒ i O t ps pac
   in
     pMᵒ ‣ A₀ [ πₜₑₗ pMᵒ ]
-  where
-    ps = prev-is-shape s
+  -- where
+  --   ps = prev-is-shape s
 
 Mᵒ i (1+ h) (1+ t) s (acc _ rec) =
   let
@@ -147,8 +148,8 @@ M⃗[_,_,1+_]-deptype :
     (rs : is-shape j h r) (rac : <ₛ-Accc j h r rs)
   → Type _
 M⃗[ i , h ,1+ t ]-deptype s ac {j} f d rs rac =
-  Sub (M i h (1+ t) s ac)
-      (M j h (count-factors-aux i h t (<-from-is-shape s) f d) rs rac)
+  Sub (close $ Mᵒ i h (1+ t) s ac)
+      (close $ Mᵒ j h (count-factors-aux i h t (<-from-is-shape s) f d) rs rac)
 
 \end{code}
 
@@ -199,7 +200,8 @@ Also need the following commutation lemmas:
 \begin{code}
 
 comm₀ :
-  ∀ i t {s} {ac} {j : ℕ} (f : hom i j)
+  ∀ i t (s : is-shape i O t) (ac : <ₛ-Accc i O t s)
+  → {j : ℕ} (f : hom i j)
   → let rf = count-factors i O t s f in
     (rfs : is-shape j O rf) (rfac : <ₛ-Accc j O rf rfs)
   → πₜₑₗ (Mᵒ j O rf rfs rfac) ◦ˢᵘᵇ M⃗ i O t s ac f rfs rfac
@@ -209,8 +211,13 @@ comm₀ :
 
 \begin{code}
 
-M⃗[ i , O ,1+ t ] s (acc _ rec) {j} f (inl yes) rs (acc _ rrec) =
+M⃗[ i , O ,1+ t ] s (acc _ rec) {j} f d@(inl yes) rs (acc _ rrec) =
   let
+    ps = prev-is-shape s
+    prs = prev-is-shape rs
+
+    prf = count-factors i O t ps f
+
     pac = rec _ (on-𝑡 ltS)
     pMᵒ = Mᵒ i O t ps pac
 
@@ -222,16 +229,16 @@ M⃗[ i , O ,1+ t ] s (acc _ rec) {j} f (inl yes) rs (acc _ rrec) =
 
        p : A₀ [ πₜₑₗ pMᵒ ] [ π (A₀ [ πₜₑₗ pMᵒ ]) ]
            ==
-           A₀ [ πₜₑₗ prMᵒ ] [ M⃗ i O t ps {!!} f prs {!!} ◦ˢᵘᵇ π (A₀ [ πₜₑₗ pMᵒ ]) ]
+           A₀ [ πₜₑₗ prMᵒ ] [ M⃗ i O t ps pac f prs prac ◦ˢᵘᵇ π (A₀ [ πₜₑₗ pMᵒ ]) ]
     -}
-    p = ap _[ π (A₀ [ _ ])] ([= ! (comm₀ i t f prs prac) ] ∙ [◦]) ∙ ![◦]
+    p = ap _[ π (A₀ [ πₜₑₗ pMᵒ ])] (([= ! (comm₀ i t ps pac f prs prac) ]) ∙ ([◦] {A = A₀})) ∙ ![◦]
   in
     M⃗ i O t ps pac f prs prac  ◦ˢᵘᵇ π _ ,, (υ _ ◂$ coeᵀᵐ p)
   where
-    ps = prev-is-shape s
-    prs = prev-is-shape rs
+    -- ps = prev-is-shape s
+    -- prs = prev-is-shape rs
 
-    prf = count-factors i O t ps f
+    -- prf = count-factors i O t ps f
 
 M⃗[ i , O ,1+ t ] s (acc _ rec) f (inr no) rs (acc _ rrec) = {!!}
 M⃗[ i , 1+ h ,1+ t ] s ac f (inl yes) rs rac = {!!}
@@ -254,11 +261,23 @@ Proof of equations:
 
 \begin{code}
 
-comm₀ i O f rfs rfac = idr (πₜₑₗ •)
-comm₀ i (1+ t) {s} {acc _ rec} f rfs (acc _ rrec)
- with discrim i O t (<-from-is-shape s) f
-... | inl yes = {!!}
-... | inr no = {!!}
+comm₀-aux :
+  ∀ i t (s : is-shape i O (1+ t))
+  → let u = <-from-is-shape s in
+    (ac : <ₛ-Accc i O (1+ t) s)
+  → {j : ℕ} (f : hom i j)
+  → (d : Dec (f ∣ #[ t ] i O u))
+  → let rf = count-factors-aux i O t u f d in
+    (rfs : is-shape j O rf) (rfac : <ₛ-Accc j O rf rfs)
+  → πₜₑₗ (Mᵒ j O rf rfs rfac) ◦ˢᵘᵇ M⃗[ i , O ,1+ t ] s ac f d rfs rfac
+    == πₜₑₗ (Mᵒ i O (1+ t) s ac)
+
+comm₀-aux i t s (acc _ rec) f (inl yes) rfs (acc _ rrec) = {!assˢᵘᵇ ∙ ?!} -- _ =⟨ {!!} ⟩ _ =∎
+comm₀-aux i t s (acc _ rec) f (inr no) rfs (acc _ rrec) = {!!}
+
+comm₀ i O s (acc _ rec) f rfs (acc _ rrec) = idr (πₜₑₗ •)
+comm₀ i (1+ t) s (acc _ rec) f rfs (acc _ rrec) =
+  comm₀-aux i t s (acc (shape i O (1+ t) s) rec) f (discrim i O t (<-from-is-shape s) f) rfs (acc _ rrec)
 
 \end{code}
 
