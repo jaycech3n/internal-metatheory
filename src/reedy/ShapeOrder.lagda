@@ -10,7 +10,8 @@ open import reedy.SimpleSemicategories
 module reedy.ShapeOrder {ℓₘ} (I : SimpleSemicategory ℓₘ) where
 
 open import hott.Induction
-open import reedy.CosieveShapes I
+import reedy.CosieveShapes as Sh
+open Sh I
 
 open SimpleSemicategory I
 
@@ -54,6 +55,32 @@ sh ≤ₛ sh' = (sh == sh') ⊔ (sh <ₛ sh')
 𝑖-≤ₛ-monotone (inr (on-𝑡 _)) = lteE
 
 \end{code}
+
+
+Need all the following for the recursion in the diagram construction.
+
+\begin{code}
+
+≤ₛ𝑡 : ∀ {i h t t' s s'} → t' ≤ t → shape i h t' s' ≤ₛ shape i h t s
+≤ₛ𝑡 (inl idp) = inl (ap (shape _ _ _) (is-shape-path _ _))
+≤ₛ𝑡 (inr u) = inr (on-𝑡 u)
+
+<ₛS𝑡-≤ₛ𝑡 :
+  ∀ {i h t s s'} sh
+  → sh <ₛ shape i h (1+ t) s
+  → sh ≤ₛ shape i h t s'
+<ₛS𝑡-≤ₛ𝑡 sh (on-𝑖 w) = inr (on-𝑖 w)
+<ₛS𝑡-≤ₛ𝑡 .(shape _ _ _ _) (on-ℎ w) = inr (on-ℎ w)
+<ₛS𝑡-≤ₛ𝑡 .(shape _ _ _ _) (on-𝑡 w) = ≤ₛ𝑡 (<S-≤ w)
+
+-- Could/should probably reformulate in terms of bounded shapes
+<ₛ-improper₀-≤ₛ-full :
+  ∀ sh i {s} → ℎ sh < 1 → sh <ₛ shape (1+ i) O O s → sh ≤ₛ full-shape i O
+<ₛ-improper₀-≤ₛ-full (Sh.shape i₀ .O t₀ s₀) .i₀ ltS (on-𝑖 ltS) = ≤ₛ𝑡 s₀
+<ₛ-improper₀-≤ₛ-full (shape i₀ h₀ t₀ s₀) i u (on-𝑖 (ltSR w)) = inr (on-𝑖 w)
+
+\end{code}
+
 
 Accessibilty predicate and induction.
 
