@@ -1,6 +1,6 @@
 \begin{code}
 
-{-# OPTIONS --without-K --rewriting --termination-depth=10 #-}
+{-# OPTIONS --without-K --rewriting --termination-depth=10 -vterm.type:60 #-}
 
 open import reedy.SimpleSemicategories
 open import cwfs.CwFs
@@ -272,7 +272,7 @@ comm₀-aux :
   → πₜₑₗ (Mᵒ j O rf rfs rfac) ◦ˢᵘᵇ M⃗[ i , O ,1+ t ] s ac f d rfs rfac
     == πₜₑₗ (Mᵒ i O (1+ t) s ac)
 
-comm₀-aux i t s (acc _ rec) f (inl yes) rfs (acc _ rrec) = {!assˢᵘᵇ ∙ ?!} -- _ =⟨ {!!} ⟩ _ =∎
+comm₀-aux i t s (acc _ rec) f (inl yes) rfs (acc _ rrec) = assˢᵘᵇ ∙ {!!} -- _ =⟨ {!!} ⟩ _ =∎
 comm₀-aux i t s (acc _ rec) f (inr no) rfs (acc _ rrec) = {!!}
 
 comm₀ i O s (acc _ rec) f rfs (acc _ rrec) = idr (πₜₑₗ •)

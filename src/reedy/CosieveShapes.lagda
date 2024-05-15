@@ -81,11 +81,18 @@ record Shape : Type₀ where
 
 open Shape public
 
+prev-shape : ∀ {i h t} → is-shape i h (1+ t) → Shape
+prev-shape {i} {h} {t} s = shape i h t (prev-is-shape s)
+
 full-shape : ∀ i h → Shape
 full-shape i h = shape i h (hom-size i h) (full-is-shape i h)
 
 total-shape-1+ : ∀ i → Shape
 total-shape-1+ i = full-shape (1+ i) i
+
+total-shape : (i : ℕ) → Shape
+total-shape O = shape O O O (O≤ _)
+total-shape (1+ i) = total-shape-1+ i
 
 \end{code}
 
@@ -95,13 +102,29 @@ Bounded shapes
 
 \begin{code}
 
-record BoundedShape : Type₀ where
+record [_]BoundedShape (b : ℕ) : Type₀ where
   eta-equality
-  constructor bdd
+  constructor _,_
   field
     𝑠ℎ : Shape
+    𝑢 : ℎ 𝑠ℎ < b
+
+open [_]BoundedShape public
+
+-- record BoundedShape : Type₀ where
+--   eta-equality
+--   constructor bdd
+--   field
+--     𝑏 : ℕ
+--     𝑠ℎ : Shape
+--     𝑢 : ℎ 𝑠ℎ < 𝑏
+
+record BoundedShape : Type₀ where
+  eta-equality
+  constructor _፦_
+  field
     𝑏 : ℕ
-    𝑢 : ℎ 𝑠ℎ < 𝑏
+    𝑠ℎ𝑢 : [ 𝑏 ]BoundedShape
 
 open BoundedShape public
 
