@@ -2,7 +2,7 @@
 
 open import hott.Base
 
-module hott.Induction where
+module hott.WellFounded where
 
 module _ {ℓ₁ ℓ₂} (A : Type ℓ₁) (_<_ : A → A → Type ℓ₂) where
   data Acc : A → Type (ℓ₁ ∪ ℓ₂) where
@@ -38,6 +38,7 @@ module _ {ℓ₁ ℓ₂} (A : Type ℓ₁) (_<_ : A → A → Type ℓ₂) where
     → has-wf-ind P
   all-acc-implies-has-wf-ind P h f a = Acc-rec P f a (h a)
 
+
 module WellFoundedInduction {ℓ₁ ℓ₂}
   (A : Type ℓ₁)
   (_<_ : A → A → Type ℓ₂)
@@ -46,3 +47,24 @@ module WellFoundedInduction {ℓ₁ ℓ₂}
 
   wf-ind : ∀ {ℓ} (P : A → Type ℓ) → has-wf-ind A _<_ P
   wf-ind P = all-acc-implies-has-wf-ind A _<_ P c
+
+
+-- "Displaying" (?) well founded orders
+module _ {ℓ ℓ'} {A : Type ℓ} (B : A → Type ℓ') where
+
+  <Σ : ∀ {ℓ''} (_<_ : A → A → Type ℓ'') → Σ A B → Σ A B → Type ℓ''
+  <Σ _<_ (a , b) (a' , b') = a < a'
+
+  module _ {ℓ''} (_<_ : A → A → Type ℓ'') where
+
+    <Σ-preserves-Acc :
+      ∀ (t : Σ A B)
+      → Acc A _<_ (fst t)
+      → Acc (Σ A B) (<Σ _<_) t
+    <Σ-preserves-Acc t (acc _ rec) =
+      acc _ (λ{ t'@(a' , _) a'<a → <Σ-preserves-Acc t' (rec a' a'<a) })
+
+    <Σ-preserves-all-acc :
+      all-acc A _<_ → all-acc (Σ A B) (<Σ _<_)
+    <Σ-preserves-all-acc all-ac t =
+      acc _ λ t' t'<t → <Σ-preserves-Acc t' (all-ac (fst t'))

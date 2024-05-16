@@ -9,7 +9,7 @@ open import reedy.SimpleSemicategories
 
 module reedy.ShapeOrder {ℓₘ} (I : SimpleSemicategory ℓₘ) where
 
-open import hott.Induction
+open import hott.WellFounded
 import reedy.CosieveShapes as Sh
 open Sh I
 
@@ -94,24 +94,24 @@ rec-of (acc _ rec) = rec
 <ₛ-Accc : ∀ i h t s → Type₀
 <ₛ-Accc i h t s = <ₛ-Acc (shape i h t s)
 
-<ₛ-is-wf-aux : ∀ i h t s → <ₛ-Acc (shape i h t s)
-<ₛ-is-wf-aux i h t s = acc _ (aux i h t s)
+<ₛ-wf-aux : ∀ i h t s → <ₛ-Acc (shape i h t s)
+<ₛ-wf-aux i h t s = acc _ (aux i h t s)
   where
   -- By case distinction on the proof of <ₛ
   aux : ∀ i h t s → ∀ sh' → sh' <ₛ shape i h t s → <ₛ-Acc sh'
-  aux .(1+ i') h t s (shape i' h' t' s') (on-𝑖 ltS) = <ₛ-is-wf-aux i' h' t' s'
+  aux .(1+ i') h t s (shape i' h' t' s') (on-𝑖 ltS) = <ₛ-wf-aux i' h' t' s'
   aux (1+ i) h t s sh' (on-𝑖 (ltSR w)) = aux i O O (O≤ _) sh' (on-𝑖 w)
-  aux i h t s (shape .i h' t' s') (on-ℎ ltS) = <ₛ-is-wf-aux i h' t' s'
+  aux i h t s (shape .i h' t' s') (on-ℎ ltS) = <ₛ-wf-aux i h' t' s'
   aux i (1+ h) t s sh' (on-ℎ (ltSR w)) = aux i h O (O≤ _) sh' (on-ℎ w)
                                          -- could also use (i, h, full)
-  aux i h .(1+ _) s (shape i h t' s') (on-𝑡 ltS) = <ₛ-is-wf-aux i h t' s'
+  aux i h .(1+ _) s (shape i h t' s') (on-𝑡 ltS) = <ₛ-wf-aux i h t' s'
   aux i h (1+ t) s sh' (on-𝑡 (ltSR w)) = aux i h t (prev-is-shape s) sh' (on-𝑡 w)
 
-<ₛ-is-wf : ∀ {sh} → <ₛ-Acc sh
-<ₛ-is-wf {shape i h t s} = <ₛ-is-wf-aux i h t s
+<ₛ-wf : ∀ {sh} → <ₛ-Acc sh
+<ₛ-wf {shape i h t s} = <ₛ-wf-aux i h t s
 
 
-open WellFoundedInduction Shape _<ₛ_ (λ sh → <ₛ-is-wf {sh})
+open WellFoundedInduction Shape _<ₛ_ (λ sh → <ₛ-wf {sh})
   renaming (wf-ind to shape-ind)
   public
 
@@ -140,14 +140,21 @@ Bounded shapes
 \begin{code}
 
 _<ₛᵇ_ : ∀ {b} → [ b ]BoundedShape → [ b ]BoundedShape → Type₀
-bsh <ₛᵇ bsh' = 𝑠ℎ bsh <ₛ 𝑠ℎ bsh'
+(sh , _) <ₛᵇ (sh' , _) = sh <ₛ sh'
 
 _≤ₛᵇ_ : ∀ {b} → [ b ]BoundedShape → [ b ]BoundedShape → Type₀
-bsh ≤ₛᵇ bsh' = 𝑠ℎ bsh ≤ₛ 𝑠ℎ bsh'
+(sh , _) ≤ₛᵇ (sh' , _) = sh ≤ₛ sh'
+
+<ₛᵇ-Acc : ∀ {b} → [ b ]BoundedShape → Type₀
+<ₛᵇ-Acc {b} = Acc [ b ]BoundedShape (_<ₛᵇ_ {b})
+
+<ₛᵇ-wf : ∀ {b} {bsh : [ b ]BoundedShape} → <ₛᵇ-Acc bsh
+<ₛᵇ-wf {b} {bsh} =
+  <Σ-preserves-all-acc (λ sh → ℎ sh < b) _<ₛ_ (λ sh → <ₛ-wf {sh}) bsh
 
 \end{code}
 
-"Bundled" version.
+"Bundled" version. Not used.
 
 -- data _>ₛᵇ_ (bsh : BoundedShape) : BoundedShape → Type₀ where
 --   on-𝑏 : ∀ {bsh'} → 𝑏 bsh > 𝑏 bsh' → bsh >ₛᵇ bsh'
@@ -161,36 +168,36 @@ bsh ≤ₛᵇ bsh' = 𝑠ℎ bsh ≤ₛ 𝑠ℎ bsh'
 
 -- <ₛᵇ-Acc = Acc BoundedShape _<ₛᵇ_
 
--- <ₛᵇ-is-wf-aux : ∀ b i h t s u → <ₛᵇ-Acc (b ፦ shape i h t s , u)
--- <ₛᵇ-is-wf-aux b i h t s u = acc _ (aux b i h t s u)
+-- <ₛᵇ-wf-aux : ∀ b i h t s u → <ₛᵇ-Acc (b ፦ shape i h t s , u)
+-- <ₛᵇ-wf-aux b i h t s u = acc _ (aux b i h t s u)
 --   where
 --   aux :
 --     ∀ b i h t s u bsh'
 --     → bsh' <ₛᵇ (b ፦ shape i h t s , u)
 --     → <ₛᵇ-Acc bsh'
 --   aux (1+ .b') i h t s u (b' ፦ shape i' h' t' s' , u') (on-𝑏 ltS) =
---     <ₛᵇ-is-wf-aux b' i' h' t' s' u'
+--     <ₛᵇ-wf-aux b' i' h' t' s' u'
 --   aux (2+ b) i O t s u bsh' (on-𝑏 (ltSR w)) =
 --     aux (1+ b) i O t s (O<S _) bsh' (on-𝑏 w)
 --   aux (1+ b) i (1+ h) t s u bsh' (on-𝑏 (ltSR w)) =
 --     aux b i h O (O≤ _) (<-cancel-S u) bsh' (on-𝑏 w)
 --   aux b (1+ i) h t s u (b ፦ shape i h' t' s' , u') (on-𝑠ℎ (on-𝑖 ltS)) =
---     <ₛᵇ-is-wf-aux b i h' t' s' u'
+--     <ₛᵇ-wf-aux b i h' t' s' u'
 --   aux b (1+ i) h t s u bsh'@(b ፦ shape _ h' _ _ , u') (on-𝑠ℎ (on-𝑖 (ltSR w))) =
 --     aux b i h' O (O≤ _) u' bsh' (on-𝑠ℎ (on-𝑖 w))
 --   aux b i (1+ h) t s u (b ፦ shape i h t' s' , u') (on-𝑠ℎ (on-ℎ ltS)) =
---     <ₛᵇ-is-wf-aux b i h t' s' u'
+--     <ₛᵇ-wf-aux b i h t' s' u'
 --   aux (1+ b) i (1+ h) t s u bsh' (on-𝑠ℎ (on-ℎ (ltSR w))) =
 --     aux (1+ b) i h O (O≤ _) (S<-< u) bsh' (on-𝑠ℎ (on-ℎ w))
 --   aux b i h (1+ t) s u (b ፦ shape i h t s' , u') (on-𝑠ℎ (on-𝑡 ltS)) =
---     <ₛᵇ-is-wf-aux b i h t s' u'
+--     <ₛᵇ-wf-aux b i h t s' u'
 --   aux b i h (1+ t) s u bsh' (on-𝑠ℎ (on-𝑡 (ltSR w))) =
 --     aux b i h t (prev-is-shape s) u bsh' (on-𝑠ℎ (on-𝑡 w))
 
--- <ₛᵇ-is-wf : ∀ {bsh} → <ₛᵇ-Acc bsh
--- <ₛᵇ-is-wf {b ፦ shape i h t s , u} = <ₛᵇ-is-wf-aux b i h t s u
+-- <ₛᵇ-wf : ∀ {bsh} → <ₛᵇ-Acc bsh
+-- <ₛᵇ-wf {b ፦ shape i h t s , u} = <ₛᵇ-wf-aux b i h t s u
 
--- open WellFoundedInduction BoundedShape _<ₛᵇ_ (λ bsh → <ₛᵇ-is-wf {bsh})
+-- open WellFoundedInduction BoundedShape _<ₛᵇ_ (λ bsh → <ₛᵇ-wf {bsh})
 --   renaming (wf-ind to bounded-shape-ind)
 --   public
 

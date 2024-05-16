@@ -102,30 +102,25 @@ Bounded shapes
 
 \begin{code}
 
-record [_]BoundedShape (b : ℕ) : Type₀ where
-  eta-equality
-  constructor _,_
-  field
-    𝑠ℎ : Shape
-    𝑢 : ℎ 𝑠ℎ < b
+[_]BoundedShape : (b : ℕ) → Type₀
+[ b ]BoundedShape = Σ Shape λ sh → ℎ sh < b
 
-open [_]BoundedShape public
+-- record [_]BoundedShape (b : ℕ) : Type₀ where
+--   eta-equality
+--   constructor _,_
+--   field
+--     𝑠ℎ : Shape
+--     𝑢 : ℎ 𝑠ℎ < b
+
+-- open [_]BoundedShape public
 
 -- record BoundedShape : Type₀ where
 --   eta-equality
---   constructor bdd
+--   constructor _፦_
 --   field
 --     𝑏 : ℕ
---     𝑠ℎ : Shape
---     𝑢 : ℎ 𝑠ℎ < 𝑏
+--     𝑠ℎ𝑢 : [ 𝑏 ]BoundedShape
 
-record BoundedShape : Type₀ where
-  eta-equality
-  constructor _፦_
-  field
-    𝑏 : ℕ
-    𝑠ℎ𝑢 : [ 𝑏 ]BoundedShape
-
-open BoundedShape public
+-- open BoundedShape public
 
 \end{code}

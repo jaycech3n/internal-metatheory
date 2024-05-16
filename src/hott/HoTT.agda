@@ -7,7 +7,6 @@ open import hott.Bool public
 open import hott.Conditionals public
 open import hott.Decidable public
 open import hott.Fin public
-open import hott.Induction public
 open import hott.Inspect public
 open import hott.Nat public
 open import hott.NType public
@@ -16,6 +15,7 @@ open import hott.PathOver public
 open import hott.Pi public
 open import hott.Prop public
 open import hott.Sigma public
+open import hott.WellFounded public
 
 -- Undeveloped:
 -- open import hott.PathOverSeq public

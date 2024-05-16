@@ -67,7 +67,15 @@ Mᵒ b = Match.Mᵒ ∘ MF b
 𝔻 (2+ b) = 𝔻 (1+ b) ∷ Πₜₑₗ (Mᵒ (1+ b) tot tot (inl idp)) U
   where tot = total-shape-1+ b , ltS
 
-MF (1+ O) bsh = {!!}
-MF (2+ b) bsh = {!!}
+MF-def :
+  ∀ b (bsh : [ 1+ b ]BoundedShape)
+  → ((bsh' : [ 1+ b ]BoundedShape) → bsh' <ₛᵇ bsh → Match (1+ b) bsh')
+  → Match (1+ b) bsh
+MF-def O bsh ind = {!!}
+MF-def (1+ b) bsh ind = {!!}
+
+MF (1+ b) = wf-ind (Match (1+ b)) (MF-def b) where
+  open
+    WellFoundedInduction [ 1+ b ]BoundedShape _<ₛᵇ_ (λ bsh → <ₛᵇ-wf {_} {bsh})
 
 \end{code}
