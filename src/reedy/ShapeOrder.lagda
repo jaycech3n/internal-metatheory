@@ -50,11 +50,70 @@ sh ≤ₛ sh' = (sh == sh') ⊔ (sh <ₛ sh')
 ≤ₛ-trans (inr u) (inl idp) = inr u
 ≤ₛ-trans (inr u) (inr v) = inr (<ₛ-trans u v)
 
+≤ₛ-<ₛ-≤ₛ :  ∀ {sh sh' sh''} → sh ≤ₛ sh' → sh' <ₛ sh'' → sh ≤ₛ sh''
+≤ₛ-<ₛ-≤ₛ u v = ≤ₛ-trans u (inr v)
+
 𝑖-≤ₛ : ∀ {sh sh'} → sh ≤ₛ sh' → 𝑖 sh ≤ 𝑖 sh'
 𝑖-≤ₛ (inl idp) = lteE
 𝑖-≤ₛ (inr (on-𝑖 w)) = inr w
 𝑖-≤ₛ (inr (on-ℎ _)) = lteE
 𝑖-≤ₛ (inr (on-𝑡 _)) = lteE
+
+\end{code}
+
+Equivalent form of _<ₛ_.
+
+\begin{code}
+
+_<ₛ'_ : Shape → Shape → Type₀
+sh <ₛ' sh' = (𝑖 sh < 𝑖 sh')
+             ⊔ ((𝑖 sh == 𝑖 sh') × (ℎ sh < ℎ sh'))
+             ⊔ ((𝑖 sh == 𝑖 sh') × (ℎ sh == ℎ sh') × (𝑡 sh < 𝑡 sh'))
+
+<ₛ'≃<ₛ : ∀ sh sh' → (sh <ₛ' sh') ≃ (sh <ₛ sh')
+<ₛ'≃<ₛ sh sh' = equiv f g
+  (λ{ (on-𝑖 x) → idp ; (on-ℎ x) → idp ; (on-𝑡 x) → idp })
+  (λ{ (inl x) → idp
+    ; (inr (inl (idp , u))) → idp
+    ; (inr (inr (idp , idp , u))) → idp })
+  where
+  f : sh <ₛ' sh' → sh <ₛ sh'
+  f (inl u) = on-𝑖 u
+  f (inr (inl (idp , u))) = on-ℎ u
+  f (inr (inr (idp , idp , u))) = on-𝑡 u
+
+  g : sh <ₛ sh' → sh <ₛ' sh'
+  g (on-𝑖 u) = inl u
+  g (on-ℎ u) = inr (inl (idp , u))
+  g (on-𝑡 u) = inr (inr (idp , idp , u))
+
+\end{code}
+
+<ₛ and ≤ₛ are propositions.
+
+\begin{code}
+
+<ₛ'-has-all-paths : (sh sh' : Shape) → has-all-paths (sh <ₛ' sh')
+<ₛ'-has-all-paths _ _ (inl u) (inl v) = ap inl (<-has-all-paths u v)
+<ₛ'-has-all-paths _ _ (inl u) (inr (inl (idp , _))) = ⊥-rec $ ¬<-self u
+<ₛ'-has-all-paths _ _ (inl u) (inr (inr (idp , _))) = ⊥-rec $ ¬<-self u
+<ₛ'-has-all-paths _ _ (inr (inl (idp , _))) (inl v) = ⊥-rec $ ¬<-self v
+<ₛ'-has-all-paths _ _ (inr (inr (idp , _))) (inl v) = ⊥-rec $ ¬<-self v
+<ₛ'-has-all-paths _ _ (inr (inl u)) (inr (inl v)) =
+  ap (inr ∘ inl) $ prop-path (×-level ℕ-id-is-prop <-is-prop) u v
+<ₛ'-has-all-paths _ _ (inr (inl (idp , u))) (inr (inr (_ , idp , _))) =
+  ⊥-rec $ ¬<-self u
+<ₛ'-has-all-paths _ _ (inr (inr (idp , idp , _))) (inr (inl (_ , v))) =
+  ⊥-rec $ ¬<-self v
+<ₛ'-has-all-paths _ _ (inr (inr u)) (inr (inr v)) =
+  ap (inr ∘ inr) $
+    prop-path (×-level ℕ-id-is-prop (×-level ℕ-id-is-prop <-is-prop)) u v
+  -- Should probably fix the instance search for hlevel witnesses...
+
+-- Use univalence here, probably not necessary, but I haven't checked.
+<ₛ-has-all-paths : (sh sh' : Shape) → has-all-paths (sh <ₛ sh')
+<ₛ-has-all-paths sh sh' =
+  transp has-all-paths (ua (<ₛ'≃<ₛ sh sh')) (<ₛ'-has-all-paths sh sh')
 
 \end{code}
 
