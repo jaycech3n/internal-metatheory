@@ -7,7 +7,7 @@ Restriction of linear cosieves is implemented via "counting factors".
 
 {-# OPTIONS --without-K --rewriting #-}
 
-open import reedy.SimpleSemicategories
+open import reedy.SimpleSemicategories hiding (_∙ₛ_)
 
 module reedy.ShapeCountFactors {ℓₘ} (I : SimpleSemicategory ℓₘ) where
 
@@ -846,11 +846,16 @@ This operation is decreasing with respect to ≤ₛ.
 
 \begin{code}
 
-rstr-≤ₛ-decr :
+  _∙ₛ_ : (sh @ (shape i _ _ _) : Shape) {j : ℕ} (f : hom i j) → Shape
+  _∙ₛ_ (shape i h t s) {j} f = shape j h r rs
+    where r = count-factors i h t s f
+          rs = count-factors-is-shape i h t s f
+
+∙ₛ-≤ₛ :
   (sh @ (shape i h t s) : Shape) {j : ℕ} (f : hom i j)
-  → let cf = count-factors i h t s f in
-    (cfs : is-shape j h cf)
-  → shape j h cf cfs ≤ₛ sh
-rstr-≤ₛ-decr sh f cfs = inr (on-𝑖 (hom-inverse _ _ f))
+  → let r = count-factors i h t s f in
+    {rs : is-shape j h r}
+  → shape j h r rs ≤ₛ sh
+∙ₛ-≤ₛ _ f = inr (on-𝑖 (hom-inverse _ _ f))
 
 \end{code}

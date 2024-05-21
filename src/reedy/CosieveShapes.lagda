@@ -105,6 +105,10 @@ Bounded shapes
 [_]BoundedShape : (b : ℕ) → Type₀
 [ b ]BoundedShape = Σ Shape λ sh → ℎ sh < b
 
+prev-bshape : ∀ {b i h t}
+  → is-shape i h (1+ t) → h < b → [ b ]BoundedShape
+prev-bshape s u = (prev-shape s , u)
+
 -- record [_]BoundedShape (b : ℕ) : Type₀ where
 --   eta-equality
 --   constructor _,_
