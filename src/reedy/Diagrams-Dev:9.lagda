@@ -37,27 +37,29 @@ open TelIndexedTypes univstr
 
 \begin{code}
 
-record Match (b : ℕ) (bsh : [ b ]BoundedShape) : Type (ℓₒ ∪ ℓₘ ∪ ℓₘᴵ)
+record Match (b : ℕ) (bsh₀ : [ b ]BoundedShape) : Type (ℓₒ ∪ ℓₘ ∪ ℓₘᴵ)
 𝔻 : (b : ℕ) → Con
-MF : (b : ℕ) (bsh : [ b ]BoundedShape) → Match b bsh
+MF : (b : ℕ) (bsh₀ : [ b ]BoundedShape) → Match b bsh₀
 
-record Match b bsh where
+record Match b bsh₀ where
   eta-equality
-  field Mᵒ : (bsh' : [ b ]BoundedShape) → bsh' ≤ₛᵇ bsh → Tel (𝔻 b)
+  field Mᵒ : (bsh : [ b ]BoundedShape) → bsh ≤ₛᵇ bsh₀ → Tel (𝔻 b)
 
-  M : (bsh' : [ b ]BoundedShape) → bsh' ≤ₛᵇ bsh → Con
-  M bsh' w = close $ Mᵒ bsh' w
+  M : (bsh : [ b ]BoundedShape) → bsh ≤ₛᵇ bsh₀ → Con
+  M bsh w = close $ Mᵒ bsh w
+
+  -- field Mᵒ-comp : ?
 
   field
     M⃗ :
-      (bsh'@(shape i' h' t' s' , u') : [ b ]BoundedShape)
-      (w : bsh' ≤ₛᵇ bsh)
-      {j : ℕ} (f : hom i' j)
-      → let r = count-factors i' h' t' s' f in
-        (rs : is-shape j h' r)
-      → let rsh = shape j h' r rs , u' in
-        (rw : rsh ≤ₛᵇ bsh)
-      → Sub (M bsh' w) (M rsh rw)
+      (bsh@(shape i h t s , u) : [ b ]BoundedShape)
+      (w : bsh ≤ₛᵇ bsh₀)
+      {j : ℕ} (f : hom i j)
+      → let r = count-factors i h t s f in
+        (rs : is-shape j h r)
+      → let rsh = shape j h r rs , u in
+        (rw : rsh ≤ₛᵇ bsh₀)
+      → Sub (M bsh w) (M rsh rw)
 
 𝔻 O = ◆
 𝔻 (1+ O) = ◆ ∷ U
@@ -65,49 +67,56 @@ record Match b bsh where
   where tot = total-shape-1+ b , ltS
 
 module MF-def₁
-  (bsh : [ 1 ]BoundedShape)
-  (ind : (bsh' : [ 1 ]BoundedShape) → bsh' <ₛᵇ bsh → Match 1 bsh')
+  (bsh₀ : [ 1 ]BoundedShape)
+  (ind : (bsh : [ 1 ]BoundedShape) → bsh <ₛᵇ bsh₀ → Match 1 bsh)
   where
 
-  Mᵒ₁ : (bsh' : [ 1 ]BoundedShape) → bsh' ≤ₛᵇ bsh → Tel (◆ ∷ U)
-  Mᵒ₁ bsh' (inr w) = Match.Mᵒ (ind bsh' w) bsh' (inl idp)
-  Mᵒ₁ (shape i' (1+ h') O s' , ltSR ()) (inl p)
-  Mᵒ₁ (Sh.shape i' .O (1+ t') s' , ltS) (inl idp) =
+  Mᵒ₁ : (bsh : [ 1 ]BoundedShape) → bsh ≤ₛᵇ bsh₀ → Tel (◆ ∷ U)
+  Mᵒ₁ bsh (inr w) = Match.Mᵒ (ind bsh w) bsh (inl idp)
+  Mᵒ₁ (shape i (1+ h) O s , ltSR ()) (inl p)
+  Mᵒ₁ (shape i .O (1+ t) s , ltS) (inl idp) =
     pMᵒ ‣ generic-closed-type-in ◆ [ πₜₑₗ pMᵒ ]
     where
-    pbsh' = prev-bshape s' ltS
-    pMF = ind pbsh' (on-𝑡 ltS)
-    pMᵒ = Match.Mᵒ pMF pbsh' (inl idp)
-     -- ≡ Match.Mᵒ (ind pbsh' (on-𝑡 ltS)) pbsh' (inl idp)
+    pbsh = prev-bshape s ltS
+    pMF = ind pbsh (on-𝑡 ltS)
+    pMᵒ = Match.Mᵒ pMF pbsh (inl idp)
+     -- ≡ Match.Mᵒ (ind pbsh (on-𝑡 ltS)) pbsh (inl idp)
      -- ≡ Mᵒ₁ pbsh' (inr (on-𝑡 ltS))
   Mᵒ₁ (shape i' O O s' , u) (inl p) = •
 
-  M₁ : (bsh' : [ 1 ]BoundedShape) → bsh' ≤ₛᵇ bsh → Con
-  M₁ bsh' w = close $ Mᵒ₁ bsh' w
+  M₁ : (bsh : [ 1 ]BoundedShape) → bsh ≤ₛᵇ bsh₀ → Con
+  M₁ bsh w = close $ Mᵒ₁ bsh w
+
+  -- compatibility :
+  --   (bsh' : [ 1 ]BoundedShape) (v : bsh' <ₛᵇ bsh) (w : bsh' ≤ₛᵇ bsh)
+  --   → ?
+  --   → Mᵒ₁ bsh' (inr ) == Match.Mᵒ mf
 
   M⃗₁ :
-    (bsh'@(shape i' h' t' s' , u') : [ 1 ]BoundedShape)
-    (w : bsh' ≤ₛᵇ bsh)
-    {j : ℕ} (f : hom i' j)
-    → let r = count-factors i' h' t' s' f in
-      (rs : is-shape j h' r)
-    → let rsh = shape j h' r rs , u' in
-      (rw : rsh ≤ₛᵇ bsh)
-    → Sub (M₁ bsh' w) (M₁ rsh rw)
-  M⃗₁ bsh' (inr w) f rs rw = idd {!!} ◦ˢᵘᵇ Match.M⃗ (ind bsh' w) bsh' (inl idp) f rs (∙ₛ-≤ₛ (fst bsh') f)
-  M⃗₁ bsh' (inl idp) f rs rw = {!!}
+    (bsh@(shape i h t s , u) : [ 1 ]BoundedShape)
+    (w : bsh ≤ₛᵇ bsh₀)
+    {j : ℕ} (f : hom i j)
+    → let r = count-factors i h t s f in
+      (rs : is-shape j h r)
+    → let rsh = shape j h r rs , u in
+      (rw : rsh ≤ₛᵇ bsh₀)
+    → Sub (M₁ bsh w) (M₁ rsh rw)
+  M⃗₁ bsh (inr w) f rs (inl x) = {!!}
+  M⃗₁ bsh (inr w) f rs (inr rw) = {!Match.M⃗ (ind bsh w) bsh (inl idp) f rs (∙ₛ-≤ₛ (fst bsh) f)!}
+  -- idd {!!} ◦ˢᵘᵇ Match.M⃗ (ind bsh w) bsh (inl idp) f rs (∙ₛ-≤ₛ (fst bsh) f)
+  M⃗₁ bsh (inl idp) f rs rw = {!!}
 
 open MF-def₁
 
 MF-def :
-  ∀ b (bsh : [ 1+ b ]BoundedShape)
-  → ((bsh' : [ 1+ b ]BoundedShape) → bsh' <ₛᵇ bsh → Match (1+ b) bsh')
-  → Match (1+ b) bsh
-MF-def O bsh ind = record { Mᵒ = Mᵒ₁ bsh ind ; M⃗ = M⃗₁ bsh ind }
-MF-def (1+ b) bsh ind = {!!}
+  ∀ b (bsh₀ : [ 1+ b ]BoundedShape)
+  → ((bsh : [ 1+ b ]BoundedShape) → bsh <ₛᵇ bsh₀ → Match (1+ b) bsh)
+  → Match (1+ b) bsh₀
+MF-def O bsh₀ ind = record { Mᵒ = Mᵒ₁ bsh₀ ind ; M⃗ = M⃗₁ bsh₀ ind }
+MF-def (1+ b) bsh₀ ind = {!!}
 
 MF (1+ b) = wf-ind (Match (1+ b)) (MF-def b) where
   open
-    WellFoundedInduction [ 1+ b ]BoundedShape _<ₛᵇ_ (λ bsh → <ₛᵇ-wf {_} {bsh})
+    WellFoundedInduction [ 1+ b ]BoundedShape _<ₛᵇ_ (λ bsh₀ → <ₛᵇ-wf {_} {bsh₀})
 
 \end{code}
