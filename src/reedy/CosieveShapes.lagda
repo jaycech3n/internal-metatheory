@@ -41,7 +41,7 @@ total-is-shape-1+ i = full-is-shape (1+ i) i
 
 \end{code}
 
-Equality of shapes:
+Equality of shape witnesses.
 
 \begin{code}
 
@@ -55,12 +55,12 @@ instance
   is-shape-id-is-prop : ∀ {i h t} {s s' : is-shape i h t} → is-prop (s == s')
   is-shape-id-is-prop = =-preserves-level is-shape-is-prop
 
-shape=↓ :
+is-shape=↓ :
   ∀ i h {t t'}
   → {s : is-shape i h t} {s' : is-shape i h t'}
   → (p : t == t')
   → s == s' [ is-shape i h ↓ p ]
-shape=↓ i h idp = prop-path is-shape-is-prop _ _
+is-shape=↓ i h idp = prop-path is-shape-is-prop _ _
 
 \end{code}
 
@@ -94,6 +94,14 @@ total-shape : (i : ℕ) → Shape
 total-shape O = shape O O O (O≤ _)
 total-shape (1+ i) = total-shape-1+ i
 
+Shape= :
+  ∀ i h t {s} {s'}
+  → shape i h t s == shape i h t s'
+Shape= i h t = ap (shape i h t) $ is-shape-path _ _
+
+shape=-𝑖= : {sh sh' : Shape} → sh == sh' → 𝑖 sh == 𝑖 sh'
+shape=-𝑖= idp = idp
+
 \end{code}
 
 
@@ -107,24 +115,23 @@ Bounded shapes
 
 prev-bshape : ∀ {b i h t}
   → is-shape i h (1+ t) → h < b → [ b ]BoundedShape
-prev-bshape s u = (prev-shape s , u)
+prev-bshape s u = prev-shape s , u
 
--- record [_]BoundedShape (b : ℕ) : Type₀ where
---   eta-equality
---   constructor _,_
---   field
---     𝑠ℎ : Shape
---     𝑢 : ℎ 𝑠ℎ < b
-
--- open [_]BoundedShape public
-
--- record BoundedShape : Type₀ where
---   eta-equality
---   constructor _፦_
---   field
---     𝑏 : ℕ
---     𝑠ℎ𝑢 : [ 𝑏 ]BoundedShape
-
--- open BoundedShape public
+full-bshape : ∀ {b} i h → h < b → [ b ]BoundedShape
+full-bshape {b} i h u = full-shape i h , u
 
 \end{code}
+
+
+Bundled version; not used.
+
+--```
+record BoundedShape : Type₀ where
+  eta-equality
+  constructor _፦_
+  field
+    𝑏 : ℕ
+    𝑠ℎ𝑢 : [ 𝑏 ]BoundedShape
+
+open BoundedShape public
+--```

@@ -93,51 +93,64 @@ sh <ₛ' sh' = (𝑖 sh < 𝑖 sh')
 
 \begin{code}
 
-<ₛ'-has-all-paths : (sh sh' : Shape) → has-all-paths (sh <ₛ' sh')
-<ₛ'-has-all-paths _ _ (inl u) (inl v) = ap inl (<-has-all-paths u v)
-<ₛ'-has-all-paths _ _ (inl u) (inr (inl (idp , _))) = ⊥-rec $ ¬<-self u
-<ₛ'-has-all-paths _ _ (inl u) (inr (inr (idp , _))) = ⊥-rec $ ¬<-self u
-<ₛ'-has-all-paths _ _ (inr (inl (idp , _))) (inl v) = ⊥-rec $ ¬<-self v
-<ₛ'-has-all-paths _ _ (inr (inr (idp , _))) (inl v) = ⊥-rec $ ¬<-self v
-<ₛ'-has-all-paths _ _ (inr (inl u)) (inr (inl v)) =
-  ap (inr ∘ inl) $ prop-path (×-level ℕ-id-is-prop <-is-prop) u v
-<ₛ'-has-all-paths _ _ (inr (inl (idp , u))) (inr (inr (_ , idp , _))) =
-  ⊥-rec $ ¬<-self u
-<ₛ'-has-all-paths _ _ (inr (inr (idp , idp , _))) (inr (inl (_ , v))) =
-  ⊥-rec $ ¬<-self v
-<ₛ'-has-all-paths _ _ (inr (inr u)) (inr (inr v)) =
-  ap (inr ∘ inr) $
-    prop-path (×-level ℕ-id-is-prop (×-level ℕ-id-is-prop <-is-prop)) u v
-  -- Should probably fix the instance search for hlevel witnesses...
+abstract
+  <ₛ'-has-all-paths : (sh sh' : Shape) → has-all-paths (sh <ₛ' sh')
+  <ₛ'-has-all-paths _ _ (inl u) (inl v) = ap inl (<-has-all-paths u v)
+  <ₛ'-has-all-paths _ _ (inl u) (inr (inl (idp , _))) = ⊥-rec $ ¬<-self u
+  <ₛ'-has-all-paths _ _ (inl u) (inr (inr (idp , _))) = ⊥-rec $ ¬<-self u
+  <ₛ'-has-all-paths _ _ (inr (inl (idp , _))) (inl v) = ⊥-rec $ ¬<-self v
+  <ₛ'-has-all-paths _ _ (inr (inr (idp , _))) (inl v) = ⊥-rec $ ¬<-self v
+  <ₛ'-has-all-paths _ _ (inr (inl u)) (inr (inl v)) =
+    ap (inr ∘ inl) $ prop-path (×-level ℕ-id-is-prop <-is-prop) u v
+  <ₛ'-has-all-paths _ _ (inr (inl (idp , u))) (inr (inr (_ , idp , _))) =
+    ⊥-rec $ ¬<-self u
+  <ₛ'-has-all-paths _ _ (inr (inr (idp , idp , _))) (inr (inl (_ , v))) =
+    ⊥-rec $ ¬<-self v
+  <ₛ'-has-all-paths _ _ (inr (inr u)) (inr (inr v)) =
+    ap (inr ∘ inr) $
+      prop-path (×-level ℕ-id-is-prop (×-level ℕ-id-is-prop <-is-prop)) u v
+    -- Should probably fix the instance search for hlevel witnesses...
 
--- Use univalence here, probably not necessary, but I haven't checked.
+-- Use univalence here, but not necessary.
 <ₛ-has-all-paths : (sh sh' : Shape) → has-all-paths (sh <ₛ sh')
 <ₛ-has-all-paths sh sh' =
   transp has-all-paths (ua (<ₛ'≃<ₛ sh sh')) (<ₛ'-has-all-paths sh sh')
 
 \end{code}
 
+Inequalities.
+
 Need all the following for the recursion in the diagram construction.
 
 \begin{code}
 
 ≤ₛ𝑡 : ∀ {i h t t' s s'} → t' ≤ t → shape i h t' s' ≤ₛ shape i h t s
-≤ₛ𝑡 (inl idp) = inl (ap (shape _ _ _) (is-shape-path _ _))
+≤ₛ𝑡 (inl idp) = inl (Shape= _ _ _)
 ≤ₛ𝑡 (inr u) = inr (on-𝑡 u)
 
 <ₛS𝑡-≤ₛ𝑡 :
   ∀ {i h t s s'} sh
   → sh <ₛ shape i h (1+ t) s
   → sh ≤ₛ shape i h t s'
-<ₛS𝑡-≤ₛ𝑡 sh (on-𝑖 w) = inr (on-𝑖 w)
-<ₛS𝑡-≤ₛ𝑡 .(shape _ _ _ _) (on-ℎ w) = inr (on-ℎ w)
-<ₛS𝑡-≤ₛ𝑡 .(shape _ _ _ _) (on-𝑡 w) = ≤ₛ𝑡 (<S-≤ w)
+<ₛS𝑡-≤ₛ𝑡 _ (on-𝑖 u) = inr (on-𝑖 u)
+<ₛS𝑡-≤ₛ𝑡 _ (on-ℎ u) = inr (on-ℎ u)
+<ₛS𝑡-≤ₛ𝑡 _ (on-𝑡 u) = ≤ₛ𝑡 (<S-≤ u)
 
--- Could/should probably reformulate in terms of bounded shapes
-<ₛ-improper₀-≤ₛ-full :
-  ∀ sh i {s} → ℎ sh < 1 → sh <ₛ shape (1+ i) O O s → sh ≤ₛ full-shape i O
-<ₛ-improper₀-≤ₛ-full (shape i₀ .O t₀ s₀) .i₀ ltS (on-𝑖 ltS) = ≤ₛ𝑡 s₀
-<ₛ-improper₀-≤ₛ-full (shape i₀ h₀ t₀ s₀) i u (on-𝑖 (ltSR w)) = inr (on-𝑖 w)
+<ₛSℎ0-≤ₛℎfull :
+  ∀ {i h s s'} sh
+  → sh <ₛ shape i (1+ h) O s
+  → sh ≤ₛ shape i h (hom-size i h) s'
+<ₛSℎ0-≤ₛℎfull _ (on-𝑖 u) = inr (on-𝑖 u)
+<ₛSℎ0-≤ₛℎfull (shape _ _ _ s) (on-ℎ ltS) = ≤ₛ𝑡 s
+<ₛSℎ0-≤ₛℎfull _ (on-ℎ (ltSR u)) = inr (on-ℎ u)
+
+bdd-<ₛS𝑖00-≤ₛ𝑖bfull :
+  ∀ {b i s s'} (sh : Shape) (u : ℎ sh < 1+ b)
+  → sh <ₛ shape (1+ i) O O s
+  → sh ≤ₛ shape i b (hom-size i b) s'
+bdd-<ₛS𝑖00-≤ₛ𝑖bfull _ _ (on-𝑖 (ltSR v)) = inr (on-𝑖 v)
+bdd-<ₛS𝑖00-≤ₛ𝑖bfull (shape _ _ _ s) ltS (on-𝑖 ltS) = ≤ₛ𝑡 s
+bdd-<ₛS𝑖00-≤ₛ𝑖bfull _ (ltSR u) (on-𝑖 ltS) = inr (on-ℎ u)
 
 \end{code}
 
@@ -169,7 +182,6 @@ rec-of (acc _ rec) = rec
 <ₛ-wf : ∀ {sh} → <ₛ-Acc sh
 <ₛ-wf {shape i h t s} = <ₛ-wf-aux i h t s
 
-
 open WellFoundedInduction Shape _<ₛ_ (λ sh → <ₛ-wf {sh})
   renaming (wf-ind to shape-ind)
   public
@@ -194,7 +206,7 @@ open WellFoundedInduction Shape _<ₛ_ (λ sh → <ₛ-wf {sh})
 Bounded shapes
 --------------
 
-"Unbundled" version.
+Parametrized over a bound b on the shape height.
 
 \begin{code}
 
@@ -213,52 +225,55 @@ _≤ₛᵇ_ : ∀ {b} → [ b ]BoundedShape → [ b ]BoundedShape → Type₀
 
 \end{code}
 
-"Bundled" version. Not used.
 
--- data _>ₛᵇ_ (bsh : BoundedShape) : BoundedShape → Type₀ where
---   on-𝑏 : ∀ {bsh'} → 𝑏 bsh > 𝑏 bsh' → bsh >ₛᵇ bsh'
---   on-𝑠ℎ : ∀ {i' h' t' s'} {u' : h' < 𝑏 bsh}
---           → let sh' = shape i' h' t' s' in
---             𝑠ℎ (𝑠ℎ𝑢 bsh) >ₛ shape i' h' t' s'
---           → bsh >ₛᵇ (𝑏 bsh ፦ sh' , u')
+Bundled version; not used.
 
--- _<ₛᵇ_ : BoundedShape → BoundedShape → Type₀
--- bsh <ₛᵇ bsh' = bsh' >ₛᵇ bsh
+--```
+data _>ₛᵇ_ (bsh : BoundedShape) : BoundedShape → Type₀ where
+  on-𝑏 : ∀ {bsh'} → 𝑏 bsh > 𝑏 bsh' → bsh >ₛᵇ bsh'
+  on-𝑠ℎ : ∀ {i' h' t' s'} {u' : h' < 𝑏 bsh}
+          → let sh' = shape i' h' t' s' in
+            𝑠ℎ (𝑠ℎ𝑢 bsh) >ₛ shape i' h' t' s'
+          → bsh >ₛᵇ (𝑏 bsh ፦ sh' , u')
 
--- <ₛᵇ-Acc = Acc BoundedShape _<ₛᵇ_
+_<ₛᵇ_ : BoundedShape → BoundedShape → Type₀
+bsh <ₛᵇ bsh' = bsh' >ₛᵇ bsh
 
--- <ₛᵇ-wf-aux : ∀ b i h t s u → <ₛᵇ-Acc (b ፦ shape i h t s , u)
--- <ₛᵇ-wf-aux b i h t s u = acc _ (aux b i h t s u)
---   where
---   aux :
---     ∀ b i h t s u bsh'
---     → bsh' <ₛᵇ (b ፦ shape i h t s , u)
---     → <ₛᵇ-Acc bsh'
---   aux (1+ .b') i h t s u (b' ፦ shape i' h' t' s' , u') (on-𝑏 ltS) =
---     <ₛᵇ-wf-aux b' i' h' t' s' u'
---   aux (2+ b) i O t s u bsh' (on-𝑏 (ltSR w)) =
---     aux (1+ b) i O t s (O<S _) bsh' (on-𝑏 w)
---   aux (1+ b) i (1+ h) t s u bsh' (on-𝑏 (ltSR w)) =
---     aux b i h O (O≤ _) (<-cancel-S u) bsh' (on-𝑏 w)
---   aux b (1+ i) h t s u (b ፦ shape i h' t' s' , u') (on-𝑠ℎ (on-𝑖 ltS)) =
---     <ₛᵇ-wf-aux b i h' t' s' u'
---   aux b (1+ i) h t s u bsh'@(b ፦ shape _ h' _ _ , u') (on-𝑠ℎ (on-𝑖 (ltSR w))) =
---     aux b i h' O (O≤ _) u' bsh' (on-𝑠ℎ (on-𝑖 w))
---   aux b i (1+ h) t s u (b ፦ shape i h t' s' , u') (on-𝑠ℎ (on-ℎ ltS)) =
---     <ₛᵇ-wf-aux b i h t' s' u'
---   aux (1+ b) i (1+ h) t s u bsh' (on-𝑠ℎ (on-ℎ (ltSR w))) =
---     aux (1+ b) i h O (O≤ _) (S<-< u) bsh' (on-𝑠ℎ (on-ℎ w))
---   aux b i h (1+ t) s u (b ፦ shape i h t s' , u') (on-𝑠ℎ (on-𝑡 ltS)) =
---     <ₛᵇ-wf-aux b i h t s' u'
---   aux b i h (1+ t) s u bsh' (on-𝑠ℎ (on-𝑡 (ltSR w))) =
---     aux b i h t (prev-is-shape s) u bsh' (on-𝑠ℎ (on-𝑡 w))
+<ₛᵇ-Acc = Acc BoundedShape _<ₛᵇ_
 
--- <ₛᵇ-wf : ∀ {bsh} → <ₛᵇ-Acc bsh
--- <ₛᵇ-wf {b ፦ shape i h t s , u} = <ₛᵇ-wf-aux b i h t s u
+<ₛᵇ-wf-aux : ∀ b i h t s u → <ₛᵇ-Acc (b ፦ shape i h t s , u)
+<ₛᵇ-wf-aux b i h t s u = acc _ (aux b i h t s u)
+  where
+  aux :
+    ∀ b i h t s u bsh'
+    → bsh' <ₛᵇ (b ፦ shape i h t s , u)
+    → <ₛᵇ-Acc bsh'
+  aux (1+ .b') i h t s u (b' ፦ shape i' h' t' s' , u') (on-𝑏 ltS) =
+    <ₛᵇ-wf-aux b' i' h' t' s' u'
+  aux (2+ b) i O t s u bsh' (on-𝑏 (ltSR w)) =
+    aux (1+ b) i O t s (O<S _) bsh' (on-𝑏 w)
+  aux (1+ b) i (1+ h) t s u bsh' (on-𝑏 (ltSR w)) =
+    aux b i h O (O≤ _) (<-cancel-S u) bsh' (on-𝑏 w)
+  aux b (1+ i) h t s u (b ፦ shape i h' t' s' , u') (on-𝑠ℎ (on-𝑖 ltS)) =
+    <ₛᵇ-wf-aux b i h' t' s' u'
+  aux b (1+ i) h t s u bsh'@(b ፦ shape _ h' _ _ , u') (on-𝑠ℎ (on-𝑖 (ltSR w))) =
+    aux b i h' O (O≤ _) u' bsh' (on-𝑠ℎ (on-𝑖 w))
+  aux b i (1+ h) t s u (b ፦ shape i h t' s' , u') (on-𝑠ℎ (on-ℎ ltS)) =
+    <ₛᵇ-wf-aux b i h t' s' u'
+  aux (1+ b) i (1+ h) t s u bsh' (on-𝑠ℎ (on-ℎ (ltSR w))) =
+    aux (1+ b) i h O (O≤ _) (S<-< u) bsh' (on-𝑠ℎ (on-ℎ w))
+  aux b i h (1+ t) s u (b ፦ shape i h t s' , u') (on-𝑠ℎ (on-𝑡 ltS)) =
+    <ₛᵇ-wf-aux b i h t s' u'
+  aux b i h (1+ t) s u bsh' (on-𝑠ℎ (on-𝑡 (ltSR w))) =
+    aux b i h t (prev-is-shape s) u bsh' (on-𝑠ℎ (on-𝑡 w))
 
--- open WellFoundedInduction BoundedShape _<ₛᵇ_ (λ bsh → <ₛᵇ-wf {bsh})
---   renaming (wf-ind to bounded-shape-ind)
---   public
+<ₛᵇ-wf : ∀ {bsh} → <ₛᵇ-Acc bsh
+<ₛᵇ-wf {b ፦ shape i h t s , u} = <ₛᵇ-wf-aux b i h t s u
 
--- _≤ₛᵇ_ : BoundedShape → BoundedShape → Type₀
--- bsh ≤ₛᵇ bsh' = (bsh == bsh') ⊔ (bsh <ₛᵇ bsh')
+open WellFoundedInduction BoundedShape _<ₛᵇ_ (λ bsh → <ₛᵇ-wf {bsh})
+  renaming (wf-ind to bounded-shape-ind)
+  public
+
+_≤ₛᵇ_ : BoundedShape → BoundedShape → Type₀
+bsh ≤ₛᵇ bsh' = (bsh == bsh') ⊔ (bsh <ₛᵇ bsh')
+--```

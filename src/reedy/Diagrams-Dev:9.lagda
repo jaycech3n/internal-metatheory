@@ -72,7 +72,7 @@ module MF-def₁
   where
 
   Mᵒ₁ : (bsh : [ 1 ]BoundedShape) → bsh ≤ₛᵇ bsh₀ → Tel (◆ ∷ U)
-  Mᵒ₁ bsh (inr w) = Match.Mᵒ (ind bsh w) bsh (inl idp)
+  Mᵒ₁ bsh (inr w) = Match.Mᵒ {!ind (predₛᵇ bsh₀)!} bsh {!!}
   Mᵒ₁ (shape i (1+ h) O s , ltSR ()) (inl p)
   Mᵒ₁ (shape i .O (1+ t) s , ltS) (inl idp) =
     pMᵒ ‣ generic-closed-type-in ◆ [ πₜₑₗ pMᵒ ]
@@ -86,11 +86,6 @@ module MF-def₁
 
   M₁ : (bsh : [ 1 ]BoundedShape) → bsh ≤ₛᵇ bsh₀ → Con
   M₁ bsh w = close $ Mᵒ₁ bsh w
-
-  -- compatibility :
-  --   (bsh' : [ 1 ]BoundedShape) (v : bsh' <ₛᵇ bsh) (w : bsh' ≤ₛᵇ bsh)
-  --   → ?
-  --   → Mᵒ₁ bsh' (inr ) == Match.Mᵒ mf
 
   M⃗₁ :
     (bsh@(shape i h t s , u) : [ 1 ]BoundedShape)

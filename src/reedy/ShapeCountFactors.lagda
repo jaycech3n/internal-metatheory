@@ -7,7 +7,7 @@ Restriction of linear cosieves is implemented via "counting factors".
 
 {-# OPTIONS --without-K --rewriting #-}
 
-open import reedy.SimpleSemicategories hiding (_∙ₛ_)
+open import reedy.SimpleSemicategories
 
 module reedy.ShapeCountFactors {ℓₘ} (I : SimpleSemicategory ℓₘ) where
 
@@ -837,25 +837,37 @@ To be written up in the paper.
 
 \end{code}
 
-The restriction of a linear cosieve of shape (i, h, t) along
+
+Cosieve shape restriction
+-------------------------
+
+The restriction rstrₛ of a linear cosieve of shape (i, h, t) along
   f : hom i j
 has shape
   (j, h, count-factors (i, h, t) f).
+We generalize rstrₛ, additionally, over a shape witness.
 
 This operation is decreasing with respect to ≤ₛ.
 
 \begin{code}
 
-  _∙ₛ_ : (sh @ (shape i _ _ _) : Shape) {j : ℕ} (f : hom i j) → Shape
-  _∙ₛ_ (shape i h t s) {j} f = shape j h r rs
-    where r = count-factors i h t s f
-          rs = count-factors-is-shape i h t s f
+-- rstrₛ-aux :
 
-∙ₛ-≤ₛ :
+\end{code}
+
+\begin{code}
+
+rstrₛ :
+  ((shape i h t s) : Shape) {j : ℕ} (f : hom i j)
+  → is-shape j h (count-factors i h t s f)
+  → Shape
+rstrₛ (shape i h t s) {j} f = shape j h (count-factors i h t s f)
+
+rstrₛ-≤ₛ :
   (sh @ (shape i h t s) : Shape) {j : ℕ} (f : hom i j)
   → let r = count-factors i h t s f in
     {rs : is-shape j h r}
-  → shape j h r rs ≤ₛ sh
-∙ₛ-≤ₛ _ f = inr (on-𝑖 (hom-inverse _ _ f))
+  → rstrₛ sh f rs ≤ₛ sh
+rstrₛ-≤ₛ _ f = inr (on-𝑖 (hom-inverse _ _ f))
 
 \end{code}
