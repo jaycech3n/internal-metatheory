@@ -25,6 +25,14 @@ a ◂$ f = f a
 ✶ : ∀ {ℓ} → Lift {j = ℓ} ⊤
 ✶ = lift unit
 
+⊤₁ : Type₁
+⊤₁ = Lift ⊤
+
+instance
+  ⊤₁-level : {n : ℕ₋₂} → has-level n ⊤₁
+  ⊤₁-level {⟨-2⟩} = has-level-in (✶ , λ y → idp)
+  ⊤₁-level {S n} = raise-level n ⊤₁-level
+
 -- Notation for readability
 show_by_ : ∀ {ℓ} (A : Type ℓ) → A → A
 show A by a = a

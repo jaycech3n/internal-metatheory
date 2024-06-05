@@ -3,9 +3,10 @@
 module cwfs.StandardModel where
 
 open import cwfs.CwFs
+open import cwfs.Universe
 
 𝒯 : WildCategory _ _
-WildCategory.Ob 𝒯 = Type₀
+WildCategory.Ob 𝒯 = Type₁
 WildCategoryStructure.wildsemicatstr (WildCategory.wildcatstr 𝒯) = record
   { hom = λ A B → A → B
   ; _◦_ = λ g f a → g (f a)
@@ -15,13 +16,13 @@ WildCategoryStructure.idl (WildCategory.wildcatstr 𝒯) f = idp
 WildCategoryStructure.idr (WildCategory.wildcatstr 𝒯) f = idp
 
 𝒯-ctxstr : ContextStructure 𝒯
-ContextStructure.◆ 𝒯-ctxstr = ⊤
-ContextStructure.◆-terminal 𝒯-ctxstr A = Π-level λ _ → Unit-level
+ContextStructure.◆ 𝒯-ctxstr = ⊤₁
+ContextStructure.◆-terminal 𝒯-ctxstr A = Π-level λ _ → ⊤₁-level
 
 𝒯-tytmstr : TyTmStructure 𝒯
 𝒯-tytmstr = record
   { ctxstr = 𝒯-ctxstr
-  ; Ty = λ A → A → Type₀
+  ; Ty = λ A → A → Type₁
   ; _[_] = λ P f → P ∘ f
   ; [id] = idp
   ; [◦] = idp
@@ -30,8 +31,8 @@ ContextStructure.◆-terminal 𝒯-ctxstr A = Π-level λ _ → Unit-level
   ; [id]ₜ = idp
   ; [◦]ₜ = idp }
 
-𝒰 : CwFStructure 𝒯
-CwFStructure.compstr 𝒰 = record
+𝒞 : CwFStructure 𝒯
+CwFStructure.compstr 𝒞 = record
   { tytmstr = 𝒯-tytmstr
   ; _∷_ = λ A P → Σ A P
   ; π = λ _ → fst
@@ -41,3 +42,10 @@ CwFStructure.compstr 𝒰 = record
   ; βυ = idp
   ; η,, = idp
   ; ,,-◦ = idp }
+
+𝒰 : UniverseStructure 𝒞
+𝒰 = record
+  { U = λ _ → Type₀
+  ; el = λ {A} s → λ a → Lift (s a)
+  ; U[] = idp
+  ; el[] = idp }
