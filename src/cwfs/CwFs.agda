@@ -417,3 +417,67 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         --   =∎
 
   open substitutions public
+
+  private
+    module elementary-properties where -- should maybe reorganize this file and
+                                       -- put this module somewhere earlier
+      section≃Tm :
+        ∀ {Γ} (A : Ty Γ)
+        → (Σ[ σ ﹕ Sub Γ (Γ ∷ A) ] π A ◦ σ == id) ≃ Tm A
+      section≃Tm {Γ} A =
+        Σ[ σ ﹕ Sub Γ (Γ ∷ A) ] π A ◦ σ == id
+          ≃⟨ Σ-emape-dom _ ext-sub-equiv ⟩
+        Σ[ u ﹕ Σ[ σ ﹕ Sub Γ Γ ] Tm (A [ σ ]) ] π A ◦ (fst u ,, snd u) == id
+          ≃⟨ Σ-emap-r (λ u → (pre∙-equiv βπ) ⁻¹) ⟩
+        Σ[ u ﹕ Σ[ σ ﹕ Sub Γ Γ ] Tm (A [ σ ]) ] fst u == id
+        --   ≃⟨ Σ-assoc ⟩
+        -- Σ[ σ ﹕ Sub Γ Γ ] (Tm (A [ σ ]) × (σ == id))
+          ≃⟨ Σ₂-×-comm ⟩
+        Σ[ u ﹕ Σ[ σ ﹕ Sub Γ Γ ] σ == id ] Tm (A [ fst u ])
+          ≃⟨ Σ-contr-dom (pathto-is-contr id) ⟩
+        Tm (A [ id ])
+          ≃⟨ transp-equiv Tm [id] ⟩
+        Tm A ≃∎
+        where
+        e : Tm A → Tm (A [ id ])
+        e a = a [ id ]ₜ
+
+        {-
+          [id] : A[id] == A
+          ! [id] : A == A[id]
+
+          Want : Tm Γ (A[id]) –≃→ Tm Γ A
+        -}
+
+        e-is-equiv : is-equiv e
+        e-is-equiv = is-eq e f e-f f-e
+          where
+          f : Tm (A [ id ]) → Tm A
+          f = transp Tm [id]
+
+          e-f : (a' : Tm (A [ id ])) → e (f a') == a'
+          e-f a' = {!!}
+
+          f-e : (a : Tm A) → f (e a) == a
+          f-e a = {!!}
+
+      is-this-true? : ∀ {Γ} {A : Ty Γ} (a : Tm A) → transp Tm (! [id]) a == a [ id ]ₜ
+      is-this-true? a = {!!}
+
+      module test (Γ : Con) (A : Ty Γ) (a : Tm A) where
+        sect-from-a = <– (section≃Tm A) a
+
+        test : fst (sect-from-a) == (Γ ,,₊ a)
+        test = {!!}
+
+      module test' (Γ : Con) (A : Ty Γ) (σ : Sub Γ (Γ ∷ A)) (s : π A ◦ σ == id) where
+        tm-from-sect = {!–> (section≃Tm A) (σ , s)!}
+
+      -- section→Tm :
+      --   ∀ {Γ} (A : Ty Γ)
+      --   → Σ[ σ ﹕ Sub Γ (Γ ∷ A) ] π A ◦ σ == id
+      --   → Tm A
+      -- section→Tm A = Σ-emapf-dom _ ext-sub-equiv
+      --              ; Σ-fmap-r (λ u → ! βπ ∙_)
+      --              ; Σ-fwd-assoc
+      --              ; {!!}

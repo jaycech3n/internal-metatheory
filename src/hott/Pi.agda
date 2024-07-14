@@ -4,6 +4,10 @@ module hott.Pi where
 
 open import hott.Base public
 
+diagrammatic-comp = _∘_
+infixl 80 diagrammatic-comp
+syntax diagrammatic-comp g f = f ; g
+
 private
   variable ℓ ℓ₁ ℓ₂ ℓ₃ : ULevel
 
