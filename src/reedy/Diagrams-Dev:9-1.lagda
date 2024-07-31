@@ -84,6 +84,30 @@ record Match b bsh₀ where
 𝔻< (2+ b) = 𝔻< (1+ b) ∷ Πₜₑₗ (Match.Mᵒ (MF< (1+ b) tot) tot (inl idp)) U
   where tot = total-shape-1+ b , ltS
 
+
+-- Utility definitions
+
+A₀ : Ty (𝔻< 1)
+A₀ = generic-closed-type-in ◆
+
+-- Not sure if using this will cause issues with termination.
+-- If so, will have to try moving the definition "locally".
+A[1+_] :
+  ∀ (i : ℕ)
+  → let tot = total-shape-1+ i , ltS
+        Mᵒ[1+i] = Match.Mᵒ (MF< (1+ i) tot) tot (inl idp) in
+    Ty (𝔻< (1+ i) ∷ Πₜₑₗ Mᵒ[1+i] U ++ₜₑₗ Mᵒ[1+i] [ π (Πₜₑₗ Mᵒ[1+i] U) ]ₜₑₗ)
+A[1+ i ] =
+  generic- Mᵒ[1+i] -indexed-type
+  where
+  tot = total-shape-1+ i , ltS
+  Mᵒ[1+i] = Match.Mᵒ (MF< (1+ i) tot) tot (inl idp)
+
+π𝔻 : (b' b : ℕ) → b < b' → Sub (𝔻< b') (𝔻< b)
+π𝔻 .(1+ O) O ltS = π U
+π𝔻 .(2+ b) (1+ b) ltS = π _
+π𝔻 (2+ b') b (ltSR u) = π𝔻 (1+ b') b u ◦ˢᵘᵇ π _
+
 \end{code}
 
 
@@ -225,10 +249,7 @@ module MF<1 where
       where bsh≤pbsh₀ = <ₛS𝑡-≤ₛ𝑡 (fst bsh) w
     -- Otherwise, define:
     Mᵒ (shape .i₀ .O .(1+ t₀) .s₀ , ltS) (inl idp) = pMᵒ ‣ A₀ [ πₜₑₗ pMᵒ ]
-      where
-      pMᵒ = Mᵒ[i₀,0,t₀] pbsh₀ (inl idp)
-      A₀ : Ty (𝔻< 1)
-      A₀ = generic-closed-type-in ◆
+      where pMᵒ = Mᵒ[i₀,0,t₀] pbsh₀ (inl idp)
 
     M : ∀ bsh → bsh ≤ₛᵇ bsh₀ → Con
     M bsh w = close $ Mᵒ bsh w
@@ -470,15 +491,13 @@ module MF<2+ (b : ℕ) where
     Mᵒ bsh (inr w) = Mᵒ[i₀,h₀,t₀] bsh bsh≤pbsh₀
       where bsh≤pbsh₀ = <ₛS𝑡-≤ₛ𝑡 (fst bsh) w
 
-    Mᵒ (shape .i₀ h₀ .(1+ t₀) .s₀ , u) (inl idp) =
-      pMᵒ ‣ {!!}
-      where
-      pMᵒ : Tel (𝔻< (2+ b))
-      pMᵒ = Mᵒ[i₀,h₀,t₀] pbsh₀ (inl idp)
+    Mᵒ (shape .i₀ O .(1+ t₀) .s₀ , ltSR u) (inl idp) = -- case h₀ ≡ 0
+      pMᵒ ‣ A₀ [ π𝔻 (2+ b) (1+ h₀) (<-ap-S u) ◦ˢᵘᵇ πₜₑₗ pMᵒ ]
+      where pMᵒ = Mᵒ[i₀,h₀,t₀] pbsh₀ (inl idp)
 
-      -- Need to use "Aₕ₀ : 𝔸ₕ₀";
-      -- but what are their types, which indices exactly?
-      -- 𝔸ₕ₀ : Ty (𝔻)
+    Mᵒ (shape .i₀ (1+ h₀) .(1+ t₀) .s₀ , u) (inl idp) =
+      pMᵒ ‣ A[1+ h₀ ] [ {!!} ]
+      where pMᵒ = Mᵒ[i₀,h₀,t₀] pbsh₀ (inl idp)
 
     M : ∀ bsh → bsh ≤ₛᵇ bsh₀ → Con
     M bsh w = close $ Mᵒ bsh w

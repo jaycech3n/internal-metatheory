@@ -42,18 +42,21 @@ private
     Σ-bwd-assoc : Σ A (λ a → Σ (B a) (C a)) → Σ (Σ A B) (uncurry C)
     Σ-bwd-assoc (a , (b , c)) = ((a , b) , c)
 
-  module equivalences {ℓ₁ ℓ₂} where
-    -- Old:
-    -- Σ-fmap-dom-fwd : {C : B → Type ℓ₃} → Σ B C → Σ A (C ∘ –> e)
-    -- Σ-fmap-dom-fwd {C} (b , c) = <– e b , transp C (! (<–-inv-r e b)) c
+  module equivalences where
+    Σ-emapf-dom-bwd :
+      ∀ {ℓ₁ ℓ₂ ℓ₃} {A : Type ℓ₁} {B : Type ℓ₂} (C : B → Type ℓ₃)
+      → (e : A ≃ B) → Σ B C → Σ A (C ∘ –> e)
+    Σ-emapf-dom-bwd C e (b , c) = <– e b , transp C (! (<–-inv-r e b)) c
 
+    -- In contrast to Σ-emapf-dom-bwd, in what follows we require A and B to be
+    -- in the same universe.
     Σ-emapf-dom :
-      {A B : Type ℓ₁} (C : A → Type ℓ₂)
+      ∀ {ℓ₁ ℓ₂} {A B : Type ℓ₁} (C : A → Type ℓ₂)
       → (e : A ≃ B) → Σ A C → Σ B (C ∘ <– e)
     Σ-emapf-dom C e (a , c)= –> e a , transp C (! (<–-inv-l e a)) c
 
     Σ-emapf-dom-is-equiv :
-      {A B : Type ℓ₁} (C : A → Type ℓ₂)
+      ∀ {ℓ₁ ℓ₂} {A B : Type ℓ₁} (C : A → Type ℓ₂)
       → (e : A ≃ B) → is-equiv (Σ-emapf-dom C e)
     Σ-emapf-dom-is-equiv C e = is-eq f g f-g g-f
       where
@@ -74,16 +77,16 @@ private
             transp!=transport! (<–-inv-l e a)
 
     Σ-emape-dom :
-      {A B : Type ℓ₁} (C : A → Type ℓ₂)
+      ∀ {ℓ₁ ℓ₂} {A B : Type ℓ₁} (C : A → Type ℓ₂)
       → (e : A ≃ B)
       → Σ A C ≃ Σ B (C ∘ <– e)
     Σ-emape-dom C e = Σ-emapf-dom C e , Σ-emapf-dom-is-equiv C e
 
     Σ-contr-dom :
-      {A : Type ℓ₁} {B : A → Type ℓ₂} -- (a₀ : A)
+      ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} -- (a₀ : A)
       → (c : is-contr A) -- ((x : A) → x == a₀)
       → Σ A B ≃ B (contr-center c) -- a₀
-    Σ-contr-dom {A} {B} c@(has-level-in (a₀ , p)) = f , is-eq f g f-g g-f
+    Σ-contr-dom {A = A} {B} c@(has-level-in (a₀ , p)) = f , is-eq f g f-g g-f
       where
       f : Σ A B → B a₀
       f (a , b) = transp! B (p a) b

@@ -67,6 +67,12 @@ transp-family-precomp-equiv {ℓ₁} {ℓ₂} = equiv-induction P d
   d : (A : Type ℓ₁) → P (ide A)
   d A b c = idp
 
+transp-is-equiv :
+  {A : Type ℓ₁} (B : A → Type ℓ₂) {x y : A} (p : x == y)
+  → is-equiv (transp B p)
+transp-is-equiv B p =
+  is-eq _ (transp! B p) (transp-transp! B p) (transp!-transp B p)
+
 -- Version of coe-equiv that doesn't use coe!
 coe-equiv' : {A B : Type ℓ} → A == B → A ≃ B
 coe-equiv' p =

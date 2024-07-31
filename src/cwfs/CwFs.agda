@@ -419,65 +419,49 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
   open substitutions public
 
   private
-    module elementary-properties where -- should maybe reorganize this file and
-                                       -- put this module somewhere earlier
-      section≃Tm :
-        ∀ {Γ} (A : Ty Γ)
-        → (Σ[ σ ﹕ Sub Γ (Γ ∷ A) ] π A ◦ σ == id) ≃ Tm A
-      section≃Tm {Γ} A =
+    module terms-and-sections {Γ} (A : Ty Γ) where
+      -- Should maybe reorganize this file and put this module somewhere earlier
+
+      _`[id]ₜ : Tm A → Tm (A [ id ])
+      a `[id]ₜ = a [ id ]ₜ
+
+      `[id]ₜ=transp : _`[id]ₜ == transp! Tm [id]
+      `[id]ₜ=transp = λ= (λ a → to-transp' [id]ₜ)
+
+      `[id]ₜ-is-equiv : is-equiv _`[id]ₜ
+      `[id]ₜ-is-equiv =
+        transp is-equiv (! `[id]ₜ=transp) (transp-is-equiv Tm (! [id]))
+
+      `[id]ₜ-equiv : Tm A ≃ Tm (A [ id ])
+      `[id]ₜ-equiv = _`[id]ₜ , `[id]ₜ-is-equiv
+
+      section≃Tm : (Σ[ σ ﹕ Sub Γ (Γ ∷ A) ] π A ◦ σ == id) ≃ Tm A
+      section≃Tm =
         Σ[ σ ﹕ Sub Γ (Γ ∷ A) ] π A ◦ σ == id
           ≃⟨ Σ-emape-dom _ ext-sub-equiv ⟩
         Σ[ u ﹕ Σ[ σ ﹕ Sub Γ Γ ] Tm (A [ σ ]) ] π A ◦ (fst u ,, snd u) == id
           ≃⟨ Σ-emap-r (λ u → (pre∙-equiv βπ) ⁻¹) ⟩
         Σ[ u ﹕ Σ[ σ ﹕ Sub Γ Γ ] Tm (A [ σ ]) ] fst u == id
-        --   ≃⟨ Σ-assoc ⟩
-        -- Σ[ σ ﹕ Sub Γ Γ ] (Tm (A [ σ ]) × (σ == id))
           ≃⟨ Σ₂-×-comm ⟩
         Σ[ u ﹕ Σ[ σ ﹕ Sub Γ Γ ] σ == id ] Tm (A [ fst u ])
           ≃⟨ Σ-contr-dom (pathto-is-contr id) ⟩
         Tm (A [ id ])
-          ≃⟨ transp-equiv Tm [id] ⟩
+          ≃⟨ `[id]ₜ-equiv ⁻¹ ⟩
         Tm A ≃∎
-        where
-        e : Tm A → Tm (A [ id ])
-        e a = a [ id ]ₜ
 
-        {-
-          [id] : A[id] == A
-          ! [id] : A == A[id]
+      module section→tm (a : Tm A) where
+        sect-from-a = <– section≃Tm a
 
-          Want : Tm Γ (A[id]) –≃→ Tm Γ A
-        -}
+        sect-from-a-val : sect-from-a == (id ,, a [ id ]ₜ) , βπ ∙ idp
+        sect-from-a-val = idp
 
-        e-is-equiv : is-equiv e
-        e-is-equiv = is-eq e f e-f f-e
-          where
-          f : Tm (A [ id ]) → Tm A
-          f = transp Tm [id]
+        -- The equivalence between sections and terms constructed above has the
+        -- map a ↦ (id ,, a [ id ]ₜ) as the term → section map (the witness of
+        -- commutativity is just Βπ).
+        sect-from-a-val' : sect-from-a == (Γ ,,₊ a) , βπ
+        sect-from-a-val' = pair= idp (∙-unit-r _)
 
-          e-f : (a' : Tm (A [ id ])) → e (f a') == a'
-          e-f a' = {!!}
-
-          f-e : (a : Tm A) → f (e a) == a
-          f-e a = {!!}
-
-      is-this-true? : ∀ {Γ} {A : Ty Γ} (a : Tm A) → transp Tm (! [id]) a == a [ id ]ₜ
-      is-this-true? a = {!!}
-
-      module test (Γ : Con) (A : Ty Γ) (a : Tm A) where
-        sect-from-a = <– (section≃Tm A) a
-
-        test : fst (sect-from-a) == (Γ ,,₊ a)
-        test = {!!}
-
-      module test' (Γ : Con) (A : Ty Γ) (σ : Sub Γ (Γ ∷ A)) (s : π A ◦ σ == id) where
-        tm-from-sect = {!–> (section≃Tm A) (σ , s)!}
-
-      -- section→Tm :
-      --   ∀ {Γ} (A : Ty Γ)
-      --   → Σ[ σ ﹕ Sub Γ (Γ ∷ A) ] π A ◦ σ == id
-      --   → Tm A
-      -- section→Tm A = Σ-emapf-dom _ ext-sub-equiv
-      --              ; Σ-fmap-r (λ u → ! βπ ∙_)
-      --              ; Σ-fwd-assoc
-      --              ; {!!}
+      module tm→section (σ : Sub Γ (Γ ∷ A)) (s : π A ◦ σ == id) where
+        -- For now, we don't care about the normal form of the section → term
+        -- map of the equivalence.
+        -- tm-from-sect = {!–> (section≃Tm) (σ , s) -- C-c C-n ???!}

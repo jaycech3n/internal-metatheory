@@ -183,7 +183,7 @@ record LocallyFiniteSemicategoryStructure {ℓₒ ℓₘ} {Ob : Type ℓₒ}
 
           dec-hom : Dec (Σ[ f ﹕ hom x y ] P (<– e (–> e f)))
           dec-hom = if dec-Fin
-                      (λ  u → inl (fwd-transp-Σ-dom e u))
+                      (λ  u → inl (Σ-emapf-dom-bwd _ e u))
                       (λ ¬u → inr (λ (f , p) → ¬u (–> e f , p)))
 
       _≺?_ : ∀ {x y} → Decidable $ _≺_ {x} {y}
