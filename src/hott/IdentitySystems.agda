@@ -2,6 +2,7 @@
 
 module hott.IdentitySystems where
 
+open import hott.Sigma public
 open import hott.Universes public
 
 -- Based identity systems on a fixed universe 𝒰.
@@ -38,15 +39,38 @@ record is-identity-system {𝒰} {A : 𝒰 ̇ } (a₀ : A) (R : A → 𝒰 ̇ ) 
 
 open is-identity-system
 
+is-identity-system' :
+  ∀ {𝒰} {A : 𝒰 ̇ } (a₀ : A) (R : A → 𝒰 ̇ ) (r₀ : R a₀) → 𝒰 ⁺ ̇
+is-identity-system' {𝒰} {A} a₀ R r₀ =
+  Σ[ IdSJ ﹕ ((P : (x : A) → R x → 𝒰 ̇ ) → P a₀ r₀ → ∀ x r → P x r) ]
+   ( (P : (x : A) → R x → 𝒰 ̇ ) (p₀ : P a₀ r₀) → IdSJ P p₀ a₀ r₀ == p₀ )
+
+-- Here we try to directly show that being an identity system is equivalent to
+-- having contractible total space.
 module _ {𝒰} {A : 𝒰 ̇ } (a₀ : A) (R : A → 𝒰 ̇ ) (r₀ : R a₀) where
-  is-contr-total-space-is-id-sys :
+  is-id-sys-total-space-is-contr :
+    is-identity-system a₀ R r₀ → is-contr (Σ A R)
+  is-id-sys-total-space-is-contr is-ids = total-space-is-contr is-ids
+
+  total-space-is-contr-is-id-sys :
     is-contr (Σ A R) → is-identity-system a₀ R r₀
-  IdSJ (is-contr-total-space-is-id-sys ΣAR-is-contr) P p₀ a r =
+  IdSJ (total-space-is-contr-is-id-sys ΣAR-is-contr) P p₀ a r =
     transp (uncurry P) path p₀
     where
     ΣAR-is-prop = contr-is-prop ΣAR-is-contr
     path = prop-path ΣAR-is-prop (a₀ , r₀) (a , r)
-  IdSJβ (is-contr-total-space-is-id-sys ΣAR-is-contr) p₀ =
-    {!!}
+  IdSJβ (total-space-is-contr-is-id-sys ΣAR-is-contr) {P} p₀ =
+    ap (λ path → transp (uncurry P) path p₀)
+       (prop-path (raise-level _ $ =-preserves-contr ΣAR-is-contr) _ idp)
     where
-    
+    ΣAR-is-prop = contr-is-prop ΣAR-is-contr
+    path = prop-path ΣAR-is-prop (a₀ , r₀) (a₀ , r₀)
+    -- test = =-preserves-level {x = path} {idp} (=-preserves-contr ΣAR-is-contr)
+
+  lem : is-identity-system a₀ R r₀ ≃ is-contr (Σ A R)
+  lem =
+    is-id-sys-total-space-is-contr ,
+    is-eq _ total-space-is-contr-is-id-sys f-g g-f
+    where
+    f-g = λ contr → prop-path is-contr-is-prop _ contr
+    g-f = λ is-ids → {!!}
