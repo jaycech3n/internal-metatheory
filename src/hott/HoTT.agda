@@ -15,6 +15,7 @@ open import hott.PathOver public
 open import hott.Pi public
 open import hott.Prop public
 open import hott.Sigma public
+open import hott.Universes public
 open import hott.WellFounded public
 
 -- Undeveloped:
