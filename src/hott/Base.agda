@@ -16,6 +16,7 @@ open import HoTT
   ; Fin-has-dec-eq to _≟-Fin_
   ; <-dec          to _<?_
   ; ≤-dec          to _≤?_
+  ; Cospan         to TypeCospan
   ) public
 
 infixl 1 _◂$_

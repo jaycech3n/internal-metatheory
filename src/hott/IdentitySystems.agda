@@ -4,6 +4,7 @@ module hott.IdentitySystems where
 
 open import hott.Base public
 open import hott.Sigma public
+open import hott.NType public
 open import hott.Universes public
 
 -- Based identity systems on a fixed universe 𝒰.
@@ -14,7 +15,6 @@ record is-IdS {𝒰} {A : 𝒰 ̇ } (a₀ : A) (R : A → 𝒰 ̇ ) (r₀ : R a�
     IdSJ  : (P : (x : A) → R x → 𝒰 ̇ ) → P a₀ r₀ → ∀ x r → P x r
     IdSJβ : {P : (x : A) → R x → 𝒰 ̇ } (p₀ : P a₀ r₀) → IdSJ P p₀ a₀ r₀ == p₀
 
-  -- The canonical based identity system
   from-= : ∀ x → a₀ == x → R x
   from-= .a₀ idp = r₀
 
@@ -33,6 +33,13 @@ record is-IdS {𝒰} {A : 𝒰 ̇ } (a₀ : A) (R : A → 𝒰 ̇ ) (r₀ : R a�
   fiberwise-= : ∀ x → R x ≃ (a₀ == x)
   fiberwise-= x = to-= x , to-=-ise x
 
+  total-space-is-contr : is-contr (Σ A R)
+  total-space-is-contr =
+    -- Direct proof using J of the identity system R
+    ctr (a₀ , r₀) (uncurry $ IdSJ _ idp)
+    -- Alternatively, by fiberwise equivalence of R with a₀ ==_,
+    -- pathfrom-is-contr a₀ ◂$ transp! is-contr (ua (Σ-emap-r fiberwise-=))
+
 open is-IdS
 
 -- Being an identity system is a proposition on pointed predicates (R, r₀)
@@ -41,7 +48,7 @@ is-IdS-is-prop :
   → is-prop (is-IdS a₀ R r₀)
 is-IdS-is-prop {𝒰} {A} a₀ R r₀ = transp is-prop (ua aux) thus
   where
-  -- Representation of is-IdS as a Σ-type
+  -- Represent is-IdS as a Σ-type
   is-IdS-Σ-rep : 𝒰 ⁺ ̇
   is-IdS-Σ-rep =
     Σ ((P : (x : A) → R x → 𝒰 ̇ ) → P a₀ r₀ → ∀ x r → P x r)
@@ -53,7 +60,7 @@ is-IdS-is-prop {𝒰} {A} a₀ R r₀ = transp is-prop (ua aux) thus
     (λ{ (IdS IdSJ IdSJβ) → IdSJ , λ P → IdSJβ {P}})
     (λ _ → idp) (λ _ → idp)
 
-  -- Two applications of distributivity of Σ over Π
+  -- Two applications of type theoretic AC
   calc :
     is-IdS-Σ-rep
     == ( (P : (x : A) → R x → 𝒰 ̇ ) (p : P a₀ r₀)
@@ -71,7 +78,7 @@ is-IdS-is-prop {𝒰} {A} a₀ R r₀ = transp is-prop (ua aux) thus
     =∎
 
   have : is-contr is-IdS-Σ-rep
-  have = {!!}
+  have = {!!} -- the Σ in the RHS of calc is equivalent to a singleton
 
   thus : is-prop is-IdS-Σ-rep
   thus = {!!}
