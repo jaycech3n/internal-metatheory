@@ -268,3 +268,7 @@ module Nat-instances {n : ℕ} where
   instance
     O<S-inst : O < 1+ n
     O<S-inst = O<S n
+
+  instance
+    S<SS-inst : 1+ n < 2+ n
+    S<SS-inst = ltS
