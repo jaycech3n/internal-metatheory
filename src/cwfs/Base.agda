@@ -52,6 +52,14 @@ record TyTmStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (ls
               → ap Tm [= p ] == ap (Tm ∘ (A [_])) p
       ap[=] idp = idp
 
+      _⁼[_] : ∀ {Γ Δ} {A A' : Ty Δ} (p : A == A') (f : Sub Γ Δ)
+              → A [ f ] == A' [ f ]
+      p ⁼[ f ] = ap _[ f ] p
+
+      _⁼[_]ₜ : ∀ {Γ Δ} {A : Ty Δ} {a a' : Tm A} (p : a == a') (f : Sub Γ Δ)
+              → a [ f ]ₜ == a' [ f ]ₜ
+      p ⁼[ f ]ₜ = ap _[ f ]ₜ p
+
       PathOver-Tm :
         ∀ {Γ} {A A' : Ty Γ} (p : A == A') (t : Tm A) (t' : Tm A') → Type ℓₘ
       PathOver-Tm = PathOver Tm
@@ -74,6 +82,16 @@ record TyTmStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (ls
       coe!ᵀᵐ p = coeᵀᵐ (! p)
 
   open notation public
+
+  module ↓ᵀᵐ-notation where
+    infixl 30 _↓ᵀᵐ_
+    _↓ᵀᵐ_ : ∀ {Γ} {A A' : Ty Γ} → Tm A → A == A' → Tm A'
+    t ↓ᵀᵐ p = coeᵀᵐ p t
+
+    test : ∀ {Γ Δ} {σ τ : Sub Γ Δ} {A : Ty Δ} {a : Tm A}
+           → (e : σ == τ)
+           → ((a [ σ ]ₜ) ↓ᵀᵐ [= e ]) == a [ τ ]ₜ
+    test idp = idp
 
 
 record ComprehensionStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ)

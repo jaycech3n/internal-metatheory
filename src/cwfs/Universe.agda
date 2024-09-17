@@ -9,6 +9,7 @@ record UniverseStructure {ℓₒ ℓₘ} {C : WildCategory ℓₒ ℓₘ} (cwfst
 
   open CwFStructure cwfstr
 
+  -- Bare universe; no type-former respectfulness here.
   field
     U    : ∀ {Γ} → Ty Γ
     el   : ∀ {Γ} → Tm {Γ} U → Ty Γ

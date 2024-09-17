@@ -48,18 +48,25 @@ record CommSq (c : Cospan) (X : Ob) : Type (ℓₒ ∪ ℓₘ) where
 
 \end{code}
 
-Equality of commuting squares
+Equality of commuting squares. The following is actually a characterization
+(proof left to later).
 
 \begin{code}
 
-module _ {c : Cospan} {X : Ob} (𝔖 𝔖' : CommSq c X) where
+module _ {c : Cospan} {X : Ob} where
   open CommSq
-  square= :
-    (eA : mA 𝔖 == mA 𝔖')
-    (eB : mB 𝔖 == mB 𝔖')
-    → γ 𝔖 == (Cospan.f c ∗ₗ eA) ∙ γ 𝔖' ∙ ! (Cospan.g c ∗ₗ eB)
-    → 𝔖 == 𝔖'
+
+  CommSqEq : (𝔖 𝔖' : CommSq c X) → Type _
+  CommSqEq 𝔖 𝔖' =
+    Σ[ eA ﹕ mA 𝔖 == mA 𝔖' ]
+    Σ[ eB ﹕ mB 𝔖 == mB 𝔖' ]
+    (γ 𝔖 == (Cospan.f c ∗ₗ eA) ∙ γ 𝔖' ∙ ! (Cospan.g c ∗ₗ eB))
+
+  square= : ∀ 𝔖 𝔖' → CommSqEq 𝔖 𝔖' → 𝔖 == 𝔖'
   square= = {!!}
+
+  CommSqEq≃CommSq-equality : ∀ 𝔖 𝔖' → CommSqEq 𝔖 𝔖' ≃ (𝔖 == 𝔖')
+  CommSqEq≃CommSq-equality = {!!}
 
 \end{code}
 
@@ -94,6 +101,8 @@ Precomposition of squares with morphisms
 
 \begin{code}
 
+infixl 70 _□_ _□[_]_
+
 _□_ : {c : Cospan} {X Y : Ob} → CommSq c Y → hom X Y → CommSq c X
 square mA mB γ □ m = square (mA ◦ m) (mB ◦ m) (! α ∙ (γ ∗ᵣ m) ∙ α)
 
@@ -101,3 +110,4 @@ _□[_]_ : {c : Cospan} {Y : Ob} → CommSq c Y → (X : Ob) → hom X Y → Com
 𝔓 □[ X ] m = 𝔓 □ m
 
 \end{code}
+

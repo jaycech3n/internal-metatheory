@@ -110,7 +110,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       coeᵀᵐ-[]ₜ-stable idp a f = idp
 
       coeᵀᵐ[]ₜ : ∀ {Γ Δ} {A A' : Ty Δ} (p : A == A') (a : Tm A) (f : Sub Γ Δ)
-        → (coeᵀᵐ p a) [ f ]ₜ == coeᵀᵐ (ap (_[ f ]) p) (a [ f ]ₜ)
+        → (coeᵀᵐ p a) [ f ]ₜ == coeᵀᵐ (p ⁼[ f ]) (a [ f ]ₜ)
       coeᵀᵐ[]ₜ idp _ _ = idp
 
       υ-,, : ∀ {Γ} (A : Ty Γ) (a : Tm A)

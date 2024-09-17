@@ -62,16 +62,17 @@ module approach2
     {- This one (only?) works because we can "go to the bottom" and define
     tm-to-ℕ directly by recursion, without mutual recursion with any of the
     other functions F, ty or tm. In particular, the target *type* of this
-    function does not refer to any of the other mutually defined functions. -}
+    function is not defined using the values of any of the other mutually
+    defined functions. -}
 
     tm-to-ℕ O = 0
     tm-to-ℕ (1+ O) = 1
     tm-to-ℕ (2+ n) = tm-to-ℕ (1+ n) + tm-to-ℕ n
 
-    test-ty : fst (F 5) == ((((Fin 1 × Fin 2) × Fin 2) × Fin 3) × Fin 4) × Fin 6
+    test-ty : fst (F 6) == (((((Fin 1 × Fin 2) × Fin 2) × Fin 3) × Fin 4) × Fin 6) × Fin 9
     test-ty = idp
 
-    test-tm : snd (F 5) == (((((0 , 1) , 1) , 2) , 3) , 5)
+    test-tm : snd (F 6) == (((((0 , 1) , 1) , 2) , 3) , 5) , 8
     test-tm = idp
 
     {- In other words, does this work because in some sense all we're doing is

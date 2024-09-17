@@ -3,6 +3,7 @@
 module cwfs.StandardModel where
 
 open import cwfs.CwFs
+open import cwfs.Pi
 open import cwfs.Universe
 
 𝒯 : WildCategory _ _
@@ -43,9 +44,19 @@ CwFStructure.compstr 𝒞 = record
   ; η,, = idp
   ; ,,-◦ = idp }
 
+𝒫 : PiStructure 𝒞
+𝒫 = record
+  { Π′ = λ P Q a → (((p : P a) → Q (a , p)) :> Type₁)
+  ; λ′ = curry
+  ; app = uncurry
+  ; βΠ′ = λ f → idp
+  ; ηΠ′ = λ f → idp
+  ; Π′[] = idp
+  ; λ′[]ₜ = idp }
+
 𝒰 : UniverseStructure 𝒞
 𝒰 = record
   { U = λ _ → Type₀
-  ; el = λ {A} s → λ a → Lift (s a)
+  ; el = λ s a → Lift (s a)
   ; U[] = idp
   ; el[] = idp }

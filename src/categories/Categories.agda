@@ -32,6 +32,14 @@ record WildCategoryStructure ℓₒ ℓₘ (Ob : Type ℓₒ) : Type (lsuc (ℓ�
               → idd q ◦ idd p == idd (p ∙ q)
       idd-◦ idp q = idr (idd q)
 
+    module whiskering {x y} (f g : hom x y) where
+        ∗ᵣid∙ρ : (p : f == g) → (p ∗ᵣ id) ∙ idr g == idr f ∙ p
+        ∗ᵣid∙ρ idp = ! (∙-unit-r _)
+
+        id∗ₗ∙λ : (p : f == g) → (id ∗ₗ p) ∙ idl g == idl f ∙ p
+        id∗ₗ∙λ idp = ! (∙-unit-r _)
+
+
   open IdArrows public
 
 record WildCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ ∪ ℓₘ)) where
@@ -40,3 +48,8 @@ record WildCategory ℓₒ ℓₘ : Type (lsuc (ℓₒ ∪ ℓₘ)) where
     wildcatstr : WildCategoryStructure ℓₒ ℓₘ Ob
 
   open WildCategoryStructure wildcatstr public
+
+to-wildsemicat : ∀ {ℓₒ ℓₘ} → WildCategory ℓₒ ℓₘ → WildSemicategory ℓₒ ℓₘ
+to-wildsemicat C =
+  record { Ob = Ob ; wildsemicatstr = wildsemicatstr }
+  where open WildCategory C
