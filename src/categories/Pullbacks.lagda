@@ -70,3 +70,11 @@ pb-UP-is-pb : ∀ c P 𝔓 → pb-UP c P 𝔓 → is-pb c P 𝔓
 pb-UP-is-pb c p 𝔓 = –> $ pb-properties-equiv c p 𝔓
 
 \end{code}
+
+If 𝒞 is set-based or univalent, the type of pullbacks on a cospan is a set.
+
+\begin{code}
+
+
+
+\end{code}

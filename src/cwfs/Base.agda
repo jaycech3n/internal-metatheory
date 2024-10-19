@@ -40,17 +40,38 @@ record TyTmStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (ls
 
   private
     module notation where
+      -- Coercing terms to equal terms in equal types
+      coeᵀᵐ : ∀ {Γ} {A A' : Ty Γ} → A == A' → Tm A → Tm A'
+      coeᵀᵐ p = transp Tm p
+
+      coe!ᵀᵐ : ∀ {Γ} {A A' : Ty Γ} → A == A' → Tm A' → Tm A
+      coe!ᵀᵐ p = coeᵀᵐ (! p)
+
+      PathOver-Tm :
+        ∀ {Γ} {A A' : Ty Γ} (p : A == A') (t : Tm A) (t' : Tm A') → Type ℓₘ
+      PathOver-Tm = PathOver Tm
+      syntax PathOver-Tm p t t' = t == t' over⟨ p ⟩
+
+      infixl 35 _↓ᵀᵐ_
+      _↓ᵀᵐ_ : ∀ {Γ} {A A' : Ty Γ} → Tm A → A == A' → Tm A'
+      t ↓ᵀᵐ p = coeᵀᵐ p t
+
       ![◦] : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε}
              → A [ g ] [ f ] == A [ g ◦ f ]
       ![◦] = ! [◦]
 
-      [=_] : ∀ {Γ Δ} {f f' : Sub Γ Δ} {A : Ty Δ}
+      ![◦]ₜ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε} {t : Tm A}
+              → t [ g ]ₜ [ f ]ₜ == t [ g ◦ f ]ₜ over⟨ ![◦] ⟩
+      ![◦]ₜ = !ᵈ [◦]ₜ
+
+      [=_] : ∀ {Γ Δ} {A : Ty Δ} {f f' : Sub Γ Δ}
              → f == f' → A [ f ] == A [ f' ]
       [=_] {A = A} = ap (A [_])
 
-      ap[=] : ∀ {Γ Δ} {f f' : Sub Γ Δ} {A : Ty Δ} (p : f == f')
-              → ap Tm [= p ] == ap (Tm ∘ (A [_])) p
-      ap[=] idp = idp
+      [=_]ₜ :
+        ∀ {Γ Δ} {A : Ty Δ} {t : Tm A} {f f' : Sub Γ Δ} (p : f == f')
+        → t [ f ]ₜ == t [ f' ]ₜ over⟨ [= p ] ⟩
+      [= idp ]ₜ = idp
 
       _⁼[_] : ∀ {Γ Δ} {A A' : Ty Δ} (p : A == A') (f : Sub Γ Δ)
               → A [ f ] == A' [ f ]
@@ -60,38 +81,17 @@ record TyTmStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (ls
               → a [ f ]ₜ == a' [ f ]ₜ
       p ⁼[ f ]ₜ = ap _[ f ]ₜ p
 
-      PathOver-Tm :
-        ∀ {Γ} {A A' : Ty Γ} (p : A == A') (t : Tm A) (t' : Tm A') → Type ℓₘ
-      PathOver-Tm = PathOver Tm
-      syntax PathOver-Tm p t t' = t == t' over⟨ p ⟩
+      ap[=] : ∀ {Γ Δ} {f f' : Sub Γ Δ} {A : Ty Δ} (p : f == f')
+              → ap Tm [= p ] == ap (Tm ∘ (A [_])) p
+      ap[=] idp = idp
 
-      ![◦]ₜ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε} {t : Tm A}
-              → t [ g ]ₜ [ f ]ₜ == t [ g ◦ f ]ₜ over⟨ ![◦] ⟩
-      ![◦]ₜ = !ᵈ [◦]ₜ
-
-      [=_]ₜ :
-        ∀ {Γ Δ} {f f' : Sub Γ Δ} {A : Ty Δ} {t : Tm A} (p : f == f')
-        → t [ f ]ₜ == t [ f' ]ₜ over⟨ [= p ] ⟩
-      [= idp ]ₜ = idp
-
-      -- Coercing terms to equal terms in equal types
-      coeᵀᵐ : ∀ {Γ} {A A' : Ty Γ} → A == A' → Tm A → Tm A'
-      coeᵀᵐ p = transp Tm p
-
-      coe!ᵀᵐ : ∀ {Γ} {A A' : Ty Γ} → A == A' → Tm A' → Tm A
-      coe!ᵀᵐ p = coeᵀᵐ (! p)
+      -- bad name
+      transp[=] : ∀ {Γ Δ} {f f' : Sub Γ Δ} {A : Ty Δ} {a : Tm (A [ f ])}
+             → (p : f == f')
+             → transp (Tm ∘ (A [_])) p a == a ↓ᵀᵐ [= p ]
+      transp[=] idp = idp
 
   open notation public
-
-  module ↓ᵀᵐ-notation where
-    infixl 30 _↓ᵀᵐ_
-    _↓ᵀᵐ_ : ∀ {Γ} {A A' : Ty Γ} → Tm A → A == A' → Tm A'
-    t ↓ᵀᵐ p = coeᵀᵐ p t
-
-    test : ∀ {Γ Δ} {σ τ : Sub Γ Δ} {A : Ty Δ} {a : Tm A}
-           → (e : σ == τ)
-           → ((a [ σ ]ₜ) ↓ᵀᵐ [= e ]) == a [ τ ]ₜ
-    test idp = idp
 
 
 record ComprehensionStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ)

@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --allow-unsolved-metas #-}
 
 module cwfs.CwFs where
 
@@ -96,7 +96,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
   private
     module equalities where
       βυ' : ∀ {Γ Δ} {f : Sub Γ Δ} {A : Ty Δ} {t : Tm (A [ f ])}
-            → υ A [ f ,, t ]ₜ == coeᵀᵐ (! [= βπ ] ∙ [◦]) t
+            → υ A [ f ,, t ]ₜ == t ↓ᵀᵐ (! [= βπ ] ∙ [◦])
       βυ' {t = t} =
         to-transp' βυ
         ∙ ap (λ p → coeᵀᵐ p t)
@@ -109,6 +109,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         → a [ f ]ₜ == (coeᵀᵐ p a) [ f ]ₜ over⟨ p |in-ctx _[ f ] ⟩
       coeᵀᵐ-[]ₜ-stable idp a f = idp
 
+      -- Same as above
       coeᵀᵐ[]ₜ : ∀ {Γ Δ} {A A' : Ty Δ} (p : A == A') (a : Tm A) (f : Sub Γ Δ)
         → (coeᵀᵐ p a) [ f ]ₜ == coeᵀᵐ (p ⁼[ f ]) (a [ f ]ₜ)
       coeᵀᵐ[]ₜ idp _ _ = idp
@@ -123,6 +124,19 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         a [ π A ]ₜ [ Γ ,,₊ a ]ₜ
           =∎↓⟨ <!∙>∙!∙ [◦] [= βπ ] ⟩
 
+      -- Commutativity properties
+      [=]-[◦]-comm :
+        ∀ {Γ Δ Ε} {f f' : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε}
+        → (p : f == f')
+        → [◦] {A = A} ∙ [= p ] == [= g ∗ₗ p ] ∙ [◦]
+      [=]-[◦]-comm idp = ∙-unit-r [◦]
+
+      [=]-[◦]-comm' :
+        ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g g' : Sub Δ Ε} {A : Ty Ε}
+        → (p : g == g')
+        → [◦] {A = A} ∙ ([= p ] ⁼[ f ]) == [= p ∗ᵣ f ] ∙ [◦]
+      [=]-[◦]-comm' idp = ∙-unit-r [◦]
+
       {- Equality of substitutions
 
       An equality of extended substitutions is a pair consisting of an equality
@@ -130,12 +144,14 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       elements.
       -}
       ⟨=_,,_=⟩ :
-        ∀ {Γ Δ} {A : Ty Δ} {f f' : Sub Γ Δ} {t : Tm (A [ f ])} {t' : Tm (A [ f' ])}
+        ∀ {Γ Δ} {A : Ty Δ} {f f' : Sub Γ Δ}
+          {t : Tm (A [ f ])} {t' : Tm (A [ f' ])}
         → (p : f == f')
         → t == t' over⟨ [= p ] ⟩
-        → (f ,, t ) == (f' ,, t')
+        → (f ,, t) == (f' ,, t')
       ⟨= idp ,, idp =⟩ = idp
 
+      -- For convenience
       ⟨=,,_=⟩ :
         ∀ {Γ Δ} {A : Ty Δ} {f : Sub Γ Δ} {t t' : Tm (A [ f ])}
         → t == t'
@@ -148,65 +164,67 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
         → (f ,, t) == (f' ,, coeᵀᵐ [= p ] t)
       ⟨= idp ,,=⟩ = idp
 
-      η-sub : ∀ {Γ Δ} {A : Ty Δ} (ϕ : Sub Γ (Δ ∷ A))
-              → ϕ == (π A ◦ ϕ ,, coe!ᵀᵐ [◦] (υ A [ ϕ ]ₜ))
-      η-sub {A = A} ϕ =
-        ϕ
-          =⟨ ! (idl ϕ) ⟩
-        id ◦ ϕ
-          =⟨ ! η,, |in-ctx (_◦ ϕ) ⟩
-        (π A ,, υ A) ◦ ϕ
-          =⟨ ,,-◦ ⟩
-        (π A ◦ ϕ ,, coe!ᵀᵐ [◦] (υ A [ ϕ ]ₜ) )
-          =∎
+      -- This is terrible naming... I need to revamp the name conventions for the
+      -- cwf development.
+      ,,-η : ∀ {Γ Δ} {A : Ty Δ} (ϕ : Sub Γ (Δ ∷ A))
+              → (π A ◦ ϕ ,, coe!ᵀᵐ [◦] (υ A [ ϕ ]ₜ)) == ϕ
+      ,,-η ϕ = ! ,,-◦ ∙ (η,, ∗ᵣ ϕ) ∙ idl ϕ
 
-      sub= : ∀ {Γ Δ} {A : Ty Δ} (f g : Sub Γ (Δ ∷ A))
-        → (p : π A ◦ f == π A ◦ g)
-        → coe!ᵀᵐ [◦] (υ A [ f ]ₜ) == coe!ᵀᵐ [◦] (υ A [ g ]ₜ) over⟨ [= p ] ⟩
-        → f == g
-      sub= {A = A} f g p q = η-sub f ∙ ⟨= p ,, q =⟩ ∙ ! (η-sub g)
+      -- η-sub : ∀ {Γ Δ} {A : Ty Δ} (ϕ : Sub Γ (Δ ∷ A))
+      --         → ϕ == (π A ◦ ϕ ,, coe!ᵀᵐ [◦] (υ A [ ϕ ]ₜ))
+      -- η-sub {A = A} ϕ =
+      --   ϕ
+      --     =⟨ ! (idl ϕ) ⟩
+      --   id ◦ ϕ
+      --     =⟨ ! η,, |in-ctx (_◦ ϕ) ⟩
+      --   (π A ,, υ A) ◦ ϕ
+      --     =⟨ ,,-◦ ⟩
+      --   (π A ◦ ϕ ,, coe!ᵀᵐ [◦] (υ A [ ϕ ]ₜ) )
+      --     =∎
 
-      -- Characterization of substitutions into extended contexts
+      -- sub= : ∀ {Γ Δ} {A : Ty Δ} (f g : Sub Γ (Δ ∷ A))
+      --   → (p : π A ◦ f == π A ◦ g)
+      --   → coe!ᵀᵐ [◦] (υ A [ f ]ₜ) == coe!ᵀᵐ [◦] (υ A [ g ]ₜ) over⟨ [= p ] ⟩
+      --   → f == g
+      -- sub= {A = A} f g p q = η-sub f ∙ ⟨= p ,, q =⟩ ∙ ! (η-sub g)
+
       module _ {Γ Δ : Con} {A : Ty Δ} where
-        ext-sub-equiv :
-          Sub Γ (Δ ∷ A) ≃ (Σ[ σ ﹕ Sub Γ Δ ] Tm (A [ σ ]))
-        ext-sub-equiv =
-          equiv f g h1 h2
+        -- Substitutions into extended contexts are pairs
+        ≃-sub-∷ :
+          (Σ[ σ ﹕ Sub Γ Δ ] Tm (A [ σ ])) ≃ Sub Γ (Δ ∷ A)
+        ≃-sub-∷ = equiv
+          (uncurry _,,_)
+          (λ σ → (π A ◦ σ) , (υ A [ σ ]ₜ ↓ᵀᵐ ![◦]))
+          ,,-η
+          λ{ (σ , a) → pair= βπ (from-transp _ βπ (e σ a)) }
           where
-          f = λ σ → (π A ◦ σ) , coe!ᵀᵐ [◦] (υ A [ σ ]ₜ)
-          g = uncurry _,,_
-          h2 = ! ∘ η-sub
+          e : ∀ σ a → transp (Tm ∘ (A [_])) βπ ((υ A [ σ ,, a ]ₜ) ↓ᵀᵐ ![◦]) == a
+          e σ a = transp[=] βπ
+                ∙ (! $ transp-∙ ![◦] [= βπ ] (υ A [ σ ,, a ]ₜ))
+                ∙ to-transp βυ
 
-          lem : ∀ σ a
-              → transp (Tm ∘ (A [_])) βπ
-                  (coe!ᵀᵐ [◦] (υ A [ σ ,, a ]ₜ))
-                == a
-          lem σ a =
-            (! (ap[=] βπ)
-            |in-ctx (λ ◻ → coe ◻ (coe!ᵀᵐ [◦] (υ A [ σ ,, a ]ₜ)))
-            )
-            ∙ ! (transp-∙ ![◦] [= βπ ] (υ A [ σ ,, a ]ₜ))
-            ∙ to-transp βυ
+        -- Equality of extended substitutions. By ≃-sub-∷, this is a family of
+        -- equivalences.
+        sub= : (f g : Sub Γ (Δ ∷ A))
+          → (p : π A ◦ f == π A ◦ g)
+          → υ A [ f ]ₜ ↓ᵀᵐ ![◦] ∙ [= p ] ∙ [◦] == υ A [ g ]ₜ
+          → f == g
+        sub= f g p q = ! (,,-η f) ∙ ap (uncurry _,,_) (pair= p q') ∙ ,,-η g
+          where
+          q' : (υ A [ f ]ₜ ↓ᵀᵐ ![◦]) == (υ A [ g ]ₜ  ↓ᵀᵐ ![◦]) [ Tm ∘ (A [_]) ↓ p ]
+          q' = from-transp _ p {!q!}
 
-          h1 = λ{(σ , a) → pair= βπ (from-transp _ βπ (lem σ a))}
 
       ext-sub-elim : ∀ {ℓ} {Γ Δ} {A : Ty Δ} (P : Sub Γ (Δ ∷ A) → Type ℓ)
         → ((f : Sub Γ Δ) (t : Tm (A [ f ])) → P (f ,, t))
         → (f : Sub Γ (Δ ∷ A)) → P f
       ext-sub-elim {A = A} P m f =
-        transp P (! (η-sub f)) $ m (π A ◦ f) (coe!ᵀᵐ [◦] (υ A [ f ]ₜ))
+        transp P (,,-η f) $ m (π A ◦ f) (coe!ᵀᵐ [◦] (υ A [ f ]ₜ))
 
       ext-sub-rec : ∀ {ℓ} {Γ Δ} {A : Ty Δ} {B : Type ℓ}
         → ((f : Sub Γ Δ) (t : Tm (A [ f ])) → B)
         → (f : Sub Γ (Δ ∷ A)) → B
       ext-sub-rec {ℓ} {Γ} {Δ} {A} {B} = ext-sub-elim {ℓ} {Γ} {Δ} {A} (λ _ → B)
-
-      -- Commutativity properties
-      [=]-[◦]-comm :
-        ∀ {Γ Δ Ε} {f f' : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε}
-        → (p : f == f')
-        → [◦] {A = A} ∙ [= p ] == [= ap (g ◦_) p ] ∙ [◦]
-      [=]-[◦]-comm idp = ∙-unit-r [◦]
 
   open equalities public
 
@@ -389,7 +407,8 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
 
       -- Commutation law
       []-⟦⟧ : ∀ {Γ Δ} {A : Ty Δ} (B : Ty (Δ ∷ A)) (f : Sub Γ Δ) (a : Tm A)
-              → B [ f ∷ₛ A ] ⟦ a [ f ]ₜ ⟧ == B ⟦ a ⟧ [ f ]
+              -- → B [ f ∷ₛ A ] ⟦ a [ f ]ₜ ⟧ == B ⟦ a ⟧ [ f ]
+              → B [ f ∷ₛ A ] [ id ,, a [ f ]ₜ [ id ]ₜ ] == B [ id ,, a [ id ]ₜ ] [ f ]
       []-⟦⟧ B f a = ! [◦] ∙ ! [= ,,₊-comm f a ] ∙ [◦]
 
       -- Coercing to equal substitutions
@@ -438,7 +457,7 @@ record CwFStructure {ℓₒ ℓₘ} (C : WildCategory ℓₒ ℓₘ) : Type (lsu
       section≃Tm : (Σ[ σ ﹕ Sub Γ (Γ ∷ A) ] π A ◦ σ == id) ≃ Tm A
       section≃Tm =
         Σ[ σ ﹕ Sub Γ (Γ ∷ A) ] π A ◦ σ == id
-          ≃⟨ Σ-emape-dom _ ext-sub-equiv ⟩
+          ≃⟨ Σ-emape-dom _ (≃-sub-∷ ⁻¹) ⟩
         Σ[ u ﹕ Σ[ σ ﹕ Sub Γ Γ ] Tm (A [ σ ]) ] π A ◦ (fst u ,, snd u) == id
           ≃⟨ Σ-emap-r (λ u → (pre∙-equiv βπ) ⁻¹) ⟩
         Σ[ u ﹕ Σ[ σ ﹕ Sub Γ Γ ] Tm (A [ σ ]) ] fst u == id

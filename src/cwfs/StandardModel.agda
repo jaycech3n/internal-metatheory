@@ -27,7 +27,7 @@ ContextStructure.◆-terminal 𝒯-ctxstr A = Π-level λ _ → ⊤₁-level
   ; _[_] = λ P f → P ∘ f
   ; [id] = idp
   ; [◦] = idp
-  ; Tm = λ {A} P → (a : A) → P a
+  ; Tm = λ {A} P → Π A P
   ; _[_]ₜ = λ g f → g ∘ f
   ; [id]ₜ = idp
   ; [◦]ₜ = idp }
@@ -60,3 +60,12 @@ CwFStructure.compstr 𝒞 = record
   ; el = λ s a → Lift (s a)
   ; U[] = idp
   ; el[] = idp }
+
+module StdModelHasCoherences where
+  open CwFStructure 𝒞
+
+  𝒞-has-???-coh :
+    ∀ {Γ Δ} {A : Ty Δ} {f : Sub Γ (Δ ∷ A)}
+    → π A ∗ₗ ,,-η f
+      == βπ {A = A} {υ A [ f ]ₜ ↓ᵀᵐ ![◦] {f = f} {g = π A} {A}}
+  𝒞-has-???-coh = idp

@@ -17,8 +17,8 @@ record WildCategoryStructure ℓₒ ℓₘ (Ob : Type ℓₒ) : Type (lsuc (ℓ�
     module IdArrows where
       -- idtoiso for wild cats
       idd : ∀ {x y} → x == y → hom x y
-      idd idp = id
-      -- idd {x} {y} p = transp (hom x) p id
+      -- idd idp = id
+      idd {x} {y} p = transp (hom x) p id
 
       iddl : ∀ {x y z} (p : y == z) (σ : hom x y)
              → idd p ◦ σ == transp (hom x) p σ
@@ -32,12 +32,18 @@ record WildCategoryStructure ℓₒ ℓₘ (Ob : Type ℓₒ) : Type (lsuc (ℓ�
               → idd q ◦ idd p == idd (p ∙ q)
       idd-◦ idp q = idr (idd q)
 
+      idd-sec : ∀ {x y} (p : x == y) → idd (! p) ◦ idd p == id
+      idd-sec idp = idl _ -- or idr _
+
+      idd-ret : ∀ {x y} (p : x == y) → idd p ◦ idd (! p) == id
+      idd-ret idp = idr _ -- or idl _
+
     module whiskering {x y} (f g : hom x y) where
         ∗ᵣid∙ρ : (p : f == g) → (p ∗ᵣ id) ∙ idr g == idr f ∙ p
-        ∗ᵣid∙ρ idp = ! (∙-unit-r _)
+        ∗ᵣid∙ρ idp = ! (∙-unit-r (idr f))
 
         id∗ₗ∙λ : (p : f == g) → (id ∗ₗ p) ∙ idl g == idl f ∙ p
-        id∗ₗ∙λ idp = ! (∙-unit-r _)
+        id∗ₗ∙λ idp = ! (∙-unit-r (idl f))
 
 
   open IdArrows public

@@ -27,3 +27,10 @@ module _ {A : Type ℓ₁} {n : ℕ₋₂} where
   Π-level2 : {B : A → A → Type ℓ₂}
     → ((a a' : A) → has-level n (B a a')) → has-level n ((a a' : A) → B a a')
   Π-level2 h = Π-level (λ a → Π-level (λ a' → h a a'))
+
+module _ {A : Type ℓ} ⦃ A-set : is-set A ⦄ {x y : A} where
+  set-equality-is-prop : is-prop (x == y)
+  set-equality-is-prop = has-level-apply-instance
+
+  set-equality-has-all-paths : (p q : x == y) → p == q
+  set-equality-has-all-paths = prop-path set-equality-is-prop

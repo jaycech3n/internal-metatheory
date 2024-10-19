@@ -19,6 +19,25 @@ last-two (_ , b , c) = b , c
   → ¬ ((p : Σ A B) → C (fst p) (snd p))
 ¬uncurry ¬f g = ¬f $ curry g
 
+-- Ad-hoc equality principles
+module _ {ℓ ℓ' ℓ″} {A : Type ℓ} {B : A → Type ℓ'} {C : A → Type ℓ″} where
+  Σ×= :
+    ∀ {a a' : A} {b : B a} {c : C a} {b' : B a'} {c' : C a'}
+    → (p : a == a')
+    → b == b' [ B ↓ p ]
+    → c == c' [ C ↓ p ]
+    → (a , b , c) == (a' , b' , c') :> (Σ A λ a → B a × C a)
+  Σ×= idp idp idp = idp
+
+  ×ΣΣ= :
+    ∀ {a₁ a₂ a₁' a₂' : A} {b : B a₁} {c : C a₂} {b' : B a₁'} {c' : C a₂'}
+    → (p₁ : a₁ == a₁')
+    → b == b' [ B ↓ p₁ ]
+    → (p₂ : a₂ == a₂')
+    → c == c' [ C ↓ p₂ ]
+    → ((a₁ , b) , a₂ , c) == ((a₁' , b') , a₂' , c') :> (Σ A B) × (Σ A C)
+  ×ΣΣ= idp idp idp idp = idp
+
 private
   module triples {ℓ₁ ℓ₂ ℓ₃}
     {A : Type ℓ₁} {B : A → Type ℓ₂} {C : {a : A} (b : B a) → Type ℓ₃}
@@ -86,7 +105,7 @@ private
       ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} -- (a₀ : A)
       → (c : is-contr A) -- ((x : A) → x == a₀)
       → Σ A B ≃ B (contr-center c) -- a₀
-    Σ-contr-dom {A = A} {B} c@(has-level-in (a₀ , p)) = f , is-eq f g f-g g-f
+    Σ-contr-dom {A = A} {B} c@(has-level-in (a₀ , p)) = equiv f g f-g g-f
       where
       f : Σ A B → B a₀
       f (a , b) = transp! B (p a) b

@@ -24,7 +24,7 @@ fibers, i.e. if (𝔓 □[ X ]_) is a family of fst-contracted maps.
 \begin{code}
 
 is-semi-pb : (c : Cospan) (P : Ob) → CommSq c P → Type (ℓₒ ∪ ℓₘ)
-is-semi-pb c P 𝔓 = (X : Ob) → fst-contracted (𝔓 □[ X ]_)
+is-semi-pb c P 𝔓 = (X : Ob) → fst-contr (𝔓 □[ X ]_)
 
 semi-pb-UP : (c : Cospan) (P : Ob) → CommSq c P → Type (ℓₒ ∪ ℓₘ)
 semi-pb-UP c P 𝔓 =

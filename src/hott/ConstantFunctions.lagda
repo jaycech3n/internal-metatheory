@@ -9,6 +9,7 @@ module hott.ConstantFunctions where
 
 open import hott.Base public
 open import hott.NType public
+open import hott.Pi
 open import hott.Sigma
 open import hott.Unit
 
@@ -74,8 +75,48 @@ notation, since for each fiber φ⁻¹(b) there is a distinct function
 
 -- We define fst-contracted for functions. This should be more useful in general
 -- since a fst-contracted type has to be a Σ-type.
-fst-contracted : ∀ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'} (f : A → B) → Type (ℓ ∪ ℓ')
-fst-contracted {B = B} f = (b : B) → (hfiber f b) is-contracted-by fst
+module _ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'} where
+  fst-contr : (f : A → B) → Type (ℓ ∪ ℓ')
+  fst-contr f = (b : B) → (hfiber f b) is-contracted-by fst
+
+  fst-contr-inj : {f : A → B} → fst-contr f →  is-inj f
+  fst-contr-inj {f} fc a a' p = snd H (a , idp) ∙ ! (snd H (a' , (! p)))
+    where H = fc (f a)
+
+  fst-contr-ret : {f : A → B} → fst-contr f →  is-retraction f
+  fst-contr-ret = fst ∘_
+
+  inj-ret-fst-contr : (f : A → B) → is-inj f → is-retraction f → fst-contr f
+  inj-ret-fst-contr f inj ret b =
+    f⁻¹b , λ{ (a , p) → inj a (fst f⁻¹b) (p ∙ ! (snd f⁻¹b)) }
+    where f⁻¹b = ret b
+
+module _
+  {ℓ ℓ' ℓ″} {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ″}
+  (f : A → B) (g : B → C)
+  where
+
+  fst-contr-2-of-3-precomp : fst-contr (g ∘ f) → fst-contr g → fst-contr f
+  fst-contr-2-of-3-precomp gfc gc b =
+    (a , fst-contr-inj gc _ _ gfa=gb) , λ{ (a' , p) → snd Hgf (a' , ap g p) }
+    where
+    Hgf = gfc (g b)
+    a = fst (fst Hgf)
+    gfa=gb = snd (fst Hgf)
+
+  fst-contr-2-of-3-postcomp : fst-contr (g ∘ f) → fst-contr f → fst-contr g
+  fst-contr-2-of-3-postcomp gfc fc =
+    inj-ret-fst-contr g
+      (λ b b' p →
+        let H = fst-contr-ret fc b
+            H' = fst-contr-ret fc b'
+            a = fst H ; a' = fst H'
+            p' = snd H ; p″ = snd H'
+        in ! p' ∙ ap f (fst-contr-inj gfc _ _ (ap g p' ∙ p ∙ ! (ap g p″))) ∙ p″)
+      (λ c →
+        let H = gfc c
+            a = fst (fst H)
+        in f a , snd (fst H))
 
 \end{code}
 
