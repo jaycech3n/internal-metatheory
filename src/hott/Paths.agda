@@ -5,7 +5,7 @@ module hott.Paths where
 open import hott.Base public
 
 private
-  variable {ℓ ℓ₁ ℓ₂ ℓ₃} : ULevel
+  variable ℓ ℓ₁ ℓ₂ ℓ₃ : ULevel
 
 transp! : {A : Type ℓ₁} (B : A → Type ℓ₂)
   {x y : A} (p : x == y) → B y → B x

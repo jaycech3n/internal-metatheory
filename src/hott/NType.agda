@@ -5,7 +5,7 @@ module hott.NType where
 open import hott.Base public
 
 private
-  variable {ℓ ℓ₁ ℓ₂ ℓ₃} : ULevel
+  variable ℓ ℓ₁ ℓ₂ ℓ₃ : ULevel
 
 ctr : {A : Type ℓ} (a : A) → ((x : A) → a == x) → is-contr A
 ctr = curry has-level-in

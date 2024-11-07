@@ -9,7 +9,7 @@ open import reedy.SimpleSemicategories
 
 module reedy.ShapeOrder:1 {ℓₘ} (I : SimpleSemicategory ℓₘ) where
 
-open import hott.Induction
+open import hott.WellFounded
 open import reedy.CosieveShapes I
 
 open SimpleSemicategory I
