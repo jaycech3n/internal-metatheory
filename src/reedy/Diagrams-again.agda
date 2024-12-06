@@ -51,7 +51,13 @@ F O = record
     }
   ; M⃗ = shape-ind _ λ
     { (shape i h O s) M⃗ u f → id
-    ; (shape i h (1+ t) s) M⃗ u f → {!!}
+    ; (shape i h (1+ t) s) M⃗ u f → {!
+      -- Now we need to arrange for the type of this hole, which is in terms of
+      -- the induction hypothesis, to compute to the right thing depending on
+      -- whether or not f divides [t] : hom i h.
+      -- Also need to do so in a way that termination-checks, but for now I'm
+      -- willing to cut this corner.
+      !}
     }
   }
 
