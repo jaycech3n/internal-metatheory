@@ -49,6 +49,40 @@ count-factors-aux i h t u f (inl yes) =
 
 \end{code}
 
+Cosieve shape restriction
+-------------------------
+
+The restriction rstrₛ of a linear cosieve of shape (i, h, t) along
+  f : hom i j
+has shape
+  (j, h, count-factors (i, h, t) f).
+We generalize rstrₛ′, additionally, over a shape witness.
+
+This operation is decreasing with respect to ≤ₛ.
+
+\begin{code}
+
+-- rstrₛ-aux :
+
+\end{code}
+
+\begin{code}
+
+rstrₛ′ :
+  ((shape i h t s) : Shape) {j : ℕ} (f : hom i j)
+  → is-shape j h (count-factors i h t s f)
+  → Shape
+rstrₛ′ (shape i h t s) {j} f = shape j h (count-factors i h t s f)
+
+rstrₛ′-≤ₛ :
+  (sh @ (shape i h t s) : Shape) {j : ℕ} (f : hom i j)
+  → let r = count-factors i h t s f in
+    {rs : is-shape j h r}
+  → rstrₛ′ sh f rs ≤ₛ sh
+rstrₛ′-≤ₛ _ f = inr (on-𝑖 (hom-inverse _ _ f))
+
+\end{code}
+
 Equality.
 
 \begin{code}
@@ -631,6 +665,15 @@ typechecking reasons.
 
 \end{code}
 
+Instantiate rstrₛ′ with canonical proof count-factors-is-shape.
+
+\begin{code}
+
+  rstrₛ : ((shape i h t s) : Shape) {j : ℕ} (f : hom i j) → Shape
+  rstrₛ sh@(shape i h t s) f = rstrₛ′ sh f (count-factors-is-shape i h t s f)
+
+\end{code}
+
 * Lemma 6.34 (12.02.2024)
 
 \begin{code}
@@ -837,37 +880,3 @@ To be written up in the paper.
 
 \end{code}
 
-
-Cosieve shape restriction
--------------------------
-
-The restriction rstrₛ of a linear cosieve of shape (i, h, t) along
-  f : hom i j
-has shape
-  (j, h, count-factors (i, h, t) f).
-We generalize rstrₛ, additionally, over a shape witness.
-
-This operation is decreasing with respect to ≤ₛ.
-
-\begin{code}
-
--- rstrₛ-aux :
-
-\end{code}
-
-\begin{code}
-
-rstrₛ :
-  ((shape i h t s) : Shape) {j : ℕ} (f : hom i j)
-  → is-shape j h (count-factors i h t s f)
-  → Shape
-rstrₛ (shape i h t s) {j} f = shape j h (count-factors i h t s f)
-
-rstrₛ-≤ₛ :
-  (sh @ (shape i h t s) : Shape) {j : ℕ} (f : hom i j)
-  → let r = count-factors i h t s f in
-    {rs : is-shape j h r}
-  → rstrₛ sh f rs ≤ₛ sh
-rstrₛ-≤ₛ _ f = inr (on-𝑖 (hom-inverse _ _ f))
-
-\end{code}

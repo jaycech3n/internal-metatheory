@@ -25,7 +25,7 @@ module reedy.Diagrams {ℓₘᴵ ℓₒ ℓₘ}
 
 open SimpleSemicategory I
 open import reedy.Cosieves I
-open Cosieves-StrictlyOriented I-strictly-oriented
+-- open Cosieves-StrictlyOriented I-strictly-oriented
 
 open CwFStructure cwfstr renaming (_◦_ to _◦ˢᵘᵇ_ ; ass to assˢᵘᵇ)
 open PiStructure pistr

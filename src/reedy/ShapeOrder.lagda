@@ -18,6 +18,7 @@ open SimpleSemicategory I
 \end{code}
 
 
+
 Lexicographic order on shapes
 -----------------------------
 

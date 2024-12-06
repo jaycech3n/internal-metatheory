@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --termination-depth=4 #-}
 
 open import reedy.SimpleSemicategories
 open import cwfs.CwFs
@@ -31,20 +31,28 @@ open import cwfs.Telescopes cwfstr
 open Πₜₑₗ pistr
 open TelIndexedTypes univstr
 
-PCl : ℕ → Con
-Mᵒ : (i h t : ℕ) (s : is-shape i h t) → Tel (PCl h)
-M⃗ : (i h t : ℕ) (s : is-shape i h t) {j : ℕ} (f : hom i j)
-     → let r = count-factors i h t s f
-           rs = count-factors-is-shape i h t s f
-       in Sub (close $ Mᵒ i h t s) (close $ Mᵒ j h r rs)
-Mfunc : (i h t : ℕ) (s : is-shape i h t)
-        {j : ℕ} (f : hom i j)
-        {k : ℕ} (g : hom j k)
-        → let r = count-factors i h t s f
-              rs = count-factors-is-shape i h t s f
-          in idd {!ap ()!} ◦ᶜ M⃗ i h t s (g ◦ f) == M⃗ j h r rs g ◦ᶜ M⃗ i h t s f
+record Data (b : ℕ) : Type (ℓₘᴵ ∪ ℓₒ ∪ ℓₘ) where
+  field
+    𝔻 : (h : ℕ) → h ≤ b → Con
+    M : (sh : Shape) → (u : ℎ sh ≤ b) → Tel (𝔻 (ℎ sh) u)
+    M⃗ :
+      (sh : Shape) (u : ℎ sh ≤ b)
+      {j : ℕ} (f : hom (𝑖 sh) j)
+      → Sub (close $ M sh u) (close $ M (rstrₛ sh f) u)
+    -- ...
 
-PCl = {!!}
-Mᵒ = {!!}
-M⃗ = {!!}
-Mfunc i h t s f g = {!!}
+F : (b : ℕ) → Data b
+
+F O = record
+  { 𝔻 = λ _ _ → ◆
+  ; M = shape-ind _ λ
+    { (shape i h O s) M u → •
+    ; (shape i h (1+ t) s) M u → M (shape i h t (prev-is-shape s)) (on-𝑡 ltS) u ‣ U
+    }
+  ; M⃗ = shape-ind _ λ
+    { (shape i h O s) M⃗ u f → id
+    ; (shape i h (1+ t) s) M⃗ u f → {!!}
+    }
+  }
+
+F (1+ b) = {!!}
